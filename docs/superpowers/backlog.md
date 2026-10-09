@@ -15,7 +15,6 @@ l'historique de ce qui a été tranché, et pourquoi.
 - **Changer l'alias du dossier ACMEBAT** : il date d'avant le suffixe `.chronos@foxugly.com`.
   Il reçoit toujours ; la page Paramètres le signale. L'enregistrer à nouveau impose le format
   (Chronos ajoute le nouveau dans Exchange puis retire l'ancien).
-- **Sentry** : le projet `chronos-backend` et le paramètre SSM `SENTRY_DSN` manquent.
 - **UptimeRobot** : un moniteur HTTPS sur `https://chronos.foxugly.com/health/` (mot-clé `"ok"`).
 - **`OPERATIONS.md`** (dépôt `foxugly-ops`) : ligne d'inventaire, rôle `chronos-deploy` dans la
   table du §3.11 — et Facilitation, qui y manque aussi.
@@ -58,9 +57,10 @@ Constaté en production (47 évènements importés) par une analyse en lecture s
 
 ### Monitoring de Chronos
 
-- **Sentry** : créer `chronos-backend` (org `foxugly-srl`, de.sentry.io), mettre `SENTRY_DSN` (et
-  `SENTRY_ENVIRONMENT=production`) dans `/chronos/prod`, redémarrer `chronos-env-fetch` puis
-  `chronos-gunicorn`. Le code est prêt (`sentry-sdk`, sans données personnelles).
+- ~~Sentry~~ **fait le 2026-10-09** : projet `chronos-backend` (créé par le propriétaire — les
+  membres ne peuvent pas créer de projet dans l'org), `SENTRY_DSN` (SecureString) dans
+  `/chronos/prod`, message de test reçu (CHRONOS-BACKEND-1, résolu). Environnement `production`,
+  sans données personnelles, sans traces de performance.
 - **UptimeRobot** : moniteur HTTPS mot-clé `"ok"` sur `https://chronos.foxugly.com/health/`, 300 s —
   dans le tableau de bord (pas d'API sur le plan gratuit).
 
