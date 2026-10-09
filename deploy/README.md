@@ -145,6 +145,10 @@ Rotation d'un secret : `systemctl restart chronos-env-fetch` **puis** `systemctl
 
 ## 6. Microsoft 365
 
+**Tout ce qui suit, plus SSM et l'activation sur la machine, est scripté dans
+`deploy/m365-setup.ps1`** (PowerShell 7, compte administrateur Microsoft 365) :
+`.\deploy\m365-setup.ps1 -BoiteImport <boîte> -Expediteur <boîte>`. Le détail reste ci-dessous.
+
 Deux applications Entra distinctes de celles de PushIT — Chronos ne détient jamais un secret
 d'une autre application.
 
