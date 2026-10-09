@@ -630,7 +630,9 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
 - **Backups**: `manage.py sauvegarder` handles PostgreSQL too (`pg_dump --format=custom`, read back with
   `pg_restore --list`, password via `PGPASSWORD` env only), run by `chronos-sauvegarde.timer`.
   Off-box copy (S3) is not set up — the fleet has no convention yet.
-- **CI runs on PostgreSQL 16 / Python 3.12** with production settings (`.github/workflows/ci.yml`);
+- **CI runs on PostgreSQL 16 / Python 3.12** with production settings (`.github/workflows/ci.yml`),
+  image pulled from `public.ecr.aws/docker/library/postgres:16` — Docker Hub's anonymous rate limit
+  failed the CI before any test on 2026-10-09;
   deploy is the fleet's OIDC → SSM model (`deploy.yml`), units and nginx installed from the committed
   git blob. `.gitattributes` forces LF for everything under `deploy/` and `.github/`.
 - `manage.py verifier_integrite`: counts + SHA-256 of every document; run on both sides of a transfer.
@@ -673,8 +675,11 @@ left out — read `backlog.md` first, it is the most current of the four.
 
 **Lots L1 to L6 are done, plus the temporal-precision work, the robustness + backup lot of
 2026-10-08, and on 2026-10-09 the go-live and the email-import work** (layers as events, the
-« Relever les courriels » button, alias suffix). The suite is at **652 tests**, green, with no
-pending migrations (latest: `0019_event_transfert_de`). Delivered: a shared `base.html` with navbar and logout,
+« Relever les courriels » button, alias suffix), and on 2026-10-10 better reply/forward linking
+(Exchange `ATT` suites, every quoted block, content match for a forward whose header was lost) and
+`Event.destinataires`, back-filled in production by `relier_courriels --recalculer --appliquer`
+(26 replies and 4 forwards linked, 47 events with recipients). The suite is at **688 tests**, green,
+with no pending migrations (latest: `0021_destinataires`). Delivered: a shared `base.html` with navbar and logout,
 `404.html` / `500.html`, the event form as a modal (page version kept as the no-JavaScript
 fallback), a Quill rich-text editor sanitised server-side by nh3 (`events/sanitize.py`), four views
 (chronology, month, week, list — the last three render without JavaScript), content-hash
@@ -701,5 +706,7 @@ What is deliberately **not** done, and recorded in `backlog.md` (section « Ouve
   on purpose: on an evidence set, deleting a file nobody can currently explain is the worse error.
   (Documents removed *through the application* do have their file deleted — see invariant 4.)
 - Production follow-ups (owner's side or fleet-wide): Sentry is wired since 2026-10-09
-  (`chronos-backend`) and UptimeRobot watches `/health/`; `OPERATIONS.md` (repo `foxugly-ops`) does not list Chronos,
-  no off-box backup (S3), HSTS sent twice (Django and nginx).
+  (`chronos-backend`) and UptimeRobot watches `/health/`; `OPERATIONS.md` (repo `foxugly-ops`) lists
+  Chronos since 2026-10-09. Still open: no off-box backup (S3 — the owner declined to pursue it,
+  2026-10-10), HSTS sent twice (Django and nginx), and `chronos-gunicorn` lacks the hardening block
+  of `OPERATIONS.md §3.22` (fleet backlog #17).
