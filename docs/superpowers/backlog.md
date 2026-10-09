@@ -68,7 +68,8 @@ Constaté en production (47 évènements importés) par une analyse en lecture s
 - ~~Facilitation → Redis db6~~ **fait le 2026-10-09** (SSM puis redémarrage ; Celery connecté à
   db6). Même jour : son API passe sous gunicorn (8011), daphne ne garde que `/ws/`, et
   `NUM_PROXIES = 1` ferme le contournement des limites par `X-Forwarded-For`.
-- **poker et pushit partagent Redis db3** (`REDIS_URL` de poker, `CELERY_RESULT_BACKEND` de pushit).
+- ~~poker et pushit partagent Redis db3~~ **corrigé le 2026-10-09** : les résultats Celery de pushit
+  passent en db7 (SSM puis redémarrage ; pushit ne les relit jamais). Prochaine base libre : db8.
 - **Mémoire** : swap occupé à 1,47 Go sur 2 Go, 960 Mo disponibles après la séparation
   daphne/gunicorn de Facilitation (gunicorn + daphne ≈ 325 Mo). À surveiller.
 
