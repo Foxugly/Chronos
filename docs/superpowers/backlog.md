@@ -17,7 +17,9 @@ l'historique de ce qui a été tranché, et pourquoi.
   (Chronos ajoute le nouveau dans Exchange puis retire l'ancien).
 - **`OPERATIONS.md`** (dépôt `foxugly-ops`) : ligne d'inventaire, rôle `chronos-deploy` dans la
   table du §3.11 — et Facilitation, qui y manque aussi.
-- **Copie hors machine des sauvegardes** (S3) : la flotte n'a pas encore de convention.
+- **Sauvegardes : décision du propriétaire (2026-10-09), ne plus en parler.** L'hébergement AWS est jugé
+  suffisant pour un usage non commercial : pas de copie hors machine, pas de vérification de la
+  première sauvegarde PostgreSQL. `chronos-sauvegarde.timer` tourne quand même chaque nuit.
 - **HSTS envoyé deux fois** (Django et nginx, durées différentes) : en retirer un.
 - **Échéances** : secret de l'application « Chronos » et certificat « Chronos Exchange »
   expirent le **2028-10-09** (relancer `deploy/m365-setup.ps1`).
