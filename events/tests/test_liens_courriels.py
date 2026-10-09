@@ -302,3 +302,25 @@ class EncodageExchangeTests(SimpleTestCase):
         texte = corps_en_texte(lire(brut))
         self.assertIn("Envoyé : lundi 28 septembre 2026 20:29", texte)
         self.assertNotIn("�", texte)
+
+
+class BlocAvecLignesVidesTests(SimpleTestCase):
+    def test_une_ligne_vide_entre_de_et_envoye_ne_coupe_pas_le_bloc(self):
+        """n° 12 du dossier réel : « De : … », ligne vide, « Envoyé : … »."""
+        from events.liens import citations
+
+        texte = ("Voir ci-dessous.\n\nDe : ACME Bat <contact@acme-bat.example>\n\n"
+                 "Envoyé : lundi 28 septembre 2026 20:29\nÀ : Jean <jdupont@exemple.be>\n"
+                 "Objet : Mise en demeure\n\nNous vous mettons en demeure.")
+        (couche,) = analyser_en_couches(courriel("RE: Mise en demeure", texte, de=MOI, a=ACME_BAT).as_bytes(),
+                                        ignorer=[ALIAS])
+        (cite,) = citations(couche)
+        self.assertEqual(cite.moment, datetime.datetime(2026, 9, 28, 20, 29, tzinfo=BRUXELLES))
+
+    def test_un_bloc_suivi_d_un_paragraphe_reste_un_bloc_court(self):
+        from events.courriels import _bloc_de_transfert
+
+        texte = ("De : A <a@x.be>\nEnvoyé : lundi 28 septembre 2026 20:29\nObjet : X\n\n"
+                 "Date : le paragraphe suivant n'est pas un en-tête de ce bloc.")
+        _commentaire, champs, suite = _bloc_de_transfert(texte)
+        self.assertEqual(champs["objet"], "X")

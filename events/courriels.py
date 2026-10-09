@@ -282,11 +282,23 @@ def _bloc_de_transfert(texte):
         if not m or m.group(1).lower() not in LIBELLES["de"]:
             continue
         champs, j = {}, i
-        while j < len(lignes) and j < i + 8:
+        while j < len(lignes) and j < i + 12:
             m2 = LIGNE_DE_BLOC.match(lignes[j])
             if not m2:
+                complet = "date" in champs and ("objet" in champs or "a" in champs)
                 if lignes[j].strip() == "" and champs:
-                    break
+                    # Une ligne vide *dans* un bloc encore incomplet (Outlook converti
+                    # depuis le HTML : « De : … », ligne vide, « Envoyé : … ») ne le
+                    # termine pas si la suivante est un champ d'en-tête. Un bloc complet,
+                    # lui, s'arrête : un courrier peut commencer par « Objet : … ».
+                    if complet:
+                        break
+                    k = j + 1
+                    while k < len(lignes) and lignes[k].strip() == "":
+                        k += 1
+                    suivante = LIGNE_DE_BLOC.match(lignes[k]) if k < len(lignes) else None
+                    if not (suivante and any(suivante.group(1).lower() in l for l in LIBELLES.values())):
+                        break
                 j += 1
                 continue
             cle = m2.group(1).lower()
