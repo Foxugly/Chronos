@@ -369,6 +369,13 @@ Mail forwarded to that alias lands in an Exchange Online mailbox; `manage.py imp
 (`events/graph.py`, client credentials, stdlib only — Exchange Online refuses password IMAP) and turns
 each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-courriels.md`.
 
+- **Aliases end with a fixed suffix** (`acmebat-a1b2.chronos@foxugly.com`, owner's decision
+  2026-10-09): `forms.suffixe_des_alias()` = `COURRIEL_ALIAS_SUFFIXE` if set, else
+  `.chronos@<domain of COURRIEL_BOITE>`, else none (old behaviour: full address). The form takes
+  the start only (an `input-group` with the suffix); `AliasCourrielForm` enforces it server-side.
+  An alias from before keeps receiving and is flagged on the settings page. Wherever an alias is
+  shown it goes through `_alias_affiche.html`: a `mailto:` link plus a copy button (`data-copier`,
+  handled once in `base.html`).
 - **Anyone who knows the alias can add an event** — the owner's decision (2026-10-09). Mitigations:
   aliases hard to guess, changeable by the owner (journaled), every import journaled with its sender.
 - `events/courriels.py` is pure (bytes in, `Analyse` out) and handles three shapes: **forwarded as

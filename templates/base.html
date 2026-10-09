@@ -144,6 +144,35 @@
 {# lue par `JSON.parse`, jamais évaluée.                                         #}
 {{ langue|json_script:"langue-courante" }}
 {% include "events/_raccourcis_js.html" %}
+<script nonce="{{ csp_nonce }}">
+"use strict";
+// Les boutons « Copier » (`data-copier`, ex. l'alias d'un dossier) : le
+// presse-papiers demande HTTPS ou localhost ; sinon le bouton le dit.
+document.addEventListener("click", function (evenement) {
+    const bouton = evenement.target.closest("[data-copier]");
+    if (!bouton) { return; }
+    const icone = bouton.querySelector("i");
+    const titre = bouton.title;
+    function signaler(classe, texte) {
+        if (icone) { icone.className = "bi " + classe; }
+        bouton.title = texte;
+        bouton.setAttribute("aria-label", texte);
+        setTimeout(function () {
+            if (icone) { icone.className = "bi bi-clipboard"; }
+            bouton.title = titre;
+            bouton.setAttribute("aria-label", titre);
+        }, 2000);
+    }
+    if (!navigator.clipboard) {
+        signaler("bi-x-lg", "{{ _("Copie impossible ici : sélectionnez l'adresse.")|escapejs }}");
+        return;
+    }
+    navigator.clipboard.writeText(bouton.dataset.copier).then(
+        function () { signaler("bi-check2", "{{ _("Copié")|escapejs }}"); },
+        function () { signaler("bi-x-lg", "{{ _("Copie impossible ici : sélectionnez l'adresse.")|escapejs }}"); }
+    );
+});
+</script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

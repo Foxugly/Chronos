@@ -1,0 +1,5 @@
+{% load i18n %}{% comment %}
+L'alias d'un dossier, là où il s'affiche : un lien `mailto:` (pour lui écrire
+ou transférer d'un clic) et un bouton qui le copie (script dans `base.html`).
+Variable attendue : `alias`.
+{% endcomment %}<a href="mailto:{{ alias }}" class="font-monospace text-break">{{ alias }}</a><button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 ms-1 align-baseline d-print-none" data-copier="{{ alias }}" title="{% translate "Copier l'adresse" %}" aria-label="{% translate "Copier l'adresse" %}"><i class="bi bi-clipboard" aria-hidden="true"></i></button>

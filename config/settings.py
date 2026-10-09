@@ -230,6 +230,10 @@ GRAPH_TENANT_ID = os.environ.get("GRAPH_TENANT_ID", "")
 GRAPH_CLIENT_ID = os.environ.get("GRAPH_CLIENT_ID", "")
 GRAPH_CLIENT_SECRET = os.environ.get("GRAPH_CLIENT_SECRET", "")
 COURRIEL_BOITE = os.environ.get("COURRIEL_BOITE", "")
+# Le suffixe imposé aux alias des dossiers (`acmebat-a1b2.chronos@foxugly.com`).
+# Vide : déduit de la boîte d'import (`.chronos@<son domaine>`, `forms.suffixe_des_alias`),
+# pour qu'il ne puisse pas diverger d'elle. SSM ne sert qu'à le remplacer.
+COURRIEL_ALIAS_SUFFIXE = os.environ.get("COURRIEL_ALIAS_SUFFIXE", "")
 
 # Gestion des alias Exchange par l'application (`events/exchange.py`), repris de
 # PushIT : PowerShell 7 + module ExchangeOnlineManagement, application Entra

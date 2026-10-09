@@ -113,7 +113,7 @@ class ParametresTests(TestCase):
     def test_proposal_uses_the_mailbox_domain(self):
         self.client.force_login(self.owner)
         proposition = self.client.get(self.url).context["alias_propose"]
-        self.assertRegex(proposition, r"^salle-de-bain-[0-9a-f]{6}@exemple\.be$")
+        self.assertRegex(proposition, r"^salle-de-bain-[0-9a-f]{6}\.chronos@exemple\.be$")
         self.assertFalse(Dossier.objects.filter(alias_courriel=proposition).exists())
 
     @override_settings(COURRIEL_BOITE="")
@@ -125,3 +125,82 @@ class ParametresTests(TestCase):
         self.client.force_login(self.owner)
         reponse = self.client.get(reverse("dossier_share", args=[self.dossier.pk]))
         self.assertNotContains(reponse, self.url_alias)
+
+
+@override_settings(COURRIEL_BOITE="hello@exemple.be", COURRIEL_ALIAS_SUFFIXE="")
+class AliasSuffixeTests(TestCase):
+    """Les alias finissent tous par `.chronos@<domaine de la boîte>` : on ne
+    saisit que le début, et tout autre domaine est refusé côté serveur."""
+
+    def setUp(self):
+        self.owner = make_user("owner")
+        self.dossier = make_dossier(self.owner, name="ACME Bat")
+        self.url = reverse("dossier_parametres", args=[self.dossier.pk])
+        self.url_alias = reverse("dossier_alias", args=[self.dossier.pk])
+        self.client.force_login(self.owner)
+
+    def poster(self, saisie):
+        reponse = self.client.post(self.url_alias, {"alias_courriel": saisie}, follow=True)
+        self.dossier.refresh_from_db()
+        return reponse
+
+    def test_le_suffixe_se_deduit_de_la_boite(self):
+        from events.forms import suffixe_des_alias
+
+        self.assertEqual(suffixe_des_alias(), ".chronos@exemple.be")
+
+    @override_settings(COURRIEL_ALIAS_SUFFIXE=".dossiers@autre.be")
+    def test_le_suffixe_se_configure(self):
+        from events.forms import suffixe_des_alias
+
+        self.assertEqual(suffixe_des_alias(), ".dossiers@autre.be")
+
+    def test_on_ne_saisit_que_le_debut(self):
+        self.poster(" ACMEBat-a1b2 ")
+        self.assertEqual(self.dossier.alias_courriel, "acmebat-a1b2.chronos@exemple.be")
+
+    def test_l_adresse_complete_avec_le_suffixe_est_acceptee(self):
+        self.poster("acmebat-a1b2.chronos@exemple.be")
+        self.assertEqual(self.dossier.alias_courriel, "acmebat-a1b2.chronos@exemple.be")
+
+    def test_un_autre_domaine_est_refuse(self):
+        reponse = self.poster("acmebat@exemple.be")
+        self.assertIsNone(self.dossier.alias_courriel)
+        self.assertContains(reponse, ".chronos@exemple.be")
+
+    def test_des_caracteres_interdits_sont_refuses(self):
+        for saisie in ("acme bat", "acme.bat", "-acmebat", "acmebat-", "év", "a" * 65):
+            with self.subTest(saisie=saisie):
+                self.poster(saisie)
+                self.assertIsNone(self.dossier.alias_courriel)
+
+    def test_le_formulaire_est_un_input_group_avec_le_suffixe(self):
+        page = self.client.get(self.url).content.decode()
+        self.assertIn('class="input-group', page)
+        self.assertIn('<span class="input-group-text" id="alias-suffixe">.chronos@exemple.be</span>', page)
+
+    def test_la_proposition_porte_le_suffixe(self):
+        proposition = self.client.get(self.url).context["alias_propose"]
+        self.assertRegex(proposition, r"^acme-bat-[0-9a-f]{6}\.chronos@exemple\.be$")
+
+    def test_l_alias_affiche_est_un_lien_mailto_avec_un_bouton_copier(self):
+        self.dossier.alias_courriel = "acmebat-a1b2.chronos@exemple.be"
+        self.dossier.save()
+        for url in (self.url, reverse("dossier_list")):
+            with self.subTest(url=url):
+                page = self.client.get(url).content.decode()
+                self.assertIn('href="mailto:acmebat-a1b2.chronos@exemple.be"', page)
+                self.assertIn('data-copier="acmebat-a1b2.chronos@exemple.be"', page)
+
+    def test_le_champ_reprend_le_debut_de_l_alias_actuel(self):
+        self.dossier.alias_courriel = "acmebat-a1b2.chronos@exemple.be"
+        self.dossier.save()
+        self.assertContains(self.client.get(self.url), 'value="acmebat-a1b2"')
+
+    def test_un_ancien_alias_hors_format_reste_actif_et_signale(self):
+        """L'alias d'avant le suffixe continue de recevoir ; la page invite à le changer."""
+        self.dossier.alias_courriel = "acmebat-1a2b3c@exemple.be"
+        self.dossier.save()
+        page = self.client.get(self.url)
+        self.assertContains(page, 'href="mailto:acmebat-1a2b3c@exemple.be"')
+        self.assertContains(page, "ne suit pas le format")

@@ -1,8 +1,10 @@
+import re
 from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db.models import F
 from django.utils import timezone
 from django import forms
@@ -351,13 +353,35 @@ class ShareLinkForm(forms.ModelForm):
         return timezone.now() + timedelta(days=int(jours))
 
 
+#: Le début d'un alias, avant le suffixe : minuscules, chiffres, tirets internes.
+DEBUT_D_ALIAS = re.compile(r"[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?")
+
+
+def suffixe_des_alias():
+    """Le suffixe de tous les alias : `COURRIEL_ALIAS_SUFFIXE`, sinon
+    `.chronos@<domaine de la boîte d'import>`, sinon rien (pas de boîte
+    configurée : l'alias se saisit en entier, comme avant)."""
+    if settings.COURRIEL_ALIAS_SUFFIXE:
+        return settings.COURRIEL_ALIAS_SUFFIXE.strip().lower()
+    boite = (settings.COURRIEL_BOITE or "").strip().lower()
+    return ".chronos@" + boite.split("@", 1)[1] if "@" in boite else ""
+
+
 class AliasCourrielForm(forms.ModelForm):
     """L'alias de courriel du dossier : vide pour couper l'import.
+
+    Avec un suffixe (`suffixe_des_alias`), on ne saisit que le début ;
+    l'adresse complète est acceptée si elle porte ce suffixe, tout autre
+    domaine est refusé — ici, côté serveur : le formulaire n'est qu'un confort.
 
     L'adresse est normalisée (espaces, minuscules) **avant** la validation :
     normalisée après, « Pris@exemple.be » passait le contrôle d'unicité puis
     heurtait la contrainte de la base à l'enregistrement.
     """
+
+    # Un simple texte : le début seul n'est pas une adresse, et le champ
+    # `EmailField` du modèle le refuserait avant `clean_alias_courriel`.
+    alias_courriel = forms.CharField(required=False, max_length=254)
 
     class Meta:
         model = Dossier
@@ -367,6 +391,19 @@ class AliasCourrielForm(forms.ModelForm):
         alias = (self.cleaned_data.get("alias_courriel") or "").strip().lower()
         if not alias:
             return None
+        suffixe = suffixe_des_alias()
+        if suffixe:
+            debut = alias[:-len(suffixe)] if alias.endswith(suffixe) else alias
+            if "@" in debut:
+                raise ValidationError(
+                    _("L'alias doit se terminer par %(suffixe)s.") % {"suffixe": suffixe})
+            if not DEBUT_D_ALIAS.fullmatch(debut):
+                raise ValidationError(_(
+                    "Le début de l'alias ne peut contenir que des lettres minuscules sans accent, "
+                    "des chiffres et des tirets (64 caractères au plus)."))
+            alias = debut + suffixe
+        else:
+            validate_email(alias)
         boite = (getattr(settings, "COURRIEL_BOITE", "") or "").strip().lower()
         if boite and alias == boite:
             # La boîte elle-même reçoit tout : en faire l'alias d'un dossier

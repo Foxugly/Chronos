@@ -27,6 +27,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from .forms import (
     AliasCourrielForm,
+    suffixe_des_alias,
     DossierAccessForm,
     DossierNomForm,
     EventForm,
@@ -1323,16 +1324,32 @@ def dossier_alias_verifier(request, dossier_id):
     return redirect("dossier_parametres", dossier_id=dossier.pk)
 
 
+def _contexte_du_suffixe(dossier):
+    """Le suffixe à afficher dans le champ, et le début de l'alias actuel.
+
+    Un alias d'avant le suffixe continue de recevoir : il est signalé, le
+    champ reste vide, et l'enregistrer à nouveau impose le format.
+    """
+    suffixe = suffixe_des_alias()
+    alias = dossier.alias_courriel or ""
+    au_format = bool(suffixe) and alias.endswith(suffixe)
+    return {
+        "suffixe_alias": suffixe,
+        "debut_alias": alias[:-len(suffixe)] if au_format else ("" if suffixe else alias),
+        "alias_hors_format": bool(suffixe and alias and not au_format),
+    }
+
+
 def _alias_propose(dossier):
     """Une adresse difficile à deviner, sur le domaine de la boîte d'import.
 
     Rien si la boîte n'est pas configurée : on ne devine pas un domaine.
     """
-    boite = (settings.COURRIEL_BOITE or "").strip().lower()
-    if "@" not in boite:
+    suffixe = suffixe_des_alias()
+    if not suffixe:
         return ""
     debut = slugify(dossier.name)[:20].strip("-") or "dossier"
-    return "%s-%s@%s" % (debut, secrets.token_hex(3), boite.split("@", 1)[1])
+    return "%s-%s%s" % (debut, secrets.token_hex(3), suffixe)
 
 
 def dossier_parametres(request, dossier_id):
@@ -1343,6 +1360,8 @@ def dossier_parametres(request, dossier_id):
     changement est inscrit au journal.
     """
     dossier = get_dossier_for_owner(request.user, dossier_id)
+    propose = "" if dossier.alias_courriel and not _contexte_du_suffixe(dossier)["alias_hors_format"] \
+        else _alias_propose(dossier)
     nom_form = DossierNomForm(instance=dossier)
     if request.method == "POST":
         avant = dossier.name
@@ -1364,7 +1383,9 @@ def dossier_parametres(request, dossier_id):
         "dossier": dossier,
         "nom_form": nom_form,
         "boite": settings.COURRIEL_BOITE,
-        "alias_propose": "" if dossier.alias_courriel else _alias_propose(dossier),
+        **_contexte_du_suffixe(dossier),
+        "alias_propose": propose,
+        "debut_propose": propose[:-len(suffixe_des_alias())] if propose and suffixe_des_alias() else "",
         "exchange_gere": exchange.configure(),
         "etiquettes": dossier.etiquettes.annotate(nombre=Count("evenements")),
     })

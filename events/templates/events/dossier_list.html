@@ -69,7 +69,7 @@ est dans `dossier_list` ; rien ici ne lit les droits.
                                     <p class="small mb-0">
                                         {% if dossier.alias_courriel %}
                                             <i class="bi bi-envelope-check text-success me-1" aria-hidden="true"></i>{% translate "Import par courriel :" %}
-                                            <code class="user-select-all">{{ dossier.alias_courriel }}</code>
+                                            {% include "events/_alias_affiche.html" with alias=dossier.alias_courriel %}
                                         {% else %}
                                             <i class="bi bi-envelope-slash text-body-secondary me-1" aria-hidden="true"></i>
                                             <a class="text-decoration-none" href="{% url 'dossier_parametres' dossier.pk %}">{% translate "Activer l'import par courriel" %}</a>
