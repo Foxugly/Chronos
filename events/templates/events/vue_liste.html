@@ -64,6 +64,22 @@ l'est en connaissance de cause.
                             {% if evenement.etiquettes.all %}
                                 <div class="mt-1">{% for etiquette in evenement.etiquettes.all %}<span class="badge rounded-pill text-bg-light border me-1"><i class="bi bi-tag me-1" aria-hidden="true"></i>{{ etiquette.nom }}</span>{% endfor %}</div>
                             {% endif %}
+                            {% if evenement.lien_transfert_de or evenement.liens_transferts %}
+                                <ul class="list-unstyled small mt-1 mb-0">
+                                    {% with origine=evenement.lien_transfert_de %}
+                                        {% if origine %}
+                                            <li><i class="bi bi-arrow-return-right me-1" aria-hidden="true"></i>{% translate "Transfert de :" %}
+                                                <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token origine.pk %}{% else %}{% url 'event_detail' origine.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>{{ origine.title }}</a>
+                                                <span class="text-body-secondary">({{ origine.periode_affichee }})</span></li>
+                                        {% endif %}
+                                    {% endwith %}
+                                    {% for suite in evenement.liens_transferts %}
+                                        <li><i class="bi bi-forward me-1" aria-hidden="true"></i>{% translate "Transféré ensuite :" %}
+                                            <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token suite.pk %}{% else %}{% url 'event_detail' suite.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>{{ suite.title }}</a>
+                                            <span class="text-body-secondary">({{ suite.periode_affichee }})</span></li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
                             {% if evenement.trouve_dans %}
                                 <div class="small text-body-secondary mt-1 d-print-none">
                                     <i class="bi bi-search me-1" aria-hidden="true"></i>{% translate "Trouvé dans :" %} {{ evenement.trouve_dans|join:", " }}

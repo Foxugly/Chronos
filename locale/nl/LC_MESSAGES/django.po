@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 15:14+0200\n"
+"POT-Creation-Date: 2026-10-09 15:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -84,7 +84,7 @@ msgstr "Ingebrekestelling"
 msgid "Avis d'expert"
 msgstr "Deskundigenadvies"
 
-#: .\events\export.py:178
+#: .\events\export.py:180
 #, python-format
 msgid ""
 "Dossier : %(dossier)s\n"
@@ -122,7 +122,7 @@ msgstr ""
 "de export vergeleken met die van het geëxporteerde bestand: het resultaat\n"
 "staat in chronologie.pdf, onder ‘Integriteitscontrole’.\n"
 
-#: .\events\export.py:197
+#: .\events\export.py:199
 #, python-format
 msgid ""
 "Export partiel : seuls les évènements retenus par cette sélection, et leurs\n"
@@ -131,58 +131,68 @@ msgstr ""
 "Gedeeltelijke export: alleen de gebeurtenissen uit deze selectie, en hun\n"
 "stukken, staan in het archief — %(selection)s.\n"
 
-#: .\events\export.py:201
+#: .\events\export.py:203
 msgid "journal.pdf : le journal des modifications du dossier.\n"
 msgstr "journal.pdf: het logboek van de wijzigingen in het dossier.\n"
 
-#: .\events\export.py:227
+#: .\events\export.py:229
 #, python-format
 msgid "page %(n)s"
 msgstr "pagina %(n)s"
 
-#: .\events\export.py:247 .\events\templates\events\journal.html:13
+#: .\events\export.py:249 .\events\templates\events\journal.html:13
 #, python-format
 msgid "Journal — %(nom)s"
 msgstr "Logboek — %(nom)s"
 
-#: .\events\export.py:248
+#: .\events\export.py:250
 #, python-format
 msgid "Exporté le %(date)s par %(auteur)s."
 msgstr "Geëxporteerd op %(date)s door %(auteur)s."
 
-#: .\events\export.py:261
+#: .\events\export.py:263
 #, python-format
 msgid "lien de partage « %(nom)s »"
 msgstr "deellink ‘%(nom)s’"
 
-#: .\events\export.py:263
+#: .\events\export.py:265
 msgid "import de courriels"
 msgstr "e-mailimport"
 
-#: .\events\export.py:265 .\events\templates\events\journal.html:72
+#: .\events\export.py:267 .\events\templates\events\journal.html:72
 msgid "auteur inconnu"
 msgstr "onbekende auteur"
 
-#: .\events\export.py:267 .\events\models.py:811
+#: .\events\export.py:269 .\events\models.py:811
 #: .\events\templates\events\journal.html:75
 msgid "via l'administration"
 msgstr "via het beheer"
 
-#: .\events\export.py:282 .\events\templates\events\journal.html:120
+#: .\events\export.py:284 .\events\templates\events\journal.html:120
 msgid "Rien n'a encore été inscrit au journal."
 msgstr "Er staat nog niets in het logboek."
 
-#: .\events\export.py:303
+#: .\events\export.py:299
+#, python-format
+msgid "Transfert de : %(titre)s (%(periode)s)"
+msgstr "Doorgestuurd van: %(titre)s (%(periode)s)"
+
+#: .\events\export.py:302
+#, python-format
+msgid "Transféré ensuite : %(titre)s (%(periode)s)"
+msgstr "Later doorgestuurd: %(titre)s (%(periode)s)"
+
+#: .\events\export.py:323
 #, python-format
 msgid "Chronologie exportée le %(date)s par %(auteur)s."
 msgstr "Chronologie geëxporteerd op %(date)s door %(auteur)s."
 
-#: .\events\export.py:305
+#: .\events\export.py:325
 #, python-format
 msgid "%(n)s évènements, %(p)s pièces."
 msgstr "%(n)s gebeurtenissen, %(p)s stukken."
 
-#: .\events\export.py:311
+#: .\events\export.py:331
 #, python-format
 msgid ""
 "Export partiel — sélection : %(selection)s. %(n)s évènement sur %(total)s."
@@ -195,7 +205,7 @@ msgstr[1] ""
 "Gedeeltelijke export — selectie: %(selection)s. %(n)s gebeurtenissen van "
 "%(total)s."
 
-#: .\events\export.py:320
+#: .\events\export.py:340
 #, python-format
 msgid ""
 "Attention : %(n)s pièce(s) ne correspondent plus à l'empreinte enregistrée "
@@ -204,25 +214,29 @@ msgstr ""
 "Let op: %(n)s stuk(ken) komen niet meer overeen met de vingerafdruk die bij "
 "het indienen werd opgeslagen. Zie ‘Integriteitscontrole’."
 
-#: .\events\export.py:325 .\events\views.py:161
+#: .\events\export.py:345 .\events\views.py:161
 msgid "Chronologie"
 msgstr "Chronologie"
 
-#: .\events\export.py:333
+#: .\events\export.py:354
 #, python-format
 msgid "Étiquettes : %(noms)s"
 msgstr "Labels: %(noms)s"
 
-#: .\events\export.py:339
+#: .\events\export.py:358
+msgid "hors de cette sélection"
+msgstr "buiten deze selectie"
+
+#: .\events\export.py:365
 #, python-format
 msgid "Pièce %(numero)s : %(nom)s"
 msgstr "Stuk %(numero)s: %(nom)s"
 
-#: .\events\export.py:346
+#: .\events\export.py:372
 msgid "Contrôle d'intégrité"
 msgstr "Integriteitscontrole"
 
-#: .\events\export.py:348
+#: .\events\export.py:374
 msgid ""
 "Pour chaque pièce, l'empreinte SHA-256 du fichier exporté a été recalculée "
 "et comparée à celle enregistrée lors de son dépôt."
@@ -231,27 +245,27 @@ msgstr ""
 "opnieuw berekend en vergeleken met die welke bij het indienen werd "
 "opgeslagen."
 
-#: .\events\export.py:352 .\events\templates\events\vue_documents.html:46
+#: .\events\export.py:378 .\events\templates\events\vue_documents.html:46
 msgid "N°"
 msgstr "Nr."
 
-#: .\events\export.py:352 .\events\templates\events\vue_documents.html:47
+#: .\events\export.py:378 .\events\templates\events\vue_documents.html:47
 msgid "Pièce"
 msgstr "Stuk"
 
-#: .\events\export.py:352
+#: .\events\export.py:378
 msgid "SHA-256"
 msgstr "SHA-256"
 
-#: .\events\export.py:352
+#: .\events\export.py:378
 msgid "Contrôle"
 msgstr "Controle"
 
-#: .\events\export.py:358
+#: .\events\export.py:384
 msgid "conforme"
 msgstr "in orde"
 
-#: .\events\export.py:358
+#: .\events\export.py:384
 msgid "DIFFÉRENTE"
 msgstr "VERSCHILLEND"
 
@@ -449,7 +463,9 @@ msgstr "Het alias moet eindigen op %(suffixe)s."
 msgid ""
 "Le début de l'alias ne peut contenir que des lettres minuscules sans accent, "
 "des chiffres et des tirets (64 caractères au plus)."
-msgstr "Het begin van het alias mag alleen kleine letters zonder accent, cijfers en koppeltekens bevatten (hoogstens 64 tekens)."
+msgstr ""
+"Het begin van het alias mag alleen kleine letters zonder accent, cijfers en "
+"koppeltekens bevatten (hoogstens 64 tekens)."
 
 #: .\events\forms.py:412
 msgid ""
@@ -498,7 +514,7 @@ msgstr "dossier"
 msgid "dossiers"
 msgstr "dossiers"
 
-#: .\events\models.py:90 .\events\views.py:310
+#: .\events\models.py:90 .\events\views.py:319
 msgid "Lecture"
 msgstr "Lezen"
 
@@ -883,7 +899,7 @@ msgstr "afgewezen dubbele paren"
 msgid "étiquette"
 msgstr "label"
 
-#: .\events\models.py:924 .\events\views.py:1072
+#: .\events\models.py:924 .\events\views.py:1081
 msgid "étiquettes"
 msgstr "labels"
 
@@ -1046,7 +1062,7 @@ msgstr "Annuleren"
 #: .\events\templates\events\_confirmer_suppression.html:54
 #: .\events\templates\events\_detail_evenement.html:38
 #: .\events\templates\events\parametres.html:69
-#: .\events\templates\events\vue_liste.html:81
+#: .\events\templates\events\vue_liste.html:97
 msgid "Supprimer"
 msgstr "Verwijderen"
 
@@ -1056,15 +1072,17 @@ msgid "Importé par courriel — de %(nom)s (%(adresse)s)"
 msgstr "Geïmporteerd per e-mail — van %(nom)s (%(adresse)s)"
 
 #: .\events\templates\events\_detail_evenement.html:36
-#: .\events\templates\events\vue_liste.html:77
+#: .\events\templates\events\vue_liste.html:93
 msgid "Modifier"
 msgstr "Bewerken"
 
 #: .\events\templates\events\_detail_evenement.html:46
+#: .\events\templates\events\vue_liste.html:71
 msgid "Transfert de :"
 msgstr "Doorgestuurd van:"
 
 #: .\events\templates\events\_detail_evenement.html:51
+#: .\events\templates\events\vue_liste.html:77
 msgid "Transféré ensuite :"
 msgstr "Later doorgestuurd:"
 
@@ -1452,7 +1470,7 @@ msgstr "Dossier delen"
 msgid "Personnes ayant accès"
 msgstr "Personen met toegang"
 
-#: .\events\templates\events\dossier_share.html:33 .\events\views.py:309
+#: .\events\templates\events\dossier_share.html:33 .\events\views.py:318
 msgid "Propriétaire"
 msgstr "Eigenaar"
 
@@ -1919,7 +1937,9 @@ msgstr "Huidig adres:"
 msgid ""
 "Cette adresse reçoit toujours, mais ne suit pas le format des alias (…"
 "%(suffixe)s). Enregistrez-en une nouvelle ci-dessous."
-msgstr "Dit adres ontvangt nog steeds, maar volgt het formaat van de aliassen niet (…%(suffixe)s). Sla hieronder een nieuw adres op."
+msgstr ""
+"Dit adres ontvangt nog steeds, maar volgt het formaat van de aliassen niet (…"
+"%(suffixe)s). Sla hieronder een nieuw adres op."
 
 #: .\events\templates\events\parametres.html:131
 msgid "Nouvel alias"
@@ -2044,7 +2064,7 @@ msgid "Déposée le"
 msgstr "Toegevoegd op"
 
 #: .\events\templates\events\vue_documents.html:64
-#: .\events\templates\events\vue_liste.html:69
+#: .\events\templates\events\vue_liste.html:85
 msgid "Trouvé dans :"
 msgstr "Gevonden in:"
 
@@ -2056,7 +2076,7 @@ msgstr "geen gebeurtenis"
 msgid "Ce dossier ne contient encore aucune pièce."
 msgstr "Dit dossier bevat nog geen enkel stuk."
 
-#: .\events\templates\events\vue_liste.html:107
+#: .\events\templates\events\vue_liste.html:123
 msgid "Ce dossier ne contient encore aucun évènement."
 msgstr "Dit dossier bevat nog geen gebeurtenissen."
 
@@ -2099,20 +2119,20 @@ msgstr "Stukken"
 msgid "Semaine du %(date)s"
 msgstr "Week van %(date)s"
 
-#: .\events\views.py:310
+#: .\events\views.py:319
 msgid "Écriture"
 msgstr "Schrijven"
 
-#: .\events\views.py:394
+#: .\events\views.py:403
 #, python-format
 msgid "« %(absorbe)s » a été fusionné dans « %(garde)s »."
 msgstr "‘%(absorbe)s’ is samengevoegd in ‘%(garde)s’."
 
-#: .\events\views.py:405
+#: .\events\views.py:414
 msgid "Ces deux évènements ne seront plus proposés comme doublons."
 msgstr "Deze twee gebeurtenissen worden niet meer als dubbels voorgesteld."
 
-#: .\events\views.py:575
+#: .\events\views.py:584
 #, python-format
 msgid ""
 "Le fichier « %(name)s » n'est pas d'un type accepté. Types acceptés : "
@@ -2121,7 +2141,7 @@ msgstr ""
 "Het bestand ‘%(name)s’ heeft geen toegestaan type. Toegestane types: "
 "%(allowed)s."
 
-#: .\events\views.py:587
+#: .\events\views.py:596
 #, python-format
 msgid ""
 "Le fichier « %(name)s » est trop lourd (%(taille)s Mo). Taille maximale : "
@@ -2130,12 +2150,12 @@ msgstr ""
 "Het bestand ‘%(name)s’ is te groot (%(taille)s MB). Maximale grootte: "
 "%(max)s MB."
 
-#: .\events\views.py:1030
+#: .\events\views.py:1039
 #, python-format
 msgid "Évènement « %(titre)s » supprimé."
 msgstr "Gebeurtenis ‘%(titre)s’ verwijderd."
 
-#: .\events\views.py:1235
+#: .\events\views.py:1244
 #, python-format
 msgid ""
 "Exchange a refusé l'alias %(alias)s : rien n'a été enregistré. Détail : "
@@ -2144,7 +2164,7 @@ msgstr ""
 "Exchange heeft de alias %(alias)s geweigerd: er is niets opgeslagen. Detail: "
 "%(detail)s"
 
-#: .\events\views.py:1252
+#: .\events\views.py:1261
 #, python-format
 msgid ""
 "L'ancien alias %(alias)s n'a pas pu être retiré d'Exchange : retirez-le à la "
@@ -2154,7 +2174,7 @@ msgstr ""
 "hem handmatig. Zijn e-mails maken geen gebeurtenis meer aan. Detail: "
 "%(detail)s"
 
-#: .\events\views.py:1257
+#: .\events\views.py:1266
 #, python-format
 msgid ""
 "Les courriels transférés à %(alias)s deviendront des évènements de ce "
@@ -2163,31 +2183,31 @@ msgstr ""
 "E-mails die naar %(alias)s worden doorgestuurd, worden gebeurtenissen van "
 "dit dossier."
 
-#: .\events\views.py:1259
+#: .\events\views.py:1268
 msgid "Import par courriel désactivé pour ce dossier."
 msgstr "Import per e-mail uitgeschakeld voor dit dossier."
 
-#: .\events\views.py:1279
+#: .\events\views.py:1288
 msgid "Un import est déjà en cours : réessayez dans une minute."
 msgstr "Er loopt al een import: probeer het over een minuut opnieuw."
 
-#: .\events\views.py:1284
+#: .\events\views.py:1293
 #, python-format
 msgid "La boîte n'a pas pu être relevée : %(detail)s"
 msgstr "De mailbox kon niet worden opgehaald: %(detail)s"
 
-#: .\events\views.py:1289
+#: .\events\views.py:1298
 #, python-format
 msgid "%(n)d courriel importé dans ce dossier."
 msgid_plural "%(n)d courriels importés dans ce dossier."
 msgstr[0] "%(n)d e-mail in dit dossier geïmporteerd."
 msgstr[1] "%(n)d e-mails in dit dossier geïmporteerd."
 
-#: .\events\views.py:1292
+#: .\events\views.py:1301
 msgid "Aucun nouveau courriel pour ce dossier."
 msgstr "Geen nieuwe e-mails voor dit dossier."
 
-#: .\events\views.py:1295
+#: .\events\views.py:1304
 msgid ""
 "Certains courriels n'ont pas pu être importés : ils restent dans la boîte de "
 "réception et seront retentés."
@@ -2195,24 +2215,24 @@ msgstr ""
 "Sommige e-mails konden niet worden geïmporteerd: ze blijven in het Postvak "
 "IN en worden opnieuw geprobeerd."
 
-#: .\events\views.py:1298
+#: .\events\views.py:1307
 #, python-format
 msgid "%(n)d courriel importé"
 msgid_plural "%(n)d courriels importés"
 msgstr[0] "%(n)d e-mail geïmporteerd"
 msgstr[1] "%(n)d e-mails geïmporteerd"
 
-#: .\events\views.py:1314
+#: .\events\views.py:1323
 #, python-format
 msgid "Exchange n'a pas pu être interrogé : %(detail)s"
 msgstr "Exchange kon niet worden geraadpleegd: %(detail)s"
 
-#: .\events\views.py:1317
+#: .\events\views.py:1326
 #, python-format
 msgid "L'alias %(alias)s est actif dans Exchange."
 msgstr "De alias %(alias)s is actief in Exchange."
 
-#: .\events\views.py:1321
+#: .\events\views.py:1330
 #, python-format
 msgid ""
 "L'alias %(alias)s n'existe pas dans Exchange : les courriels transférés "
@@ -2221,49 +2241,49 @@ msgstr ""
 "De alias %(alias)s bestaat niet in Exchange: doorgestuurde e-mails worden "
 "geweigerd. Sla hem opnieuw op om hem opnieuw aan te maken."
 
-#: .\events\views.py:1379
+#: .\events\views.py:1388
 msgid "Dossier renommé."
 msgstr "Dossier hernoemd."
 
-#: .\events\views.py:1410
+#: .\events\views.py:1419
 #, python-format
 msgid "Étiquette « %(nom)s » supprimée."
 msgstr "Label ‘%(nom)s’ verwijderd."
 
-#: .\events\views.py:1414
+#: .\events\views.py:1423
 msgid "Le nom d'une étiquette ne peut pas être vide."
 msgstr "De naam van een label mag niet leeg zijn."
 
-#: .\events\views.py:1416
+#: .\events\views.py:1425
 #, python-format
 msgid "Une étiquette « %(nom)s » existe déjà dans ce dossier."
 msgstr "Er bestaat al een label ‘%(nom)s’ in dit dossier."
 
-#: .\events\views.py:1423
+#: .\events\views.py:1432
 msgid "Étiquette renommée."
 msgstr "Label hernoemd."
 
-#: .\events\views.py:1446
+#: .\events\views.py:1455
 #, python-format
 msgid "Couleur invalide pour %(nom)s."
 msgstr "Ongeldige kleur voor %(nom)s."
 
-#: .\events\views.py:1485
+#: .\events\views.py:1494
 #, python-format
 msgid "Accès accordé à %(compte)s (%(droit)s)."
 msgstr "Toegang toegekend aan %(compte)s (%(droit)s)."
 
-#: .\events\views.py:1527
+#: .\events\views.py:1536
 #, python-format
 msgid "Accès retiré à %(compte)s."
 msgstr "Toegang ingetrokken voor %(compte)s."
 
-#: .\events\views.py:1551
+#: .\events\views.py:1560
 #, python-format
 msgid "Accès au dossier « %(dossier)s »"
 msgstr "Toegang tot het dossier ‘%(dossier)s’"
 
-#: .\events\views.py:1555
+#: .\events\views.py:1564
 #, python-format
 msgid ""
 "%(auteur)s vous donne accès au dossier « %(dossier)s ».\n"
@@ -2284,22 +2304,22 @@ msgstr ""
 "\n"
 "Deze link vervalt op %(date)s. Hij kan maar één keer worden gebruikt.\n"
 
-#: .\events\views.py:1595
+#: .\events\views.py:1604
 #, python-format
 msgid "Invitation envoyée à %(email)s. Elle expire le %(date)s."
 msgstr "Uitnodiging verstuurd naar %(email)s. Ze vervalt op %(date)s."
 
-#: .\events\views.py:1635
+#: .\events\views.py:1644
 #, python-format
 msgid "Invitation annulée pour %(email)s."
 msgstr "Uitnodiging geannuleerd voor %(email)s."
 
-#: .\events\views.py:1675
+#: .\events\views.py:1684
 #, python-format
 msgid "Vous avez désormais accès au dossier « %(dossier)s »."
 msgstr "U hebt nu toegang tot het dossier ‘%(dossier)s’."
 
-#: .\events\views.py:1712
+#: .\events\views.py:1721
 msgid ""
 "Lien créé. Toute personne qui le détient pourra consulter ce dossier, sans "
 "compte et sans trace nominative."
@@ -2307,7 +2327,7 @@ msgstr ""
 "Link aangemaakt. Iedereen die hem heeft, kan dit dossier raadplegen, zonder "
 "account en zonder dat zijn naam wordt geregistreerd."
 
-#: .\events\views.py:1733
+#: .\events\views.py:1742
 msgid "Lien révoqué. Il ne donne plus accès à rien."
 msgstr "Link ingetrokken. Hij geeft nergens meer toegang toe."
 

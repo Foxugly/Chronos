@@ -58,6 +58,8 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from .models import Event
+
 TAILLE_DE_BLOC = 1024 * 1024
 
 
@@ -283,6 +285,24 @@ def _pdf_du_journal(dossier, lignes, auteur):
     return _construire_pdf(dossier, corps, maintenant)
 
 
+def _liens_de_transfert(dossier, evenements):
+    """`{pk: [(gabarit, évènement lié)]}` : ce que chaque évènement transfère,
+    et ses transferts ultérieurs. Deux requêtes bornées au dossier ; un
+    évènement lié peut être hors d'un export partiel, le PDF le dit."""
+    retenus = {e.pk for e in evenements}
+    origines = {e.pk: e for e in Event.objects.filter(
+        dossier=dossier, pk__in={e.transfert_de_id for e in evenements if e.transfert_de_id})}
+    liens = {"retenus": retenus}
+    for evenement in evenements:
+        if evenement.transfert_de_id in origines:
+            liens.setdefault(evenement.pk, []).append(
+                (_("Transfert de : %(titre)s (%(periode)s)"), origines[evenement.transfert_de_id]))
+    for suite in Event.objects.filter(dossier=dossier, transfert_de__in=retenus):
+        liens.setdefault(suite.transfert_de_id, []).append(
+            (_("Transféré ensuite : %(titre)s (%(periode)s)"), suite))
+    return liens
+
+
 def _pdf(dossier, evenements, numeros, controles, auteur, selection="", total=None):
     styles = getSampleStyleSheet()
     normal = ParagraphStyle("normal", parent=styles["Normal"], fontSize=9.5, leading=13)
@@ -323,6 +343,7 @@ def _pdf(dossier, evenements, numeros, controles, auteur, selection="", total=No
         corps.append(Spacer(1, 4 * mm))
 
     corps.append(Paragraph(_texte_pdf(_("Chronologie")), section))
+    liens = _liens_de_transfert(dossier, evenements)
     for evenement in evenements:
         bloc = [
             Paragraph(_texte_pdf(evenement.periode_affichee), periode),
@@ -331,6 +352,11 @@ def _pdf(dossier, evenements, numeros, controles, auteur, selection="", total=No
         noms = [e.nom for e in evenement.etiquettes.all()]
         if noms:
             bloc.append(Paragraph(_texte_pdf(_("Étiquettes : %(noms)s") % {"noms": ", ".join(noms)}), petit))
+        for gabarit, autre in liens.get(evenement.pk, []):
+            texte = gabarit % {"titre": autre.title, "periode": autre.periode_affichee}
+            if autre.pk not in liens["retenus"]:
+                texte += " — " + _("hors de cette sélection")
+            bloc.append(Paragraph(_texte_pdf(texte), petit))
         for paragraphe in _description_en_paragraphes(evenement.description):
             bloc.append(Paragraph(_texte_pdf(paragraphe), normal))
         for document in evenement.documents.all():

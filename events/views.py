@@ -233,6 +233,15 @@ def vue_du_dossier(request, dossier, base_vue):
     tous = list(
         dossier.events.select_related("expediteur").prefetch_related("documents", "etiquettes")
     )
+    # Les liens de transfert (vue liste), tirés de cette même liste : aucune
+    # requête de plus, et rien qui puisse sortir du dossier.
+    par_pk = {evenement.pk: evenement for evenement in tous}
+    for evenement in tous:
+        evenement.lien_transfert_de = par_pk.get(evenement.transfert_de_id)
+        evenement.liens_transferts = []
+    for evenement in tous:
+        if evenement.lien_transfert_de is not None:
+            evenement.lien_transfert_de.liens_transferts.append(evenement)
     filtres = filtrage.lire_filtres(request.GET, dossier)
     retenus, correspondances = filtrage.appliquer(tous, filtres)
     for evenement in retenus:

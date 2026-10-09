@@ -87,7 +87,9 @@ Réglé dans le code le 2026-10-09 (n'est plus à faire) :
   (`Event.transfert_de`, migration `0019`). Le détail affiche « Transfert de : … » et « Transféré
   ensuite : … ». L'enveloppe envoyée à l'alias n'est un évènement que si elle s'adresse aussi à
   quelqu'un d'autre. Une couche déjà importée n'est pas recréée ; le nouveau transfert s'y relie.
-- Pas encore : le lien n'apparaît ni dans l'export PDF ni dans la vue liste.
+- Le lien apparaît aussi dans la **vue liste** (calculé sur la liste déjà chargée, aucune requête de
+  plus) et dans l'**export PDF** (« Transfert de : … », « Transféré ensuite : … », avec « hors de
+  cette sélection » quand l'évènement lié n'est pas dans un export partiel).
 
 ### Bouton « Relever les courriels » — 2026-10-09
 
