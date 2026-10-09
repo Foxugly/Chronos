@@ -187,12 +187,28 @@ def date_en_toutes_lettres(texte):
 SUITE_EXCHANGE = re.compile(r"^ATT\d{5}\.(txt|htm|html)$", re.IGNORECASE)
 
 
-def _texte_de_partie(partie):
-    try:
-        contenu = partie.get_content()
-    except (LookupError, ValueError):
+def _decoder(partie):
+    """Le texte d'une partie, en essayant **d'abord l'UTF-8 strict** : Exchange déclare
+    parfois `us-ascii` des octets UTF-8 (n° 12 et 20 du dossier réel), et le jeu
+    déclaré donne alors « Envoy�� : », que plus rien ne reconnaît. Un
+    décodage UTF-8 strict n'accepte que de l'UTF-8 valide ; sinon, le jeu déclaré."""
+    octets = partie.get_payload(decode=True)
+    if octets is None:
         return ""
-    if not isinstance(contenu, str):
+    try:
+        return octets.decode("utf-8")
+    except UnicodeDecodeError:
+        pass
+    jeu = partie.get_content_charset() or "cp1252"
+    try:
+        return octets.decode(jeu, errors="replace")
+    except LookupError:
+        return octets.decode("cp1252", errors="replace")
+
+
+def _texte_de_partie(partie):
+    contenu = _decoder(partie)
+    if not contenu:
         return ""
     if partie.get_content_type() == "text/html":
         contenu = re.sub(r"(?is)<(script|style).*?</\1>", "", contenu)

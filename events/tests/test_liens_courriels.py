@@ -281,3 +281,24 @@ class CommandeRecalculerTests(MediaMixin, TestCase):
         reponse.refresh_from_db()
         self.assertEqual(reponse.reponse_a.title, "Mise en demeure")
         self.assertIn("contact@acme-bat.example", reponse.destinataires)
+
+
+class EncodageExchangeTests(SimpleTestCase):
+    def test_une_suite_utf8_declaree_ascii_se_lit_correctement(self):
+        """n° 12 et 20 du dossier réel : Exchange déclare `us-ascii` des octets UTF-8 ;
+        lus tels quels, « De : » et « Envoyé : » deviennent illisibles."""
+        from email.mime.application import MIMEApplication  # noqa: F401
+        from events.courriels import corps_en_texte, lire
+
+        m = courriel("RE: sdb", "Voir ci-dessous.", de=MOI, a=ACME_BAT)
+        m.add_attachment(b"x", maintype="text", subtype="plain", filename="ATT00004.txt")
+        brut = m.as_bytes()
+        suite = ("De : ACME Bat <contact@acme-bat.example>\nEnvoyé : lundi 28 septembre 2026 20:29\n"
+                 "Objet : Mise en demeure\n\nNous vous mettons en demeure.").encode("utf-8")
+        import base64
+        brut = brut.replace(b"Content-Type: text/plain; charset=\"utf-8\"; name=\"ATT00004.txt\"",
+                            b"Content-Type: text/plain; charset=\"us-ascii\"; name=\"ATT00004.txt\"")
+        brut = brut.replace(base64.b64encode(b"x"), base64.b64encode(suite))
+        texte = corps_en_texte(lire(brut))
+        self.assertIn("Envoyé : lundi 28 septembre 2026 20:29", texte)
+        self.assertNotIn("�", texte)
