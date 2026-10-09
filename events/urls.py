@@ -18,6 +18,7 @@ from .views import (
     dossier_invite,
     dossier_alias,
     dossier_alias_verifier,
+    dossier_relever,
     dossier_parametres,
     dossier_etiquette,
     dossier_doublons,
@@ -48,6 +49,7 @@ urlpatterns = [
     path("dossiers/<int:dossier_id>/export/", dossier_export, name="dossier_export"),
     path("dossiers/<int:dossier_id>/alias/", dossier_alias, name="dossier_alias"),
     path("dossiers/<int:dossier_id>/alias/verifier/", dossier_alias_verifier, name="dossier_alias_verifier"),
+    path("dossiers/<int:dossier_id>/relever/", dossier_relever, name="dossier_relever"),
     path("dossiers/<int:dossier_id>/parametres/", dossier_parametres, name="dossier_parametres"),
     path(
         "dossiers/<int:dossier_id>/etiquettes/<int:etiquette_id>/",

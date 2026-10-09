@@ -394,6 +394,12 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   Outlook folder **named after the Chronos dossier**. Everything else is left where it is and never
   named in the logs. A mail that fails stays in the inbox and is retried while in the window.
   Re-running is safe (`CourrielImporte`). Owner's decision, 2026-10-09.
+- **« Relever les courriels »** (`dossier_relever`, POST, writers only, 404 otherwise) runs the same
+  relève at once — `relever_la_boite()` in `events/import_courriels.py`, shared with the command.
+  Both take one PostgreSQL advisory lock (`verrou_de_releve`): never two relèves at once; the timer
+  steps aside if the button is running. The relève covers the whole mailbox, but the message only
+  states this dossier's count — a collaborator learns nothing of other dossiers or of the mailbox.
+  Journaled as `COURRIELS_RELEVES` (migration `0018`).
 - `--essai` analyses without creating or moving anything; `--fichier x.eml --dossier N` imports a saved
   mail without touching the mailbox. Real sample mails go in `exemples_courriels/` (git-ignored).
 - `eml` and `md` were added to `ALLOWED_DOCUMENT_EXTENSIONS`; both are served as downloads.

@@ -196,7 +196,7 @@ class CommandeTests(MediaMixin, TestCase):
 
     def lancer(self, boite, *args):
         sortie = StringIO()
-        with mock.patch("events.management.commands.importer_courriels.ClientGraph", return_value=boite):
+        with mock.patch("events.import_courriels.ClientGraph", return_value=boite):
             call_command("importer_courriels", *args, stdout=sortie, stderr=StringIO())
         return sortie.getvalue()
 
@@ -243,7 +243,7 @@ class CommandeTests(MediaMixin, TestCase):
 
     def test_un_courriel_en_echec_reste_dans_la_boite_de_reception(self):
         boite = FausseBoite({"1": courriel("TR: x", "y", joint=original()).as_bytes()})
-        with mock.patch("events.management.commands.importer_courriels.importer",
+        with mock.patch("events.import_courriels.importer",
                         side_effect=ValueError("illisible")):
             sortie = self.lancer(boite)
         self.assertEqual(boite.ranges, {})

@@ -768,6 +768,7 @@ class Journal(models.Model):
         LIEN_REVOQUE = "lien_revoque", gettext_lazy("Lien de partage révoqué")
         EXPORT = "export", gettext_lazy("Dossier exporté")
         COURRIEL_IMPORTE = "courriel_importe", gettext_lazy("Évènement importé par courriel")
+        COURRIELS_RELEVES = "courriels_releves", gettext_lazy("Courriels relevés")
         DOSSIER_CREE = "dossier_cree", gettext_lazy("Dossier créé")
         DOSSIER_MODIFIE = "dossier_modifie", gettext_lazy("Dossier modifié")
         EVENEMENTS_FUSIONNES = "evenements_fusionnes", gettext_lazy("Évènements fusionnés")

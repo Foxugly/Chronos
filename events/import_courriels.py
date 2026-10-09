@@ -11,14 +11,19 @@ elle est nommée dans le journal et dans la version texte du courriel.
 """
 
 import hashlib
+from collections import Counter
+from contextlib import contextmanager
 from email.utils import getaddresses
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-from django.db import transaction
+from django.db import connection, transaction
+from django.utils import timezone
 
 from .couleurs import prochaine_couleur
-from .courriels import en_markdown, texte_en_html
+from .courriels import adresses, analyser, en_markdown, lire, texte_en_html
+from .graph import ClientGraph
 from .journal import consigner, consigner_pieces, instantane
 from .models import CourrielImporte, Dossier, Event, Expediteur, Journal
 from .sanitize import nettoyer
@@ -124,3 +129,99 @@ def importer(dossier, analyse):
         )
         consigner_pieces(evenement, pieces, source="courriel")
     return evenement
+
+
+# --- Relever la boîte d'import ----------------------------------------------
+# Partagé par l'import planifié (`manage.py importer_courriels`) et le bouton
+# « Relever les courriels » d'un dossier (`views.dossier_relever`).
+
+#: Les en-têtes où peut figurer l'alias d'un courriel transféré.
+ENTETES_DESTINATAIRES = ("To", "Cc", "Delivered-To", "X-Original-To", "Resent-To")
+
+#: Clé du verrou consultatif PostgreSQL commun aux deux chemins (« Chron » en hexadécimal).
+CLE_VERROU = 0x4368726F6E
+
+
+def import_configure():
+    """Vrai quand la boîte d'import est joignable : sans cela, pas de relève."""
+    return all((settings.GRAPH_TENANT_ID, settings.GRAPH_CLIENT_ID,
+                settings.GRAPH_CLIENT_SECRET, settings.COURRIEL_BOITE))
+
+
+@contextmanager
+def verrou_de_releve():
+    """Un seul import à la fois : rend `True` si le verrou est pris, `False` si
+    un autre import tourne déjà.
+
+    Verrou consultatif PostgreSQL, tenu par la session : la minuterie et un
+    clic sur le bouton ne relèvent jamais la boîte en même temps (deux
+    passages simultanés importeraient le même courriel deux fois et l'un
+    échouerait sur la contrainte d'unicité). SQLite (développement, tests) n'a
+    qu'un processus : pas de verrou.
+    """
+    if connection.vendor != "postgresql":
+        yield True
+        return
+    with connection.cursor() as curseur:
+        curseur.execute("SELECT pg_try_advisory_lock(%s)", [CLE_VERROU])
+        pris = curseur.fetchone()[0]
+    try:
+        yield pris
+    finally:
+        if pris:
+            with connection.cursor() as curseur:
+                curseur.execute("SELECT pg_advisory_unlock(%s)", [CLE_VERROU])
+
+
+class Releve:
+    """Le bilan d'une relève, compté par dossier : le bouton n'annonce que ce
+    qui concerne le dossier d'où l'on clique."""
+
+    def __init__(self):
+        self.importes = Counter()   # identifiant de dossier → courriels importés
+        self.deja = Counter()       # identifiant de dossier → déjà importés, rangés
+        self.ignores = 0            # sans alias : ni déplacés ni cités
+        self.erreurs = 0
+
+
+def relever_la_boite(*, essai=False, decrire=None, signaler=None):
+    """Parcourt les courriels reçus pendant `COURRIEL_FENETRE` : ceux qui visent
+    l'alias d'un dossier sont importés puis rangés dans un dossier Outlook du
+    nom de ce dossier ; les autres ne sont ni touchés ni cités. Un courriel en
+    échec reste dans la boîte de réception (retenté au passage suivant).
+
+    `decrire(analyse, dossier)` et `signaler(texte)` reçoivent ce qui mérite
+    d'être affiché (la commande les écrit ; la vue n'en a pas besoin). Lève
+    `ErreurGraph` si la boîte est injoignable.
+    """
+    decrire = decrire or (lambda analyse, dossier: None)
+    signaler = signaler or (lambda texte: None)
+    client = ClientGraph(settings.GRAPH_TENANT_ID, settings.GRAPH_CLIENT_ID,
+                         settings.GRAPH_CLIENT_SECRET, settings.COURRIEL_BOITE)
+    bilan = Releve()
+    dossiers_outlook = {}  # nom du dossier Chronos → identifiant du dossier Outlook
+
+    for message in client.messages_recus(timezone.now() - settings.COURRIEL_FENETRE):
+        octets = client.mime(message["id"])
+        dossier = dossier_destinataire(adresses(lire(octets), *ENTETES_DESTINATAIRES))
+        if dossier is None:
+            bilan.ignores += 1  # ce courriel ne regarde pas Chronos
+            continue
+        try:
+            analyse = analyser(octets)
+            decrire(analyse, dossier)
+            if essai:
+                continue
+            if deja_importe(dossier, analyse):
+                bilan.deja[dossier.pk] += 1
+                signaler("  déjà importé : rangé sans rien créer.")
+            else:
+                importer(dossier, analyse)
+                bilan.importes[dossier.pk] += 1
+            if dossier.name not in dossiers_outlook:
+                dossiers_outlook[dossier.name] = client.dossier(dossier.name)
+            client.deplacer(message["id"], dossiers_outlook[dossier.name])
+        except Exception as erreur:  # un courriel illisible ne bloque pas les suivants
+            bilan.erreurs += 1
+            signaler("  ÉCHEC : %s" % erreur)
+    return bilan

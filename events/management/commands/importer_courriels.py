@@ -23,17 +23,12 @@ mais que le rangement échoue, le passage suivant le range sans le réimporter.
 
 from pathlib import Path
 
-from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.utils import timezone
 
-from events.courriels import adresses, analyser, lire
-from events.graph import ClientGraph, ErreurGraph
-from events.import_courriels import deja_importe, dossier_destinataire, importer
+from events.courriels import analyser
+from events.graph import ErreurGraph
+from events.import_courriels import importer, relever_la_boite, verrou_de_releve
 from events.models import Dossier
-
-#: Les en-têtes où peut figurer l'alias d'un courriel transféré.
-ENTETES_DESTINATAIRES = ("To", "Cc", "Delivered-To", "X-Original-To", "Resent-To")
 
 
 class Command(BaseCommand):
@@ -83,38 +78,14 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("  évènement créé (n° %d)." % evenement.pk))
 
     def _depuis_la_boite(self, essai):
-        client = ClientGraph(
-            settings.GRAPH_TENANT_ID, settings.GRAPH_CLIENT_ID,
-            settings.GRAPH_CLIENT_SECRET, settings.COURRIEL_BOITE,
-        )
-        dossiers_outlook = {}  # nom du dossier Chronos → identifiant du dossier Outlook
-        importes = deja = ignores = erreurs = 0
-
-        for message in client.messages_recus(timezone.now() - settings.COURRIEL_FENETRE):
-            octets = client.mime(message["id"])
-            dossier = dossier_destinataire(adresses(lire(octets), *ENTETES_DESTINATAIRES))
-            if dossier is None:
-                ignores += 1  # ni déplacé ni cité : ce courriel ne regarde pas Chronos
-                continue
-            try:
-                analyse = analyser(octets)
-                self._decrire(analyse, dossier)
-                if essai:
-                    continue
-                if deja_importe(dossier, analyse):
-                    deja += 1
-                    self.stdout.write("  déjà importé : rangé sans rien créer.")
-                else:
-                    importer(dossier, analyse)
-                    importes += 1
-                if dossier.name not in dossiers_outlook:
-                    dossiers_outlook[dossier.name] = client.dossier(dossier.name)
-                client.deplacer(message["id"], dossiers_outlook[dossier.name])
-            except Exception as erreur:  # un courriel illisible ne bloque pas les suivants
-                erreurs += 1
-                self.stderr.write("  ÉCHEC : %s" % erreur)
-
+        with verrou_de_releve() as libre:
+            if not libre:
+                # Le bouton d'un dossier relève déjà la boîte : rien à faire.
+                self.stdout.write("Un import est déjà en cours : ce passage s'efface.")
+                return
+            bilan = relever_la_boite(essai=essai, decrire=self._decrire, signaler=self.stderr.write)
         self.stdout.write(self.style.SUCCESS(
             "%d importé(s), %d déjà importé(s), %d sans alias, %d en échec%s."
-            % (importes, deja, ignores, erreurs, " (essai : rien n'a été modifié)" if essai else "")
+            % (sum(bilan.importes.values()), sum(bilan.deja.values()), bilan.ignores, bilan.erreurs,
+               " (essai : rien n'a été modifié)" if essai else "")
         ))

@@ -22,6 +22,7 @@ from django.utils.text import slugify
 from django.utils.http import content_disposition_header, url_has_allowed_host_and_scheme
 from django.utils.formats import date_format, time_format
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from .forms import (
@@ -44,6 +45,8 @@ from . import exchange
 from .etiquettes import appliquer as poser_etiquettes
 from .etiquettes import contexte_du_formulaire as contexte_des_etiquettes
 from . import doublons as dedoublonnage
+from .graph import ErreurGraph
+from .import_courriels import import_configure, relever_la_boite, verrou_de_releve
 from . import filtres as filtrage
 from .sanitize import nettoyer
 from .permissions import (
@@ -336,6 +339,7 @@ def timeline(request, dossier_id):
         contexte["nb_doublons"] = len(
             dedoublonnage.doublons_possibles(dossier, contexte["tous_les_evenements"])
         )
+        contexte["peut_relever"] = bool(dossier.alias_courriel) and import_configure()
     return render(request, gabarit, contexte)
 
 
@@ -1231,6 +1235,46 @@ def dossier_alias(request, dossier_id):
         else:
             messages.success(request, _("Import par courriel désactivé pour ce dossier."))
     return redirect("dossier_parametres", dossier_id=dossier.pk)
+
+
+def dossier_relever(request, dossier_id):
+    """« Relever les courriels » : lance tout de suite l'import planifié.
+
+    Réservé à qui peut écrire (l'import ajoute des évènements) ; 404 sinon.
+    POST seulement : un préchargement ne doit pas relever la boîte. La relève
+    porte sur toute la boîte — savoir à quel dossier un courriel est destiné
+    demande de le lire — mais le message n'annonce que ce qui concerne ce
+    dossier : un collaborateur n'apprend rien des autres ni du reste de la
+    boîte. Le verrou est celui de la minuterie : jamais deux relèves à la fois.
+    """
+    dossier = get_dossier_for_write(request.user, dossier_id)
+    retour = adresse_de_retour(request, reverse("timeline", args=[dossier.pk]))
+    if request.method != "POST" or not dossier.alias_courriel or not import_configure():
+        return redirect(retour)
+    with verrou_de_releve() as libre:
+        if not libre:
+            messages.info(request, _("Un import est déjà en cours : réessayez dans une minute."))
+            return redirect(retour)
+        try:
+            bilan = relever_la_boite()
+        except ErreurGraph as erreur:
+            messages.error(request, _("La boîte n'a pas pu être relevée : %(detail)s") % {"detail": erreur})
+            return redirect(retour)
+    importes, deja = bilan.importes[dossier.pk], bilan.deja[dossier.pk]
+    if importes:
+        messages.success(request, ngettext(
+            "%(n)d courriel importé dans ce dossier.",
+            "%(n)d courriels importés dans ce dossier.", importes) % {"n": importes})
+    else:
+        messages.info(request, _("Aucun nouveau courriel pour ce dossier."))
+    if bilan.erreurs:
+        messages.warning(request, _(
+            "Certains courriels n'ont pas pu être importés : ils restent dans la boîte de "
+            "réception et seront retentés."))
+    consigner(dossier, Journal.Action.COURRIELS_RELEVES, request=request,
+              objet=ngettext("%(n)d courriel importé", "%(n)d courriels importés", importes) % {"n": importes},
+              details={"importes": importes, "deja": deja, "erreurs": bilan.erreurs})
+    return redirect(retour)
 
 
 def dossier_alias_verifier(request, dossier_id):

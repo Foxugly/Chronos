@@ -46,6 +46,17 @@ l'autre ne doit pas éjecter un visiteur anonyme hors de son lien.
                 <i class="bi bi-intersect me-1" aria-hidden="true"></i>{% blocktranslate trimmed count n=nb_doublons %}{{ n }} doublon possible{% plural %}{{ n }} doublons possibles{% endblocktranslate %}
             </a>
         {% endif %}
+        {% if peut_relever and not lien_partage %}
+            {# POST : relever la boîte ne doit pas partir sur un préchargement. #}
+            <form method="post" action="{% url 'dossier_relever' dossier.pk %}" class="d-inline d-print-none">
+                {% csrf_token %}
+                <input type="hidden" name="retour" value="{{ request.get_full_path }}">
+                <button type="submit" class="btn btn-outline-secondary"
+                        title="{% translate "Importer tout de suite les courriels transférés à l'alias du dossier" %}">
+                    <i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>{% translate "Relever les courriels" %}
+                </button>
+            </form>
+        {% endif %}
         {% if peut_ecrire %}
             <a href="{% if lien_partage %}{% url 'share_event_add' lien_partage.token %}{% else %}{% url 'event_add' dossier.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}"
                class="btn btn-primary" data-ouvrir-formulaire
