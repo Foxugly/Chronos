@@ -1,47 +1,147 @@
 {% extends "account/base_entrance.html" %}
 {% comment %}
-Surcharge de la page de connexion d'allauth.
+Surcharge de la page de connexion d'allauth, mise en page sur le modèle de QuizOnline
+(carte centrée, libellés au-dessus des champs, mot de passe affichable, « se souvenir »
+et « oublié » sur une ligne, bouton pleine largeur) — mais un en-tête d'**une** ligne :
+QuizOnline en empile quatre (icône, titre, sur-titre, sous-titre) pour dire « connexion ».
 
-Le gabarit d'origine renvoie vers l'inscription sans dire ce qu'un compte
-donne — c'est-à-dire rien, tant que le propriétaire d'un dossier n'a pas
-autorisé son titulaire. On le remplace par une phrase qui le dit.
+Les champs sont écrits à la main pour porter les classes Bootstrap ; leurs noms
+(`login`, `password`, `remember`) sont ceux de `allauth.account.forms.LoginForm`.
 
-Cette version est volontairement réduite à ce que le projet utilise. Les branches
-retirées du gabarit d'origine sont toutes inertes ici : `socialaccount` n'est pas
-installé, et la connexion par code comme les clés d'accès sont désactivées. Si
-l'une d'elles est activée un jour, reprendre le gabarit d'allauth comme base.
+En pied, le seul lien vers l'inscription (décision du propriétaire, 2026-10-09 : pas de
+phrase sur ce qu'un compte donne, comme QuizOnline). Les branches retirées du gabarit d'allauth sont inertes ici (`socialaccount`
+absent, connexion par code et clés d'accès désactivées) ; si l'une est activée un jour,
+reprendre le gabarit d'allauth comme base.
 {% endcomment %}
 {% load i18n %}
-{% load allauth account %}
 
 {% block head_title %}
     {% trans "Sign In" %}
 {% endblock head_title %}
 
+{% block extra_head %}
+    <style>
+        .carte-connexion {
+            margin-top: clamp(1rem, 6vh, 4rem);
+        }
+        /* Le layout d'allauth stylise les champs bruts de ses autres pages ; ici les
+           champs portent les classes Bootstrap, et le mot de passe vit dans un
+           input-group : on rend la main à Bootstrap. */
+        .carte-connexion .input-group > .form-control {
+            display: flex;
+            width: 1%;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .carte-connexion button[type="submit"] {
+            padding: .5rem 1rem;
+        }
+        /* Le layout d'allauth met tous les libellés en gras et en bloc. */
+        .carte-connexion .form-check-label {
+            display: inline;
+            font-weight: normal;
+        }
+        /* L'œil fait corps avec le champ : même bordure, couleur discrète. */
+        .carte-connexion [data-afficher-mot-de-passe] {
+            border-color: var(--bs-border-color);
+            color: var(--bs-secondary-color);
+            background-color: var(--bs-body-bg);
+        }
+        .carte-connexion [data-afficher-mot-de-passe]:hover,
+        .carte-connexion [data-afficher-mot-de-passe]:focus-visible {
+            color: var(--bs-body-color);
+            background-color: var(--bs-tertiary-bg);
+        }
+    </style>
+{% endblock extra_head %}
+
 {% block content %}
-    {% element h1 %}
-        {% trans "Sign In" %}
-    {% endelement %}
-    {% element p %}
-        {% translate "Pas encore de compte ?" %}
-        <a href="{% url 'account_signup' %}">{% translate "Créez-en un" %}</a>.
-        {% blocktranslate trimmed %}
-        Un compte seul ne donne accès à aucun dossier : c'est le propriétaire
-        d'un dossier qui vous y autorise, ou vous y invite.
-        {% endblocktranslate %}
-    {% endelement %}
-    {% url 'account_login' as login_url %}
-    {% element form form=form method="post" action=login_url tags="entrance,login" %}
-        {% slot body %}
-            {% csrf_token %}
-            {% element fields form=form unlabeled=True %}
-            {% endelement %}
-            {{ redirect_field }}
-        {% endslot %}
-        {% slot actions %}
-            {% element button type="submit" tags="prominent,login" %}
+    <div class="carte-connexion card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-sm-5">
+            <h1 class="h4 mb-4 d-flex align-items-center gap-2">
+                <i class="bi bi-box-arrow-in-right text-primary" aria-hidden="true"></i>
                 {% trans "Sign In" %}
-            {% endelement %}
-        {% endslot %}
-    {% endelement %}
+            </h1>
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger py-2 small" role="alert">
+                    {% for erreur in form.non_field_errors %}<div>{{ erreur }}</div>{% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'account_login' %}" novalidate>
+                {% csrf_token %}
+                {{ redirect_field }}
+
+                <div class="mb-3">
+                    <label class="form-label fw-medium" for="id_login">{{ form.login.label }}</label>
+                    <input type="text" name="login" id="id_login"
+                           class="form-control{% if form.login.errors %} is-invalid{% endif %}"
+                           value="{{ form.login.value|default_if_none:'' }}"
+                           placeholder="{{ form.login.field.widget.attrs.placeholder }}"
+                           autocomplete="username" autocapitalize="none" spellcheck="false"
+                           required autofocus>
+                    {% for erreur in form.login.errors %}<div class="invalid-feedback">{{ erreur }}</div>{% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-medium" for="id_password">{{ form.password.label }}</label>
+                    <div class="input-group{% if form.password.errors %} has-validation{% endif %}">
+                        <input type="password" name="password" id="id_password"
+                               class="form-control{% if form.password.errors %} is-invalid{% endif %}"
+                               placeholder="{{ form.password.field.widget.attrs.placeholder }}"
+                               autocomplete="current-password" required>
+                        <button type="button" class="btn btn-outline-secondary" data-afficher-mot-de-passe
+                                aria-controls="id_password" aria-pressed="false"
+                                title="{% translate "Afficher le mot de passe" %}"
+                                aria-label="{% translate "Afficher le mot de passe" %}">
+                            <i class="bi bi-eye" aria-hidden="true"></i>
+                        </button>
+                        {% for erreur in form.password.errors %}<div class="invalid-feedback">{{ erreur }}</div>{% endfor %}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" name="remember" id="id_remember"
+                               {% if form.remember.value %}checked{% endif %}>
+                        <label class="form-check-label" for="id_remember">{{ form.remember.label }}</label>
+                    </div>
+                    <a class="small fw-medium text-decoration-none" href="{% url 'account_reset_password' %}">{% translate "Mot de passe oublié ?" %}</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>{% trans "Sign In" %}
+                </button>
+            </form>
+
+            <hr class="my-4">
+            <p class="text-center mb-0">
+                {% translate "Pas encore de compte ?" %}
+                <a class="fw-medium text-decoration-none" href="{% url 'account_signup' %}">{% translate "Créer un compte" %}</a>
+            </p>
+        </div>
+    </div>
 {% endblock content %}
+
+{% block extra_body %}
+    <script nonce="{{ csp_nonce }}">
+    "use strict";
+    // L'œil affiche ou masque le mot de passe ; sans JavaScript, le champ reste masqué.
+    document.querySelectorAll("[data-afficher-mot-de-passe]").forEach(function (bouton) {
+        const champ = document.getElementById(bouton.getAttribute("aria-controls"));
+        const icone = bouton.querySelector("i");
+        const afficher = "{{ _("Afficher le mot de passe")|escapejs }}";
+        const masquer = "{{ _("Masquer le mot de passe")|escapejs }}";
+        bouton.addEventListener("click", function () {
+            const visible = champ.type === "password";
+            champ.type = visible ? "text" : "password";
+            icone.className = visible ? "bi bi-eye-slash" : "bi bi-eye";
+            bouton.setAttribute("aria-pressed", visible ? "true" : "false");
+            bouton.title = visible ? masquer : afficher;
+            bouton.setAttribute("aria-label", visible ? masquer : afficher);
+            champ.focus();
+        });
+    });
+    </script>
+{% endblock extra_body %}

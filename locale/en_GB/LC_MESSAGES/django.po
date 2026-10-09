@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 18:22+0200\n"
+"POT-Creation-Date: 2026-10-09 20:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2392,26 +2392,31 @@ msgstr "Back to the home page"
 msgid "Langue"
 msgstr "Language"
 
-#: .\templates\account\login.html:18 .\templates\account\login.html:23
-#: .\templates\account\login.html:43
+#: .\templates\account\login.html:19 .\templates\account\login.html:63
+#: .\templates\account\login.html:114
 msgid "Sign In"
 msgstr "Sign In"
 
-#: .\templates\account\login.html:26
+#: .\templates\account\login.html:96 .\templates\account\login.html:97
+#: .\templates\account\login.html:134
+msgid "Afficher le mot de passe"
+msgstr "Show password"
+
+#: .\templates\account\login.html:110
+msgid "Mot de passe oublié ?"
+msgstr "Forgot password?"
+
+#: .\templates\account\login.html:120
 msgid "Pas encore de compte ?"
 msgstr "No account yet?"
 
-#: .\templates\account\login.html:27
-msgid "Créez-en un"
-msgstr "Create one"
+#: .\templates\account\login.html:121
+msgid "Créer un compte"
+msgstr "Create an account"
 
-#: .\templates\account\login.html:28
-msgid ""
-"Un compte seul ne donne accès à aucun dossier : c'est le propriétaire d'un "
-"dossier qui vous y autorise, ou vous y invite."
-msgstr ""
-"An account alone gives access to no case file: the owner of a case file "
-"grants you access, or invites you."
+#: .\templates\account\login.html:135
+msgid "Masquer le mot de passe"
+msgstr "Hide password"
 
 #: .\templates\base.html:94
 msgid "Afficher le menu"
