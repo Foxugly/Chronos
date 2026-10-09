@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: public.ecr.aws/docker/library/postgres:16  # miroir AWS : pas de limite anonyme de Docker Hub
         env:
           POSTGRES_USER: chronos
           POSTGRES_PASSWORD: chronos
