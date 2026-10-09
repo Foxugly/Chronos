@@ -65,8 +65,9 @@ Constaté en production (47 évènements importés) par une analyse en lecture s
 
 ### Flotte, relevé en chemin (2026-10-09)
 
-- **Facilitation → Redis db6** : préparé (dépôt et docs), en attente de la mise à jour de
-  `/facilitation/prod/REDIS_URL` dans SSM puis du script de bascule. db5 reste à Fabric (arrêté).
+- ~~Facilitation → Redis db6~~ **fait le 2026-10-09** (SSM puis redémarrage ; Celery connecté à
+  db6). Même jour : son API passe sous gunicorn (8011), daphne ne garde que `/ws/`, et
+  `NUM_PROXIES = 1` ferme le contournement des limites par `X-Forwarded-For`.
 - **poker et pushit partagent Redis db3** (`REDIS_URL` de poker, `CELERY_RESULT_BACKEND` de pushit).
 - **Mémoire** : swap occupé à 1,47 Go sur 2 Go, 960 Mo disponibles après la séparation
   daphne/gunicorn de Facilitation (gunicorn + daphne ≈ 325 Mo). À surveiller.
