@@ -12,6 +12,7 @@ elle est nommée dans le journal et dans la version texte du courriel.
 
 import datetime
 import hashlib
+import re
 from collections import Counter
 from contextlib import contextmanager
 from email.utils import getaddresses
@@ -161,6 +162,37 @@ def relier(evenement, couche, traces):
     return relies
 
 
+#: Mots du début d'un courriel qu'un transfert doit contenir pour qu'on l'en dise la suite.
+MOTS_DE_PREUVE = 25
+
+
+def _mots(texte):
+    import html as _html
+
+    from django.utils.html import strip_tags
+
+    return re.sub(r"[^\w]+", " ", _html.unescape(strip_tags(texte or "")).lower()).split()
+
+
+def transfere_par_contenu(evenement, texte):
+    """Le courriel du dossier qu'un transfert contient, quand l'en-tête de ce courriel
+    a disparu du texte transféré (Outlook, converti depuis le HTML : n° 12 du dossier
+    réel, qui transfère la réponse de l'architecte sans son « De : … »).
+
+    Preuve exigée : les `MOTS_DE_PREUVE` premiers mots de son texte, à l'identique et
+    dans l'ordre. Le plus récent avant le transfert, s'il y en a plusieurs."""
+    contenu = " ".join(_mots(texte))
+    moment = _moment(evenement)
+    candidats = []
+    for autre in Event.objects.filter(dossier_id=evenement.dossier_id).exclude(pk=evenement.pk):
+        mots = _mots(autre.description)
+        if len(mots) < MOTS_DE_PREUVE or _moment(autre) > moment:
+            continue
+        if " ".join(mots[:MOTS_DE_PREUVE]) in contenu:
+            candidats.append(autre)
+    return max(candidats, key=_moment) if candidats else None
+
+
 def _moment(evenement):
     heure = evenement.heure or datetime.time(0, 0)
     return datetime.datetime.combine(evenement.date, heure).replace(tzinfo=BRUXELLES)
@@ -208,6 +240,16 @@ def importer_couches(dossier, couches):
                 crees.append(evenement)
             elif precedent is not None and couche.transfert and evenement.transfert_de_id is None:
                 Event.objects.filter(pk=evenement.pk).update(transfert_de=precedent)
+                evenement.transfert_de = precedent
+            if couche.transfert:
+                # L'en-tête du courriel transféré a pu disparaître : le contenu tranche,
+                # s'il désigne un courriel plus récent que celui que les blocs ont trouvé.
+                par_contenu = transfere_par_contenu(evenement, couche.texte)
+                actuel = evenement.transfert_de if evenement.transfert_de_id else None
+                if par_contenu is not None and par_contenu != actuel and (
+                        actuel is None or _moment(par_contenu) > _moment(actuel)):
+                    Event.objects.filter(pk=evenement.pk).update(transfert_de=par_contenu)
+                    evenement.transfert_de = par_contenu
             traces = _traces(dossier)
             for reponse, cite in relier(evenement, couche, traces):
                 consigner(dossier, Journal.Action.EVENEMENT_MODIFIE, objet=reponse.title, evenement=reponse,

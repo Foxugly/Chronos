@@ -22,6 +22,7 @@ from events.courriels import analyser_en_couches
 from events.doublons import doublons_possibles
 from events.import_courriels import (
     _richesse, adresses_de_la_boite, champs_cites, cle_du_courriel, expediteur_du_dossier, relier,
+    transfere_par_contenu,
 )
 from events.journal import consigner
 from events.models import CourrielImporte, Dossier, Event, Journal
@@ -109,6 +110,24 @@ class Command(BaseCommand):
                           details={"changements": {"reponse_a": ["", cite.title]}, "source": "courriel"})
                 self.stdout.write("  lien : n°%d « %s » — en réponse à n°%d « %s »" % (
                     reponse.pk, reponse.title[:50], cite.pk, cite.title[:50]))
+        # Les transferts sans lien : l'en-tête du courriel transféré a pu disparaître ;
+        # le contenu tranche (n° 12 du dossier réel, transfert de la réponse de l'architecte).
+        for evenement in evenements:
+            couche = couches.get(evenement.pk)
+            if couche is None or not couche.transfert:
+                continue
+            evenement.refresh_from_db(fields=["transfert_de"])
+            if evenement.transfert_de_id is not None:
+                continue
+            cible = transfere_par_contenu(evenement, couche.texte)
+            if cible is None:
+                continue
+            Event.objects.filter(pk=evenement.pk).update(transfert_de=cible)
+            consigner(dossier, Journal.Action.EVENEMENT_MODIFIE, objet=evenement.title, evenement=evenement,
+                      details={"changements": {"transfert_de": ["", cible.title]}, "source": "courriel"})
+            nombre += 1
+            self.stdout.write("  lien : n°%d « %s » — transfert de n°%d « %s »" % (
+                evenement.pk, evenement.title[:50], cible.pk, cible.title[:50]))
         self.stdout.write("  %d lien(s)." % nombre)
 
         # 3. Les doublons : le même courriel arrivé par deux chemins.

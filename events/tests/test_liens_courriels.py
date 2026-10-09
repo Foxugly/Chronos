@@ -324,3 +324,67 @@ class BlocAvecLignesVidesTests(SimpleTestCase):
                  "Date : le paragraphe suivant n'est pas un en-tête de ce bloc.")
         _commentaire, champs, suite = _bloc_de_transfert(texte)
         self.assertEqual(champs["objet"], "X")
+
+
+class TransfertSansEnTeteTests(MediaMixin, TestCase):
+    """n° 12 du dossier réel : « FW: RE: … » dont le texte transféré a perdu l'en-tête
+    « De : … » du courriel de l'architecte ; seul son contenu reste."""
+
+    def setUp(self):
+        self.dossier = make_dossier(make_user("owner"), name="ACMEBAT")
+        self.dossier.alias_courriel = ALIAS
+        self.dossier.save()
+
+    AVIS = ("Après examen des photographies, les jonctions entre le sol et les murs ne respectent "
+            "pas les règles de l'art : le joint souple manque, la pente est insuffisante et "
+            "l'étanchéité sous carrelage n'a pas été remontée sur les parois comme prévu au cahier.")
+
+    def envoyer_le_transfert(self):
+        """Ce qui arrive à l'alias : « TR: FW: RE: sdb », le bloc du transfert à
+        l'entrepreneur, le mot, l'avis de l'architecte SANS son en-tête, puis la
+        citation du courriel d'origine envoyé à l'architecte."""
+        texte = "\n".join([
+            "Pour le dossier.", "",
+            "De : Jean <jdupont@exemple.be>", "Envoyé : jeudi 27 août 2026 14:13",
+            "À : ACME Bat <contact@acme-bat.example>", "Objet : FW: RE: sdb", "",
+            "Veuillez trouver ci-dessous l'avis de mon architecte.", "",
+            self.AVIS, "",
+            "De : Jean <jdupont@exemple.be>", "Envoyé : jeudi 27 août 2026 10:52",
+            "À : Architecte <archi@exemple.be>", "Objet : sdb", "",
+            "Que pensez-vous des jonctions ?",
+        ])
+        octets = courriel("TR: FW: RE: sdb", texte, de=MOI, recu="Thu, 27 Aug 2026 13:00:00 +0000",
+                          message_id="<env@x>").as_bytes()
+        return importer_couches(self.dossier, analyser_en_couches(octets, ignorer=[ALIAS]))
+
+    def importer_l_avis(self):
+        return importer(self.dossier, analyser(courriel(
+            "RE: sdb", self.AVIS, de="Architecte <archi@exemple.be>", a=MOI,
+            recu="Thu, 27 Aug 2026 11:52:00 +0000", message_id="<avis@x>").as_bytes()))
+
+    def test_a_l_import_le_transfert_se_relie_a_l_avis_et_non_a_l_origine(self):
+        avis = self.importer_l_avis()
+        crees = self.envoyer_le_transfert()
+        transfert = [e for e in crees if e.title.startswith("FW")][0]
+        transfert.refresh_from_db()
+        self.assertEqual(transfert.transfert_de, avis)
+
+    def test_le_rattrapage_relie_un_transfert_existant_par_son_contenu(self):
+        avis = self.importer_l_avis()
+        transfert = [e for e in self.envoyer_le_transfert() if e.title.startswith("FW")][0]
+        Event.objects.filter(pk=transfert.pk).update(transfert_de=None)
+        call_command("relier_courriels", "--appliquer", stdout=StringIO(), stderr=StringIO())
+        transfert.refresh_from_db()
+        self.assertEqual(transfert.transfert_de, avis)
+
+    def test_un_texte_court_ne_suffit_pas_a_prouver(self):
+        from events.import_courriels import transfere_par_contenu
+
+        court = importer(self.dossier, analyser(courriel(
+            "Devis", "Merci, bien reçu.", de=ACME_BAT, a=MOI,
+            recu="Thu, 27 Aug 2026 09:00:00 +0000", message_id="<court@x>").as_bytes()))
+        transfert = importer(self.dossier, analyser(courriel(
+            "FW: Devis", "Merci, bien reçu.", de=MOI, a=ACME_BAT,
+            recu="Thu, 27 Aug 2026 12:00:00 +0000", message_id="<fw2@x>").as_bytes()))
+        self.assertIsNone(transfere_par_contenu(transfert, "Merci, bien reçu."))
+        self.assertNotEqual(court, transfert)
