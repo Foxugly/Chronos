@@ -29,6 +29,10 @@ Le certificat `foxugly.com` est un joker (`*.foxugly.com`) : rien à émettre.
 
 ## 2. IAM (hors machine — jamais avec les clés root de la machine, §3.5)
 
+Tout ce qui suit est scripté dans **`deploy/iam-cloudshell.sh`**, à coller dans AWS CloudShell :
+il affiche la différence sur la politique de flotte et, à la fin, l'ARN à mettre dans
+`AWS_DEPLOY_ROLE_ARN`.
+
 1. Rôle **`chronos-deploy`**, confiance OIDC GitHub, en épinglant **les deux** formes de `sub` :
    ```json
    "token.actions.githubusercontent.com:sub": [
@@ -107,17 +111,20 @@ CFG
 sudo -u django bash -c 'umask 027; cd /var/www/django_websites && git clone github-chronos:Foxugly/Chronos.git'
 sudo -u django bash -c 'cd /var/www/django_websites/Chronos && python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt'
 
-# sudoers
-install -o root -g root -m 0440 /var/www/django_websites/Chronos/deploy/sudoers/chronos-deploy /etc/sudoers.d/chronos-deploy
-visudo -c
+# Depuis le blob git validé, jamais par cp depuis l'arborescence de django (§3.10).
+cd /var/www/django_websites/Chronos
+G="git -c safe.directory=$PWD show HEAD:deploy"
+
+# sudoers : vérifié avant d'être mis en place
+$G/sudoers/chronos-deploy > /tmp/chronos-deploy && visudo -cf /tmp/chronos-deploy   && install -o root -g root -m 0440 /tmp/chronos-deploy /etc/sudoers.d/chronos-deploy
+rm -f /tmp/chronos-deploy; visudo -c
 
 # Premier nginx (le déploiement le tient ensuite à jour)
-cp /var/www/django_websites/Chronos/deploy/nginx/chronos.foxugly.com.conf /etc/nginx/sites-available/chronos.foxugly.com
+$G/nginx/chronos.foxugly.com.conf > /etc/nginx/sites-available/chronos.foxugly.com
 ln -s /etc/nginx/sites-available/chronos.foxugly.com /etc/nginx/sites-enabled/
 nginx -t && systemctl reload nginx
 
 # Unités (le déploiement les réinstalle à chaque fois depuis git)
-cd /var/www/django_websites/Chronos
 for u in chronos-env-fetch.service chronos-gunicorn.service chronos-courriels.service \
          chronos-courriels.timer chronos-sauvegarde.service chronos-sauvegarde.timer; do
   git -c safe.directory=$PWD show HEAD:deploy/$u > /etc/systemd/system/$u
