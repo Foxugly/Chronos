@@ -14,7 +14,9 @@ Deux évènements pour un même fait.
 Partager une pièce ne suffit pas : un courriel joint des photos déjà déposées
 des semaines plus tôt, sans être pour autant le même fait. Deux évènements
 importés de deux courriels distincts ne sont jamais proposés — ce sont deux
-courriels. Une paire écartée (`PaireIgnoree`) n'est plus proposée.
+courriels. Un évènement et celui qu'il transfère (`Event.transfert_de`) non plus,
+eux qui partagent pourtant le même `.eml`. Une paire écartée (`PaireIgnoree`)
+n'est plus proposée.
 
 **Fusion** — on garde un évènement et on y verse l'autre ; rien n'est perdu :
 
@@ -84,6 +86,8 @@ def doublons_possibles(dossier, evenements=None):
                 continue
             if a.pk in importes and b.pk in importes:
                 continue
+            if a.transfert_de_id == b.pk or b.transfert_de_id == a.pk:
+                continue  # un transfert et ce qu'il transfère : deux courriels, pas un doublon
             ecart = abs((a.date - b.date).days)
             if ecart > ECART_MAX_JOURS:
                 continue

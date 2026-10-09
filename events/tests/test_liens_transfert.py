@@ -74,3 +74,28 @@ class LiensDeTransfertTests(TestCase):
         pdf = self.exporter(du="2026-10", au="2026-10")
         self.assertIn(b"Transfert de : Mise en demeure", pdf)
         self.assertIn(b"hors de cette s", pdf)
+
+
+class DoublonsEtTransfertsTests(TestCase):
+    def test_un_transfert_et_ce_qu_il_transfere_ne_sont_jamais_des_doublons(self):
+        """Même jour, même titre, même pièce : sans le lien, ce serait la paire la plus sûre."""
+        import hashlib
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from events.doublons import doublons_possibles
+        from events.models import Document
+
+        owner = make_user("owner")
+        dossier = make_dossier(owner)
+        origine = Event.objects.create(dossier=dossier, title="Mise en demeure", date="2026-09-28")
+        transfert = Event.objects.create(dossier=dossier, title="TR: Mise en demeure", date="2026-09-28",
+                                         transfert_de=origine)
+        with override_settings(MEDIA_ROOT=tempfile.mkdtemp()):
+            eml = Document.objects.create(
+                dossier=dossier, title="courriel.eml", file=SimpleUploadedFile("c.eml", b"eml"),
+                content_hash=hashlib.sha256(b"eml").hexdigest())
+            eml.events.add(origine, transfert)
+            self.assertEqual(doublons_possibles(dossier), [])
+            Event.objects.filter(pk=transfert.pk).update(transfert_de=None)
+            self.assertEqual(len(doublons_possibles(dossier)), 1)  # le témoin : sans lien, proposée
