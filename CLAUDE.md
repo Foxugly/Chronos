@@ -678,6 +678,6 @@ What is deliberately **not** done, and recorded in `backlog.md` (section « Ouve
   on purpose: on an evidence set, deleting a file nobody can currently explain is the worse error.
   (Documents removed *through the application* do have their file deleted — see invariant 4.)
 - Production follow-ups (owner's side or fleet-wide): Sentry is wired since 2026-10-09
-  (`chronos-backend`); no UptimeRobot monitor yet, `OPERATIONS.md` (repo `foxugly-ops`) does not list Chronos,
+  (`chronos-backend`) and UptimeRobot watches `/health/`; `OPERATIONS.md` (repo `foxugly-ops`) does not list Chronos,
   no off-box backup (S3), HSTS sent twice (Django and nginx), `/health/` reports
   `"version": "unknown"`, and the dossier's alias predates the suffix and should be re-saved.

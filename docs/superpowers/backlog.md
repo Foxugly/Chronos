@@ -15,7 +15,6 @@ l'historique de ce qui a été tranché, et pourquoi.
 - **Changer l'alias du dossier ACMEBAT** : il date d'avant le suffixe `.chronos@foxugly.com`.
   Il reçoit toujours ; la page Paramètres le signale. L'enregistrer à nouveau impose le format
   (Chronos ajoute le nouveau dans Exchange puis retire l'ancien).
-- **UptimeRobot** : un moniteur HTTPS sur `https://chronos.foxugly.com/health/` (mot-clé `"ok"`).
 - **`OPERATIONS.md`** (dépôt `foxugly-ops`) : ligne d'inventaire, rôle `chronos-deploy` dans la
   table du §3.11 — et Facilitation, qui y manque aussi.
 - **Copie hors machine des sauvegardes** (S3) : la flotte n'a pas encore de convention.
@@ -61,8 +60,8 @@ Constaté en production (47 évènements importés) par une analyse en lecture s
   membres ne peuvent pas créer de projet dans l'org), `SENTRY_DSN` (SecureString) dans
   `/chronos/prod`, message de test reçu (CHRONOS-BACKEND-1, résolu). Environnement `production`,
   sans données personnelles, sans traces de performance.
-- **UptimeRobot** : moniteur HTTPS mot-clé `"ok"` sur `https://chronos.foxugly.com/health/`, 300 s —
-  dans le tableau de bord (pas d'API sur le plan gratuit).
+- ~~UptimeRobot~~ **fait le 2026-10-09** : moniteur sur `https://chronos.foxugly.com/health/`
+  (créé par le propriétaire dans le tableau de bord).
 
 ### Flotte, relevé en chemin (2026-10-09)
 
