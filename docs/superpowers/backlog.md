@@ -1,22 +1,31 @@
 # Backlog Chronos
 
 **État au 2026-10-09.** Lots L1 à L6 livrés, plus la précision temporelle, le lot
-robustesse + sauvegarde, l'import de courriels et la préparation de la production
-(`deploy/`, CI, déploiement OIDC → SSM). **592 tests**, verts ; dernière migration
-`0017_numeros_et_etiquettes`, aucune en attente.
+robustesse + sauvegarde et l'import de courriels. **En production depuis le 2026-10-09** sur
+`https://chronos.foxugly.com` (base vide au départ, remplie par l'import de courriels).
+**652 tests**, verts ; dernière migration `0019_event_transfert_de`, aucune en attente.
 
 Lire d'abord la section « Ouvert » : c'est tout ce qui reste. Le reste du fichier est
 l'historique de ce qui a été tranché, et pourquoi.
 
 ## Ouvert
 
-### Import de courriels : en attente du propriétaire
+### Production : ce qui reste
 
-Le code est prêt et testé (courriels simulés) ; il manque, côté Microsoft 365 :
-l'application Entra ID, sa restriction à la seule boîte d'import, les alias Exchange, les
-identifiants en variables d'environnement, puis la tâche planifiée « Chronos - courriels ».
-Pas à pas : `docs/superpowers/import-courriels.md`. À tester aussi sur de vrais courriels
-transférés, déposés dans `exemples_courriels/`.
+- **Changer l'alias du dossier ACMEBAT** : il date d'avant le suffixe `.chronos@foxugly.com`.
+  Il reçoit toujours ; la page Paramètres le signale. L'enregistrer à nouveau impose le format
+  (Chronos ajoute le nouveau dans Exchange puis retire l'ancien).
+- **Sentry** : le projet `chronos-backend` et le paramètre SSM `SENTRY_DSN` manquent.
+- **UptimeRobot** : un moniteur HTTPS sur `https://chronos.foxugly.com/health/` (mot-clé `"ok"`).
+- **`OPERATIONS.md`** (dépôt `foxugly-ops`) : ligne d'inventaire, rôle `chronos-deploy` dans la
+  table du §3.11 — et Facilitation, qui y manque aussi.
+- **Copie hors machine des sauvegardes** (S3) : la flotte n'a pas encore de convention.
+- **HSTS envoyé deux fois** (Django et nginx, durées différentes) : en retirer un.
+- **`/health/` affiche `"version": "unknown"`** : la version déployée n'est pas transmise.
+- **Échéances** : secret de l'application « Chronos » et certificat « Chronos Exchange »
+  expirent le **2028-10-09** (relancer `deploy/m365-setup.ps1`).
+- **Vérifier dans un navigateur** le champ d'alias en `input-group` et le bouton « Copier »
+  (couverts par les tests seulement).
 
 ### Demande une décision du propriétaire
 
@@ -38,23 +47,6 @@ Le site est en FR / NL / EN (voir « Fait »). Restent :
   Celle du destinataire demanderait de la connaître (champ à ajouter à l'invitation).
 - Un anglais américain demanderait de lire `FIRST_DAY_OF_WEEK` dans `calendrier.py`, qui
   suppose le lundi.
-
-### Mise en service sur la flotte (chronos.foxugly.com)
-
-Le code est prêt ; il reste les gestes hors dépôt, dans l'ordre de `deploy/README.md` :
-dépôt GitHub `Foxugly/Chronos` et environnement `production`, rôle IAM `chronos-deploy`,
-base PostgreSQL, paramètres SSM `/chronos/prod/*`, préparation de la machine (root),
-Microsoft 365, puis transfert des données (`manage.py verifier_integrite` des deux côtés).
-
-Réglé dans le code le 2026-10-09 (n'est plus à faire) :
-
-- **nginx `client_max_body_size 100M`** refuse un envoi démesuré avant de le recevoir ;
-  `DOCUMENT_TAILLE_MAX` (50 Mo par fichier) reste appliqué par `_save_documents`.
-- **Pièces servies par `X-Accel-Redirect`** (`PIECES_X_ACCEL_PREFIX`), après contrôle des
-  droits ; aucune `location /media/` publique.
-- **Courriels envoyés par Microsoft Graph** (`GRAPH_SENDER`) ; console sans lui.
-- **Sauvegarde sur le serveur** : `chronos-sauvegarde.timer` (`pg_dump`). La copie hors
-  machine (S3) attend une convention de flotte.
 
 ### Laissé de côté volontairement
 
@@ -79,6 +71,20 @@ Réglé dans le code le 2026-10-09 (n'est plus à faire) :
   orphelins, ce qui cascaderait sur leurs `Document`. Sans effet dans les tests actuels.
 
 ## Fait
+
+### Mise en production — 2026-10-09
+
+- `https://chronos.foxugly.com`, port **8010** (8009 était pris par Facilitation), PostgreSQL 16,
+  dépôt GitHub **privé** `Foxugly/Chronos` (clé de déploiement en lecture seule sur la machine).
+- **Base de production vide, par choix** : les 30 évènements et 77 pièces du PC n'ont pas été
+  transférés ; le dossier ACMEBAT se remplit par l'import de courriels.
+- IAM (`deploy/iam-cloudshell.sh`) et SSM (`deploy/ssm-cloudshell.sh`) depuis CloudShell ;
+  Microsoft 365 par `deploy/m365-setup.ps1` (boîte `hello@foxugly.com`, droits Exchange limités à
+  elle). Import toutes les 10 minutes (`chronos-courriels.timer`).
+- Corrigé en chemin : le contrôle de déploiement en CI (`GRAPH_SENDER`), le refus de sauvegarder
+  dans une transaction ouvert à PostgreSQL, et un déploiement qui se disait réussi sans avoir
+  migré (`set -eu` en tête des commandes SSM).
+- Mot de passe de la base changé après avoir été collé en clair dans la conversation.
 
 ### Une couche de transfert, un évènement — 2026-10-09
 

@@ -7,10 +7,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Chronos** (named SDBTimeline until 2026-10-09 — the older design docs and the
 first migrations still say so) is a single-app Django 6.1 site that holds the chronology of a real bathroom-renovation
 legal dispute: quotes, invoices, photographs of defective work, an architect's opinion, consumer-body
-correspondence, formal demand letters. The database contains the **only copy** of that evidence —
-24 events and 49 documents. Treat data-touching operations accordingly: back up `db.sqlite3` and
-`media/` before any migration, and prefer failing loudly over guessing when an operation cannot
-positively identify what it is about to modify.
+correspondence, formal demand letters. The **local** database on the dev PC holds the case as it
+was built by hand — 30 events and 77 documents, the only copy. **Production
+(`chronos.foxugly.com`, live since 2026-10-09) started empty on purpose**: the owner refills it
+by forwarding mail to the dossier's alias, the PC data was not transferred. Treat data-touching
+operations accordingly on both sides: back up (`manage.py sauvegarder`) before any migration, and
+prefer failing loudly over guessing when an operation cannot positively identify what it is about
+to modify.
 
 The interface is **French, Dutch and English** (since 2026-10-08). French is the *source*
 language: every msgid is the French text, written in the code as before. See *Architecture:
@@ -364,8 +367,9 @@ A dossier can have an **email alias** (`Dossier.alias_courriel`, set by the owne
 else; the same page renames the dossier, journaled). `AliasCourrielForm` normalises (strip, lower)
 *before* checking uniqueness, and refuses the import mailbox's own address (`COURRIEL_BOITE`); the
 page suggests a hard-to-guess alias on that mailbox's domain and shows the `Set-Mailbox` command.
-Mail forwarded to that alias lands in an Exchange Online mailbox; `manage.py importer_courriels`
-(scheduled every 10 min by `scripts/importer_courriels.ps1`) reads it through **Microsoft Graph**
+Mail forwarded to that alias lands in an Exchange Online mailbox (`hello@foxugly.com` in production,
+an everyday mailbox — hence the 24 h window below); `manage.py importer_courriels` (every 10 min:
+`chronos-courriels.timer` in production, `scripts/importer_courriels.ps1` on the PC) reads it through **Microsoft Graph**
 (`events/graph.py`, client credentials, stdlib only — Exchange Online refuses password IMAP) and turns
 each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-courriels.md`.
 
@@ -568,7 +572,23 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   (FullCalendar, vis, Quill inject them). Adding an inline script without the nonce breaks it in every
   browser — a test checks every page's scripts against the header.
 - **Mail**: `events/courrier_graph.py` (Graph `/sendMail` through `events/graph.py`) when
-  `GRAPH_SENDER` is set; console otherwise.
+  `GRAPH_SENDER` is set; console otherwise. `check --deploy` refuses the console backend
+  (`mail.E001`), which is why CI sets `GRAPH_SENDER` for that step.
+- **Microsoft 365 side** is scripted in `deploy/m365-setup.ps1` (run from the PC, PowerShell): two
+  Entra apps (« Chronos » for Graph, « Chronos Exchange » for aliases), Exchange RBAC roles scoped
+  to the import/sender mailbox only (`Application Mail.ReadWrite`, `Application Mail.Send`,
+  `Mail Recipients`), SSM parameters, then a dry run and the timer on the box. Client secret and
+  certificate expire **2028-10-09**.
+- **Going-live facts (2026-10-09).** Port **8010** (8008 is Fabric, 8009 Facilitation). The repo is
+  **private** — the only one in the fleet — so the box pulls it with a read-only deploy key
+  (`github-chronos` host alias in `~django/.ssh/config`). IAM and SSM were set up from CloudShell
+  (`deploy/iam-cloudshell.sh`, `deploy/ssm-cloudshell.sh`). Units are installed by each deploy but
+  were **enabled by hand once** (`chronos-env-fetch`, `chronos-gunicorn`, `chronos-sauvegarde.timer`,
+  `chronos-courriels.timer`).
+- **A failed deploy step fails the deploy.** SSM runs the command list as one script and keeps only
+  the last exit code; `set -eu` comes first (`deploy.yml`), and `ssm-deploy.sh` refuses to run
+  without `/run/chronos/.env`. The first deploy reported success without migrating before this
+  was fixed — `/health/` only does `SELECT 1` and cannot see missing tables.
 - **Exchange aliases**: `events/exchange.py` + `scripts/exchange/manage_alias.ps1` (copied verbatim
   from PushIT). Unlike PushIT, failure is not swallowed: add in Exchange first, save only on success.
   Certificate: PFX in SSM (`EXCHANGE_CERT_PFX_B64`), decoded by the env-fetch script into
@@ -593,8 +613,8 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   has; a heredoc that silently rewrites a whole file to LF turns a two-line fix into an unreadable
   diff.
 - **`MAILERS` in `config/settings.py` is a legitimate Django 6.1 setting**, not a mistake — it
-  replaced `EMAIL_BACKEND`. It is currently on the console backend, so password-reset links print
-  to the terminal.
+  replaced `EMAIL_BACKEND`. Locally it is on the console backend, so password-reset links print
+  to the terminal; in production it sends through Graph.
 - `SECRET_KEY`, `DEBUG` and `ALLOWED_HOSTS` read from `DJANGO_SECRET_KEY`, `DJANGO_DEBUG` and
   `DJANGO_ALLOWED_HOSTS`, and **both fail closed**. `DEBUG` is true only when `DJANGO_DEBUG` is
   exactly `"True"`, so a deployment that forgets the variable gets the safe setting rather than a
@@ -609,9 +629,6 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   made long afterwards. Worse, a reverse-then-forward cycle would re-attach every event in the
   database to the single initial dossier, silently merging separate cases into one chronology.
   Preserve the irreversibility; going back is a decision to take by hand, with a backup.
-- Deployment is out of scope so far; this app is not on the EC2 fleet described in the user-level
-  `CLAUDE.md`. When it eventually ships, document serving should move from Django's `FileResponse`
-  to an nginx `X-Accel-Redirect`.
 
 ## Work in progress
 
@@ -620,9 +637,10 @@ code comments as "spec D2", "spec D5"), `plans/` holds the task-by-task plan, `d
 rulings taken during execution, and `backlog.md` what has been requested, deferred or deliberately
 left out — read `backlog.md` first, it is the most current of the four.
 
-**Lots L1 to L6 are done, plus the temporal-precision work and the robustness + backup lot of
-2026-10-08.** The suite is at **592 tests**, green, with no pending migrations (latest:
-`0017_numeros_et_etiquettes`). Delivered: a shared `base.html` with navbar and logout,
+**Lots L1 to L6 are done, plus the temporal-precision work, the robustness + backup lot of
+2026-10-08, and on 2026-10-09 the go-live and the email-import work** (layers as events, the
+« Relever les courriels » button, alias suffix). The suite is at **652 tests**, green, with no
+pending migrations (latest: `0019_event_transfert_de`). Delivered: a shared `base.html` with navbar and logout,
 `404.html` / `500.html`, the event form as a modal (page version kept as the no-JavaScript
 fallback), a Quill rich-text editor sanitised server-side by nh3 (`events/sanitize.py`), four views
 (chronology, month, week, list — the last three render without JavaScript), content-hash
@@ -648,6 +666,7 @@ What is deliberately **not** done, and recorded in `backlog.md` (section « Ouve
 - Four unreferenced `.jpg` files sit in `media/`, from before this work. They are left untouched
   on purpose: on an evidence set, deleting a file nobody can currently explain is the worse error.
   (Documents removed *through the application* do have their file deleted — see invariant 4.)
-- Going live: the code side is done (see *Architecture: production*); what remains is the
-  out-of-repo setup in `deploy/README.md` (GitHub repo, IAM role, PostgreSQL, SSM, machine,
-  Microsoft 365, data transfer).
+- Production follow-ups (owner's side or fleet-wide): Sentry is not wired (`SENTRY_DSN` absent from
+  SSM), no UptimeRobot monitor yet, `OPERATIONS.md` (repo `foxugly-ops`) does not list Chronos,
+  no off-box backup (S3), HSTS sent twice (Django and nginx), `/health/` reports
+  `"version": "unknown"`, and the dossier's alias predates the suffix and should be re-saved.
