@@ -1,7 +1,7 @@
 # Mise en service de Chronos sur la flotte (chronos.foxugly.com)
 
 Référence : `OPERATIONS.md` (dépôt `Foxugly/foxugly-ops`), §3.12 « nouveau site », et
-QuizOnline, l'implémentation de référence. Port **8009**, base PostgreSQL 16 locale,
+QuizOnline, l'implémentation de référence. Port **8010**, base PostgreSQL 16 locale,
 application dans `/var/www/django_websites/Chronos` (la racine du dépôt est la racine Django).
 
 Ce qui est versionné ici et installé **par le déploiement**, depuis le blob git validé :

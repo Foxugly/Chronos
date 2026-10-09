@@ -525,7 +525,7 @@ Consequences that are easy to break:
 
 ## Architecture: production (AWS fleet, chronos.foxugly.com)
 
-Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **8009**,
+Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **8010**,
 `/var/www/django_websites/Chronos`). Runbook: **`deploy/README.md`**; fleet rules: `OPERATIONS.md`.
 
 - **Settings fail closed outside DEBUG**: `SECRET_KEY` (bare fleet name; `DJANGO_SECRET_KEY` still

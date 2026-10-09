@@ -1,5 +1,5 @@
 [Unit]
-Description=Chronos — gunicorn (127.0.0.1:8009)
+Description=Chronos — gunicorn (127.0.0.1:8010)
 After=network.target chronos-env-fetch.service postgresql.service
 Requires=chronos-env-fetch.service
 
@@ -14,7 +14,7 @@ Environment="PYTHONUNBUFFERED=1"
 # --timeout 120 : changer un alias Exchange enchaîne deux connexions
 # PowerShell (ajout puis retrait), une dizaine de secondes chacune.
 ExecStart=/var/www/django_websites/Chronos/.venv/bin/gunicorn --workers 2 --timeout 120 \
-    --bind 127.0.0.1:8009 \
+    --bind 127.0.0.1:8010 \
     --access-logfile /var/log/chronos/gunicorn-access.log \
     --error-logfile /var/log/chronos/gunicorn-error.log \
     config.wsgi:application
