@@ -22,7 +22,7 @@ from django.db import connection, transaction
 from django.utils import timezone
 
 from .couleurs import prochaine_couleur
-from .courriels import adresses, analyser, en_markdown, lire, texte_en_html
+from .courriels import adresses, analyser_en_couches, en_markdown, lire, texte_en_html
 from .graph import ClientGraph
 from .journal import consigner, consigner_pieces, instantane
 from .models import CourrielImporte, Dossier, Event, Expediteur, Journal
@@ -59,15 +59,48 @@ def expediteur_du_dossier(dossier, texte):
 
 
 def cle_du_courriel(analyse):
-    """L'identifiant du courriel d'origine ; à défaut, l'empreinte de ses octets."""
-    return (analyse.message_id or "sha256:" + hashlib.sha256(analyse.eml).hexdigest())[:255]
+    """La clé d'une couche : sa clé lue dans le texte, sinon le Message-ID du
+    courriel, sinon l'empreinte de ses octets."""
+    return (analyse.cle or analyse.message_id
+            or "sha256:" + hashlib.sha256(analyse.eml).hexdigest())[:255]
+
+
+def _cles(analyse):
+    """Toutes les clés sous lesquelles cette couche a pu être importée."""
+    return [c for c in (cle_du_courriel(analyse), analyse.cle_ancienne) if c]
 
 
 def deja_importe(dossier, analyse):
-    return CourrielImporte.objects.filter(dossier=dossier, message_id=cle_du_courriel(analyse)).exists()
+    return CourrielImporte.objects.filter(dossier=dossier, message_id__in=_cles(analyse)).exists()
 
 
-def importer(dossier, analyse):
+def evenement_importe(dossier, analyse):
+    """L'évènement déjà créé pour cette couche dans ce dossier, ou `None`."""
+    trace = (CourrielImporte.objects.filter(dossier=dossier, message_id__in=_cles(analyse))
+             .exclude(evenement=None).select_related("evenement").first())
+    return trace.evenement if trace else None
+
+
+def importer_couches(dossier, couches):
+    """Une couche, un évènement : de l'origine au plus récent, chacun relié à
+    celui qu'il transfère (`Event.transfert_de`). Une couche déjà importée
+    n'est pas recréée, mais le transfert suivant s'y relie — la mise en
+    demeure importée hier, transférée à l'avocate aujourd'hui. Rend les
+    évènements créés ; la chaîne entière ou rien.
+    """
+    crees = []
+    with transaction.atomic():
+        precedent = None
+        for couche in couches:
+            evenement = evenement_importe(dossier, couche)
+            if evenement is None:
+                evenement = importer(dossier, couche, transfert_de=precedent)
+                crees.append(evenement)
+            precedent = evenement
+    return crees
+
+
+def importer(dossier, analyse, transfert_de=None):
     """Crée l'évènement et ses pièces. Rend l'évènement, ou `None` s'il existait déjà."""
     # Import local : `views` importe ce module indirectement via les modèles.
     from .views import _attach_document, _verifier_fichier
@@ -91,6 +124,7 @@ def importer(dossier, analyse):
             date=moment.date(),
             heure=moment.time().replace(microsecond=0),
             description=nettoyer(description),
+            transfert_de=transfert_de if transfert_de and transfert_de.dossier_id == dossier.pk else None,
         )
 
         acceptees, refusees = [], []
@@ -140,6 +174,14 @@ ENTETES_DESTINATAIRES = ("To", "Cc", "Delivered-To", "X-Original-To", "Resent-To
 
 #: Clé du verrou consultatif PostgreSQL commun aux deux chemins (« Chron » en hexadécimal).
 CLE_VERROU = 0x4368726F6E
+
+
+def adresses_de_la_boite():
+    """Les adresses qui ne font pas d'une enveloppe une couche : les alias des
+    dossiers et la boîte d'import elle-même."""
+    alias = Dossier.objects.exclude(alias_courriel=None).exclude(alias_courriel="")
+    return {a.lower() for a in alias.values_list("alias_courriel", flat=True)} | {
+        (settings.COURRIEL_BOITE or "").lower()} - {""}
 
 
 def import_configure():
@@ -201,6 +243,7 @@ def relever_la_boite(*, essai=False, decrire=None, signaler=None):
     bilan = Releve()
     dossiers_outlook = {}  # nom du dossier Chronos → identifiant du dossier Outlook
 
+    ignorer = adresses_de_la_boite()
     for message in client.messages_recus(timezone.now() - settings.COURRIEL_FENETRE):
         octets = client.mime(message["id"])
         dossier = dossier_destinataire(adresses(lire(octets), *ENTETES_DESTINATAIRES))
@@ -208,16 +251,16 @@ def relever_la_boite(*, essai=False, decrire=None, signaler=None):
             bilan.ignores += 1  # ce courriel ne regarde pas Chronos
             continue
         try:
-            analyse = analyser(octets)
-            decrire(analyse, dossier)
+            couches = analyser_en_couches(octets, ignorer=ignorer)
+            for couche in couches:
+                decrire(couche, dossier)
             if essai:
                 continue
-            if deja_importe(dossier, analyse):
+            if importer_couches(dossier, couches):
+                bilan.importes[dossier.pk] += 1
+            else:
                 bilan.deja[dossier.pk] += 1
                 signaler("  déjà importé : rangé sans rien créer.")
-            else:
-                importer(dossier, analyse)
-                bilan.importes[dossier.pk] += 1
             if dossier.name not in dossiers_outlook:
                 dossiers_outlook[dossier.name] = client.dossier(dossier.name)
             client.deplacer(message["id"], dossiers_outlook[dossier.name])

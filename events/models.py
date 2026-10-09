@@ -237,6 +237,13 @@ class Event(models.Model):
     couleur = models.CharField(
         gettext_lazy("couleur"), max_length=7, blank=True, validators=[valider_couleur],
     )
+    # Le courriel que cet évènement transfère : la mise en demeure du 28/09 pour
+    # le transfert à l'avocate du 07/10 (`analyser_en_couches`). Toujours dans le
+    # même dossier (`clean`, et l'import ne relie que dans le dossier qu'il remplit).
+    transfert_de = models.ForeignKey(
+        "self", verbose_name=gettext_lazy("transfert de"), related_name="transferts",
+        null=True, blank=True, on_delete=models.SET_NULL,
+    )
 
     class Meta:
         # Classé par début, puis par heure : deux faits du même jour se lisent
@@ -419,6 +426,11 @@ class Event(models.Model):
     def clean(self):
         from django.core.exceptions import ValidationError
 
+        if self.transfert_de_id and self.transfert_de.dossier_id != self.dossier_id:
+            # Un lien vers un autre dossier ouvrirait une fenêtre d'une affaire sur l'autre.
+            raise ValidationError(
+                {"transfert_de": _("Un transfert ne peut renvoyer qu'à un évènement du même dossier.")}
+            )
         if self.date_fin and self.date and self.date_fin < self.date:
             raise ValidationError(
                 {"date_fin": _("La fin ne peut pas précéder le début.")}

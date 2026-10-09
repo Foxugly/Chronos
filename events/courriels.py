@@ -26,6 +26,7 @@ courriel transféré qui sert, et l'`Analyse` le signale (`date_approchee`).
 
 import datetime
 import email
+import hashlib
 import email.policy
 import html
 import re
@@ -90,6 +91,9 @@ class Analyse:
     message_id: str = ""  # identifiant du courriel d'origine (ou reçu), pour ne pas importer deux fois
     forme: str = "direct"  # "joint", "texte" ou "direct"
     date_approchee: bool = False
+    transfert: bool = False  # cette couche transfère la couche du dessous (`analyser_en_couches`)
+    cle: str = ""  # clé d'une couche lue dans le texte, qui n'a pas de Message-ID à elle
+    cle_ancienne: str = ""  # la clé qu'un import d'avant les couches lui a donnée
 
 
 def lire(octets):
@@ -282,6 +286,120 @@ def _joindre(*textes):
     return "\n\n".join(t for t in textes if t)
 
 
+def _cle_de_couche(champs):
+    """Une couche lue dans le texte n'a pas de Message-ID : son auteur, sa date
+    et son objet l'identifient."""
+    brut = "|".join((champs.get("de", ""), champs.get("date", ""), champs.get("objet", ""))).lower()
+    return "couche:" + hashlib.sha256(" ".join(brut.split()).encode("utf-8")).hexdigest()
+
+
+def _couches(octets, *, enveloppe, ignorer, repli):
+    """Les couches d'un courriel, de la plus ancienne (l'origine) à la plus récente.
+
+    `enveloppe` : ce courriel est celui reçu par la boîte. Il n'est alors une
+    couche que s'il s'adresse à quelqu'un d'autre que les adresses `ignorer`
+    (l'alias, la boîte) ; sinon ce n'est qu'une enveloppe, dont le mot et les
+    pièces passent à la couche du dessous. `ignorer=None` : toujours une
+    enveloppe (l'ancienne lecture, `analyser`).
+    """
+    recu = lire(octets)
+    reception = date_de_reception(recu) or repli
+    sujet = str(recu["Subject"] or "")
+    message_id = str(recu["Message-ID"] or "").strip()
+
+    def ici(texte, pieces):
+        return Analyse(
+            titre=(sujet.strip() or "(sans objet)")[:255],
+            moment=reception,
+            expediteur=str(recu["From"] or ""),
+            destinataires=", ".join(adresses(recu, "To", "Cc")),
+            texte=texte, pieces=pieces, eml=octets, message_id=message_id,
+            forme="direct", date_approchee=reception is None, transfert=True,
+        )
+
+    partie_jointe, original = _courriel_joint(recu)
+    if original is not None:
+        dessous = _couches(original.as_bytes(), enveloppe=False, ignorer=ignorer, repli=reception)
+        for couche in dessous:
+            if couche.forme == "direct":
+                couche.forme = "joint"
+        couche = ici(corps_en_texte(recu), pieces_jointes(recu, ignorer=(partie_jointe,)))
+        return _empiler(dessous, couche, recu, enveloppe, ignorer)
+
+    texte = corps_en_texte(recu)
+    bloc = _bloc_de_transfert(texte) if est_un_transfert(sujet, texte) else None
+    if bloc is None:
+        # Envoyé directement : le courriel lui-même, toujours une couche.
+        return [Analyse(
+            titre=nettoyer_titre(sujet), moment=reception, expediteur=str(recu["From"] or ""),
+            destinataires=", ".join(adresses(recu, "To", "Cc")), texte=texte,
+            pieces=pieces_jointes(recu), eml=octets, message_id=message_id, forme="direct",
+            date_approchee=date_de_reception(recu) is None,
+        )]
+
+    # Transfert dans le texte : un bloc « De : … Envoyé : … » par couche. Tant que
+    # le bloc lu annonce lui-même un transfert, on descend d'une couche.
+    blocs = [bloc]
+    while est_un_transfert(blocs[-1][1].get("objet", ""), "") and _bloc_de_transfert(blocs[-1][2]):
+        blocs.append(_bloc_de_transfert(blocs[-1][2]))
+    dessous = []
+    for k, (_mot, champs, suite) in enumerate(blocs):
+        origine = k == len(blocs) - 1
+        ecrite = date_en_toutes_lettres(champs.get("date", ""))
+        moment = ecrite.replace(tzinfo=BRUXELLES) if ecrite else None
+        objet = champs.get("objet") or sujet
+        dessous.insert(0, Analyse(
+            titre=nettoyer_titre(objet) if origine else (objet.strip() or "(sans objet)")[:255],
+            moment=moment or reception,
+            expediteur=champs.get("de", ""),
+            destinataires=champs.get("a", ""),
+            # Le texte d'une couche intermédiaire est le mot écrit au-dessus du bloc suivant.
+            texte=suite if origine else blocs[k + 1][0],
+            pieces=pieces_jointes(recu) if origine else [],
+            eml=octets,
+            forme="texte",
+            date_approchee=moment is None,
+            transfert=not origine,
+            cle=_cle_de_couche(champs),
+            # Avant les couches, l'origine prenait le Message-ID du courriel reçu.
+            cle_ancienne=message_id if origine else "",
+        ))
+    return _empiler(dessous, ici(blocs[0][0], []), recu, enveloppe, ignorer)
+
+
+def _empiler(dessous, couche, recu, enveloppe, ignorer):
+    """Ajoute `couche` au-dessus de `dessous`, sauf si ce n'est qu'une enveloppe."""
+    autres = None if ignorer is None else (
+        {a.lower() for a in adresses(recu, "To", "Cc")} - {a.lower() for a in ignorer}
+    )
+    if not enveloppe or autres:
+        return dessous + [couche]
+    haut = dessous[-1]
+    haut.commentaire = _joindre(couche.texte, haut.commentaire)
+    haut.pieces = haut.pieces + couche.pieces
+    return dessous
+
+
+def _finaliser(analyse):
+    if analyse.moment is None:
+        analyse.moment = datetime.datetime.now(tz=BRUXELLES)
+        analyse.date_approchee = True
+    analyse.moment = analyse.moment.astimezone(BRUXELLES)
+    return analyse
+
+
+def analyser_en_couches(octets, ignorer=()):
+    """Le courriel reçu → une `Analyse` par couche, de l'origine au plus récent.
+
+    Une mise en demeure reçue, transférée à l'avocate, puis ce transfert
+    envoyé à l'alias : deux couches — la mise en demeure, et le transfert à
+    l'avocate (`transfert=True`, son mot pour texte). L'enveloppe envoyée à
+    l'alias n'en est une que si elle s'adresse aussi à quelqu'un d'autre que
+    les adresses `ignorer` (les alias, la boîte d'import).
+    """
+    return [_finaliser(c) for c in _couches(octets, enveloppe=True, ignorer=ignorer, repli=None)]
+
+
 def analyser(octets, repli=None):
     """Le courriel reçu → `Analyse` de son courriel d'**origine**.
 
@@ -291,67 +409,23 @@ def analyser(octets, repli=None):
     d'où la **récursion** : chaque couche est déballée jusqu'au courriel
     d'origine, en pièce jointe comme dans le texte. Les mots écrits à chaque
     couche (« Pour le dossier », « Bonjour Maître… ») sont gardés, du plus
-    récent au plus ancien, dans `commentaire`.
+    récent au plus ancien, dans `commentaire`. `analyser_en_couches` garde,
+    elle, chaque couche.
 
     `repli` : la date à prendre si celle du courriel est illisible — celle de
     la couche qui l'enveloppait.
     """
-    recu = lire(octets)
-    reception = date_de_reception(recu) or repli
-
-    partie_jointe, original = _courriel_joint(recu)
-    if original is not None:
-        analyse = analyser(original.as_bytes(), repli=reception)
-        analyse.commentaire = _joindre(corps_en_texte(recu), analyse.commentaire)
-        analyse.pieces = analyse.pieces + pieces_jointes(recu, ignorer=(partie_jointe,))
-        if analyse.forme == "direct":
-            analyse.forme = "joint"
-        return analyse
-
-    texte = corps_en_texte(recu)
-    sujet = str(recu["Subject"] or "")
-    bloc = _bloc_de_transfert(texte) if est_un_transfert(sujet, texte) else None
-    if bloc is not None:
-        commentaire, champs, suite = bloc
-        commentaires = [commentaire]
-        # Un transfert de transfert : tant que le bloc lu annonce lui-même un
-        # transfert, on descend d'une couche.
-        while est_un_transfert(champs.get("objet", ""), "") and _bloc_de_transfert(suite):
-            commentaire, champs, suite = _bloc_de_transfert(suite)
-            commentaires.append(commentaire)
-        ecrite = date_en_toutes_lettres(champs.get("date", ""))
-        moment = ecrite.replace(tzinfo=BRUXELLES) if ecrite else None
-        analyse = Analyse(
-            titre=nettoyer_titre(champs.get("objet") or sujet),
-            moment=moment or reception,
-            expediteur=champs.get("de", ""),
-            destinataires=champs.get("a", ""),
-            texte=suite,
-            commentaire=_joindre(*commentaires),
-            pieces=pieces_jointes(recu),
-            eml=octets,
-            message_id=str(recu["Message-ID"] or "").strip(),
-            forme="texte",
-            date_approchee=moment is None,
-        )
-    else:
-        analyse = Analyse(
-            titre=nettoyer_titre(sujet),
-            moment=reception,
-            expediteur=str(recu["From"] or ""),
-            destinataires=", ".join(adresses(recu, "To", "Cc")),
-            texte=texte,
-            pieces=pieces_jointes(recu),
-            eml=octets,
-            message_id=str(recu["Message-ID"] or "").strip(),
-            forme="direct",
-            date_approchee=date_de_reception(recu) is None,
-        )
-    if analyse.moment is None:
-        analyse.moment = datetime.datetime.now(tz=BRUXELLES)
-        analyse.date_approchee = True
-    analyse.moment = analyse.moment.astimezone(BRUXELLES)
-    return analyse
+    couches = _couches(octets, enveloppe=True, ignorer=None, repli=repli)
+    origine = couches[0]
+    mots = []
+    for couche in reversed(couches[1:]):
+        mots += [couche.commentaire, couche.texte]
+        origine.pieces = origine.pieces + couche.pieces
+    origine.commentaire = _joindre(*mots, origine.commentaire)
+    if origine.cle_ancienne:
+        origine.message_id = origine.cle_ancienne
+    origine.transfert = False
+    return _finaliser(origine)
 
 
 def en_markdown(analyse, refusees=()):

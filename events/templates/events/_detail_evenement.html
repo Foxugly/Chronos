@@ -40,6 +40,20 @@ la page, et son comportement (aperçu, visionneuse) est posé par
         {% endif %}
     </div>
 
+    {% if transfert_de or transferts %}
+        <ul class="list-unstyled small mb-3">
+            {% if transfert_de %}
+                <li><i class="bi bi-arrow-return-right me-1" aria-hidden="true"></i>{% translate "Transfert de :" %}
+                    <a href="{{ transfert_de.url }}" data-voir-evenement>{{ transfert_de.titre }}</a>
+                    <span class="text-body-secondary">({{ transfert_de.periode }})</span></li>
+            {% endif %}
+            {% for t in transferts %}
+                <li><i class="bi bi-forward me-1" aria-hidden="true"></i>{% translate "Transféré ensuite :" %}
+                    <a href="{{ t.url }}" data-voir-evenement>{{ t.titre }}</a>
+                    <span class="text-body-secondary">({{ t.periode }})</span></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
     {% if description %}
         <div class="mb-3 text-break">{{ description|safe }}</div>
     {% endif %}

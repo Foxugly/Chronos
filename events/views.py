@@ -488,6 +488,7 @@ def rendre_detail(request, event, *, peut_ecrire, lien=None):
         "url_retour": url_retour,
         "lien_partage": lien,
         **_voisins(event, detail_de, url_retour),
+        **_liens_de_transfert(event, detail_de, url_retour),
     }
     gabarit = (
         "events/_detail_evenement.html"
@@ -495,6 +496,27 @@ def rendre_detail(request, event, *, peut_ecrire, lien=None):
         else "events/detail_evenement.html"
     )
     return render(request, gabarit, contexte)
+
+
+def _liens_de_transfert(event, detail_de, url_retour):
+    """Le courriel que cet évènement transfère, et ses transferts ultérieurs.
+
+    Bornés au dossier de l'évènement, en plus de `Event.clean` : ce fragment
+    est aussi servi par les liens de partage, qui ne connaissent qu'un dossier.
+    """
+    def lien(autre):
+        return {
+            "titre": autre.title,
+            "periode": autre.periode_affichee,
+            "url": "%s?%s" % (detail_de(autre.pk), urlencode({"retour": url_retour})),
+        }
+
+    meme_dossier = Event.objects.filter(dossier_id=event.dossier_id)
+    origine = meme_dossier.filter(pk=event.transfert_de_id).first() if event.transfert_de_id else None
+    return {
+        "transfert_de": lien(origine) if origine else None,
+        "transferts": [lien(t) for t in meme_dossier.filter(transfert_de=event)],
+    }
 
 
 def _voisins(event, detail_de, url_retour):

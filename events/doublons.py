@@ -171,6 +171,10 @@ def fusionner(garde, absorbe, *, request):
         Event.objects.filter(pk=garde.pk).update(version=F("version") + 1)
 
         CourrielImporte.objects.filter(evenement=absorbe).update(evenement=garde)
+        # Les transferts qui renvoyaient à l'évènement absorbé renvoient au gardé.
+        Event.objects.filter(transfert_de=absorbe).exclude(pk=garde.pk).update(transfert_de=garde)
+        if garde.transfert_de_id is None and absorbe.transfert_de_id not in (None, garde.pk):
+            Event.objects.filter(pk=garde.pk).update(transfert_de=absorbe.transfert_de_id)
         garde.etiquettes.add(*absorbe.etiquettes.all())
 
         consigner(

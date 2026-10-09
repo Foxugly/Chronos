@@ -384,6 +384,17 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   On the owner's samples, forwarding as attachment gives the *receipt* time, inline the *sent* time —
   2 to 13 minutes apart. `VraisExemplesTransferesTests` replays both on `exemples_courriels/`. Month names are matched
   next to the day and year — Gmail writes « mar. » for *mardi*, which is also *Mar*ch.
+- **Every layer of a forward is an event** (owner's decision, 2026-10-09), `analyser_en_couches`:
+  a demand letter received on 28/09, forwarded to the lawyer on 07/10, then that forward sent to the
+  alias → two events, the forward linked to what it forwards (`Event.transfert_de`, same dossier
+  only — `Event.clean`, and the detail view bounds the lookup to the dossier, since share links
+  render it too). The envelope sent to the alias is a layer **only if it is also addressed to
+  someone else** (To/Cc beyond the aliases and the mailbox); otherwise its note and attachments go
+  to the layer below. Each layer has its own key in `CourrielImporte`: a layer already imported is
+  not re-created, and the next forward links to it. Inline layers have no Message-ID — their key is
+  a hash of sender, date and subject (`cle`); the origin also answers to its pre-layers key
+  (`cle_ancienne`, the received mail's Message-ID). `analyser()` (one `Analyse`, the origin) is
+  kept, folded over the layers.
 - `events/import_courriels.py` creates, in **one transaction**, the event (instant, Brussels time), the
   original `.eml`, a `.md` text version (for search / AI), the attachments that pass `_verifier_fichier`
   (refused ones are named in the journal and the `.md`, the rest is still imported), a

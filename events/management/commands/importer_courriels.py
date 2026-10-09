@@ -25,9 +25,11 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from events.courriels import analyser
+from events.courriels import analyser_en_couches
 from events.graph import ErreurGraph
-from events.import_courriels import importer, relever_la_boite, verrou_de_releve
+from events.import_courriels import (
+    adresses_de_la_boite, importer_couches, relever_la_boite, verrou_de_releve,
+)
 from events.models import Dossier
 
 
@@ -67,15 +69,16 @@ class Command(BaseCommand):
             dossier = Dossier.objects.get(pk=dossier_id)
         except Dossier.DoesNotExist:
             raise CommandError("Dossier introuvable : %s" % dossier_id)
-        analyse = analyser(chemin.read_bytes())
-        self._decrire(analyse, dossier)
+        couches = analyser_en_couches(chemin.read_bytes(), ignorer=adresses_de_la_boite())
+        for couche in couches:
+            self._decrire(couche, dossier)
         if essai:
             return
-        evenement = importer(dossier, analyse)
-        if evenement is None:
+        crees = importer_couches(dossier, couches)
+        if not crees:
             self.stdout.write("  déjà importé dans ce dossier : rien de créé.")
-        else:
-            self.stdout.write(self.style.SUCCESS("  évènement créé (n° %d)." % evenement.pk))
+        for evenement in crees:
+            self.stdout.write(self.style.SUCCESS("  évènement créé (n° %d) : %s" % (evenement.pk, evenement.title)))
 
     def _depuis_la_boite(self, essai):
         with verrou_de_releve() as libre:
