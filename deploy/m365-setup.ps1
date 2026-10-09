@@ -101,16 +101,43 @@ function Application-Entra($nom) {
     return @{ App = $app; Sp = $sp }
 }
 
+# Les applets Exchange signalent leurs erreurs sans arrêter le script : -ErrorAction Stop
+# partout, sinon une étape ratée s'afficherait « OK ».
+
 function Portee-Exchange($nom, $filtre) {
     $existe = $null
     try { $existe = Get-ManagementScope -Identity $nom -ErrorAction Stop } catch { }
-    if ($existe) { Set-ManagementScope -Identity $nom -RecipientRestrictionFilter $filtre }
-    else { New-ManagementScope -Name $nom -RecipientRestrictionFilter $filtre | Out-Null }
+    if ($existe) { Set-ManagementScope -Identity $nom -RecipientRestrictionFilter $filtre -ErrorAction Stop }
+    else { New-ManagementScope -Name $nom -RecipientRestrictionFilter $filtre -ErrorAction Stop | Out-Null }
 }
 
 function Principal-Exchange($appId, $objectId, $nom) {
-    if (-not (Get-ServicePrincipal -ErrorAction SilentlyContinue | Where-Object AppId -eq $appId)) {
-        New-ServicePrincipal -AppId $appId -ObjectId $objectId -DisplayName $nom | Out-Null
+    # Une application qui vient d'être créée dans Entra met une à trois minutes à
+    # devenir visible d'Exchange (AADServicePrincipalNotFound) : on attend.
+    if (Get-ServicePrincipal -ErrorAction SilentlyContinue | Where-Object AppId -eq $appId) { return }
+    for ($essai = 1; $essai -le 12; $essai++) {
+        try {
+            New-ServicePrincipal -AppId $appId -ObjectId $objectId -DisplayName $nom -ErrorAction Stop | Out-Null
+            Ok "principal Exchange « $nom » inscrit"
+            return
+        } catch {
+            if ("$_" -notmatch "AADServicePrincipalNotFound") { throw }
+            Write-Host "  …  Exchange ne voit pas encore « $nom » (propagation Entra), nouvel essai dans 15 s ($essai/12)"
+            Start-Sleep -Seconds 15
+        }
+    }
+    throw "Exchange ne voit toujours pas « $nom » après 3 minutes : relance le script dans quelques minutes."
+}
+
+function Role-Exchange($appId, $role, $portee) {
+    $existe = Get-ManagementRoleAssignment -RoleAssignee $appId -Role $role -ErrorAction SilentlyContinue
+    if (-not $existe) {
+        New-ManagementRoleAssignment -App $appId -Role $role -CustomResourceScope $portee -ErrorAction Stop | Out-Null
+    }
+    $verifie = Get-ManagementRoleAssignment -RoleAssignee $appId -Role $role -ErrorAction Stop
+    if (-not $verifie) { throw "Le rôle $role n'apparaît pas sur l'application $appId." }
+    if ($verifie.CustomResourceScope -ne $portee) {
+        throw "Le rôle $role existe sur $appId sans être limité à « $portee » : retire-le (Remove-ManagementRoleAssignment) et relance."
     }
 }
 
@@ -122,16 +149,17 @@ $secret = Add-MgApplicationPassword -ApplicationId $g.App.Id -PasswordCredential
     EndDateTime = (Get-Date).AddMonths(24)
 }
 Ok "secret client créé (expire le $($secret.EndDateTime.ToString('yyyy-MM-dd')) — à renouveler avant)"
+# Les secrets des passages précédents ne servent plus : on ne garde que le nouveau.
+(Get-MgApplication -ApplicationId $g.App.Id).PasswordCredentials |
+    Where-Object { $_.DisplayName -like "chronos-prod*" -and $_.KeyId -ne $secret.KeyId } |
+    ForEach-Object { Remove-MgApplicationPassword -ApplicationId $g.App.Id -KeyId $_.KeyId }
 
 Principal-Exchange $g.App.AppId $g.Sp.Id $NomGraph
 $filtre = (@($BoiteImport, $Expediteur) | Select-Object -Unique | ForEach-Object { "PrimarySmtpAddress -eq '$_'" }) -join " -or "
 $scopeMail = "Chronos boites"
 Portee-Exchange $scopeMail $filtre
 foreach ($role in "Application Mail.ReadWrite", "Application Mail.Send") {
-    $existe = Get-ManagementRoleAssignment -RoleAssignee $g.App.AppId -Role $role -ErrorAction SilentlyContinue
-    if (-not $existe) {
-        New-ManagementRoleAssignment -App $g.App.AppId -Role $role -CustomResourceScope $scopeMail | Out-Null
-    }
+    Role-Exchange $g.App.AppId $role $scopeMail
     Ok "$role limité à : $filtre"
 }
 
@@ -171,13 +199,25 @@ if (-not $dejaConsenti) {
 Ok "Exchange.ManageAsApp consentie"
 
 Principal-Exchange $e.App.AppId $e.Sp.Id $NomExchange
-$scopeAlias = "Chronos boite import"
 $filtreAlias = "PrimarySmtpAddress -eq '$BoiteImport'"
-Portee-Exchange $scopeAlias $filtreAlias
-if (-not (Get-ManagementRoleAssignment -RoleAssignee $e.App.AppId -Role "Mail Recipients" -ErrorAction SilentlyContinue)) {
-    New-ManagementRoleAssignment -App $e.App.AppId -Role "Mail Recipients" -CustomRecipientWriteScope $scopeAlias | Out-Null
+if ($filtreAlias -eq $filtre) {
+    $scopeAlias = $scopeMail   # même boîte : Exchange refuse deux étendues identiques
+} else {
+    $scopeAlias = "Chronos boite import"
+    Portee-Exchange $scopeAlias $filtreAlias
 }
-Ok "Mail Recipients limité à $BoiteImport"
+$aliasAuto = $true
+try {
+    Role-Exchange $e.App.AppId "Mail Recipients" $scopeAlias
+    Ok "Mail Recipients limité à $BoiteImport"
+} catch {
+    # Jamais de repli sur un rôle valable pour tout le tenant : les alias se feront à la main.
+    $aliasAuto = $false
+    Write-Host "  !!  Exchange refuse de limiter « Mail Recipients » à $BoiteImport :" -ForegroundColor Yellow
+    Write-Host "      $_" -ForegroundColor Yellow
+    Write-Host "      On continue SANS alias automatiques (EXCHANGE_* non écrits) : la page Paramètres" -ForegroundColor Yellow
+    Write-Host "      donnera la commande Set-Mailbox à lancer à la main. L'import, lui, fonctionnera." -ForegroundColor Yellow
+}
 
 # --- 4. SSM ------------------------------------------------------------------------------
 Etape "Paramètres SSM /chronos/prod"
@@ -187,10 +227,12 @@ $parametres = [ordered]@{
     GRAPH_CLIENT_SECRET    = @("SecureString", $secret.SecretText)
     GRAPH_SENDER           = @("String", $Expediteur)
     COURRIEL_BOITE         = @("String", $BoiteImport)
-    EXCHANGE_APP_ID        = @("String", $e.App.AppId)
-    EXCHANGE_TENANT        = @("String", $domaineInitial)
-    EXCHANGE_CERT_PFX_B64  = @("SecureString", $pfxB64)
-    EXCHANGE_CERT_PASSWORD = @("SecureString", $motDePassePfx)
+}
+if ($aliasAuto) {
+    $parametres.EXCHANGE_APP_ID        = @("String", $e.App.AppId)
+    $parametres.EXCHANGE_TENANT        = @("String", $domaineInitial)
+    $parametres.EXCHANGE_CERT_PFX_B64  = @("SecureString", $pfxB64)
+    $parametres.EXCHANGE_CERT_PASSWORD = @("SecureString", $motDePassePfx)
 }
 if ($pfxB64.Length -gt 4096) { throw "PFX trop grand pour un paramètre standard ($($pfxB64.Length) caractères)." }
 
@@ -220,9 +262,9 @@ if ($awsOk) {
 
      python3 -c "import json,subprocess; [subprocess.run(['aws','ssm','put-parameter','--region','$Region','--name',p['Name'],'--type',p['Type'],'--value',p['Value'],'--overwrite','--no-cli-pager'],check=True,stdout=subprocess.DEVNULL) or print('OK',p['Name']) for p in json.load(open('chronos-ssm.json',encoding='utf-8-sig'))]" && shred -u chronos-ssm.json
 
-  3. Supprime le fichier du Bureau une fois que CloudShell a affiché les 9 « OK ».
+  3. Supprime le fichier du Bureau une fois que CloudShell a affiché les $($parametres.Count) « OK ».
 "@ -ForegroundColor Yellow
-    Read-Host "  Appuie sur Entrée quand SSM est écrit (CloudShell a affiché 9 OK)"
+    Read-Host "  Appuie sur Entrée quand SSM est écrit (CloudShell a affiché $($parametres.Count) OK)"
 }
 Remove-Variable secret, pfxB64, motDePassePfx, parametres -ErrorAction SilentlyContinue
 
