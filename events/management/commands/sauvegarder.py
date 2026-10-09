@@ -80,6 +80,11 @@ class Command(BaseCommand):
             raise CommandError("--garder doit valoir au moins 1.")
         if connection.vendor not in ("sqlite", "postgresql"):
             raise CommandError("Cette commande sait sauvegarder SQLite et PostgreSQL.")
+        if connection.in_atomic_block:
+            # Des écritures pas encore validées : SQLite attendrait sans fin
+            # qu'elles le soient avant de copier, et pg_dump, dans une autre
+            # session, ne les verrait pas — une sauvegarde incomplète sans le dire.
+            raise CommandError("Sauvegarde impossible dans une transaction ouverte.")
 
         media = Path(settings.MEDIA_ROOT)
         if not media.is_dir():
@@ -122,11 +127,6 @@ class Command(BaseCommand):
             self.stdout.write(f"Rotation : {ancienne.name} supprimée.")
 
     def _copier_base(self, cible):
-        if connection.in_atomic_block:
-            # Dans une transaction ouverte, l'instantané contiendrait des
-            # écritures pas encore validées — et SQLite attend sans fin
-            # qu'elles le soient avant de copier.
-            raise CommandError("Sauvegarde impossible dans une transaction ouverte.")
         connection.ensure_connection()
         copie = sqlite3.connect(cible)
         try:

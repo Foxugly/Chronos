@@ -3,10 +3,11 @@ import sqlite3
 import tempfile
 from io import StringIO
 from pathlib import Path
-from unittest import mock
+from unittest import mock, skipUnless
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.db import connection
 from django.test import TransactionTestCase, override_settings
 
 from events.models import Event
@@ -49,6 +50,7 @@ class SauvegardeTests(TransactionTestCase):
     def sauvegardes(self):
         return sorted(p.name for p in self.destination.iterdir())
 
+    @skipUnless(connection.vendor == "sqlite", "relit db.sqlite3 ; PostgreSQL : SauvegardePostgresqlTests")
     def test_copie_la_base_et_les_pieces(self):
         self.sauvegarder()
 
