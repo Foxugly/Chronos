@@ -260,7 +260,7 @@ if ($awsOk) {
   1. CloudShell → Actions → Upload file → choisis ce fichier.
   2. Colle dans CloudShell :
 
-     python3 -c "import json,subprocess; [subprocess.run(['aws','ssm','put-parameter','--region','$Region','--name',p['Name'],'--type',p['Type'],'--value',p['Value'],'--overwrite','--no-cli-pager'],check=True,stdout=subprocess.DEVNULL) or print('OK',p['Name']) for p in json.load(open('chronos-ssm.json',encoding='utf-8-sig'))]" && shred -u chronos-ssm.json
+     python3 -c "import json,subprocess; [subprocess.run(['aws','ssm','put-parameter','--region','$Region','--name',p['Name'],'--type',p['Type'],'--value',p['Value'],'--overwrite','--no-cli-pager'],check=True,stdout=subprocess.DEVNULL) and print('OK',p['Name']) for p in json.load(open('chronos-ssm.json',encoding='utf-8-sig'))]" && shred -u chronos-ssm.json
 
   3. Supprime le fichier du Bureau une fois que CloudShell a affiché les $($parametres.Count) « OK ».
 "@ -ForegroundColor Yellow
