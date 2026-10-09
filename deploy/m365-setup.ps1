@@ -59,8 +59,12 @@ Ok "modules Microsoft.Graph et ExchangeOnlineManagement"
 
 $awsOk = $false
 if (Get-Command aws -ErrorAction SilentlyContinue) {
+    # Windows PowerShell 5.1 change toute sortie d'erreur redirigée d'un programme
+    # externe en erreur bloquante quand ErrorActionPreference vaut Stop.
+    $ErrorActionPreference = "Continue"
     aws sts get-caller-identity --output text *> $null
     $awsOk = ($LASTEXITCODE -eq 0)
+    $ErrorActionPreference = "Stop"
 }
 if ($awsOk) { Ok "AWS CLI utilisable : SSM sera écrit directement" }
 else { Write-Host "  --  AWS CLI sans identifiants valides : un fichier pour CloudShell sera préparé" -ForegroundColor Yellow }
@@ -79,6 +83,24 @@ foreach ($boite in @($BoiteImport, $Expediteur) | Select-Object -Unique) {
     $mbx = Get-EXOMailbox -Identity $boite -ErrorAction SilentlyContinue
     if (-not $mbx) { throw "La boîte $boite n'existe pas dans Exchange Online." }
     Ok "boîte $boite ($($mbx.RecipientTypeDetails))"
+}
+
+# L'import parcourt TOUTE la boîte de réception de la boîte d'import et range chaque
+# courriel qui ne vise aucun alias dans « Non importés ». Une boîte déjà utilisée
+# verrait donc sa boîte de réception vidée : on s'arrête et on demande.
+$reception = Get-EXOMailboxFolderStatistics -Identity $BoiteImport -FolderScope Inbox |
+    Where-Object FolderType -eq "Inbox"
+if ($reception.ItemsInFolder -gt 0) {
+    Write-Host @"
+
+  ATTENTION : la boîte de réception de $BoiteImport contient $($reception.ItemsInFolder) courriel(s).
+  Toutes les 10 minutes, Chronos déplacera chaque courriel qui ne vise aucun alias de dossier
+  vers le dossier « Non importés » : cette boîte de réception sera vidée, et le restera.
+  Une boîte partagée dédiée (gratuite) évite cela :
+    New-Mailbox -Shared -Name "Chronos" -PrimarySmtpAddress chronos@foxugly.com
+"@ -ForegroundColor Red
+    $reponse = Read-Host "  Pour continuer quand même avec $BoiteImport, tape exactement : VIDER"
+    if ($reponse -cne "VIDER") { throw "Arrêt : choisis une boîte dédiée à l'import." }
 }
 
 function Application-Entra($nom) {
