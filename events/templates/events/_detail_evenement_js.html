@@ -100,6 +100,23 @@ window.DetailEvenement = (function () {
 
     const element = document.getElementById("modal-evenement");
     if (!element) {
+        // Pleine page : ← et → mènent au fait d'avant, d'après (des liens ordinaires).
+        document.addEventListener("keydown", function (e) {
+            if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
+                return;
+            }
+            const cible = e.target;
+            if (cible && cible.closest && cible.closest("input, textarea, select, [contenteditable]")) {
+                return;
+            }
+            const lien = document.querySelector(
+                e.key === "ArrowLeft" ? "[data-evenement-precedent]"
+                    : e.key === "ArrowRight" ? "[data-evenement-suivant]" : null);
+            if (lien) {
+                e.preventDefault();
+                window.location.href = lien.href;
+            }
+        });
         return {equiperDetail: equiperDetail};
     }
 

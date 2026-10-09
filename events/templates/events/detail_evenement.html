@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% comment %}
 Le détail d'un évènement en page entière.
@@ -16,8 +17,9 @@ fragment dans un modal sans quitter la page.
 {% endblock %}
 
 {% block content %}
-    <p class="mb-3">
-        <a class="text-decoration-none" href="{{ url_retour }}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{{ dossier.name }}</a>
+    {# Retour à la vue du dossier d'où l'on vient (chronologie, liste, calendrier…). #}
+    <p class="mb-3 d-print-none">
+        <a class="btn btn-outline-secondary btn-sm" href="{{ url_retour }}" data-retour-dossier><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Retour au dossier" %}</a>
     </p>
     <div class="card">
         <div class="card-body">

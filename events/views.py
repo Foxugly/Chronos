@@ -500,6 +500,12 @@ def rendre_detail(request, event, *, peut_ecrire, lien=None):
             else None
         ),
         "url_retour": url_retour,
+        # L'œil de la popup : le même évènement en pleine page, avec la même vue
+        # de retour. Absent de la page elle-même.
+        "url_pleine_page": (
+            "%s?%s" % (detail_de(event.pk), urlencode({"retour": url_retour}))
+            if _est_ajax(request) else None
+        ),
         "lien_partage": lien,
         **_voisins(event, detail_de, url_retour),
         **_liens_de_transfert(event, detail_de, url_retour),

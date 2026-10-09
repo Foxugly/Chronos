@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 20:37+0200\n"
+"POT-Creation-Date: 2026-10-09 20:57+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -934,7 +934,7 @@ msgstr "afgewezen dubbele paren"
 msgid "étiquette"
 msgstr "label"
 
-#: .\events\models.py:939 .\events\views.py:1088
+#: .\events\models.py:939 .\events\views.py:1094
 msgid "étiquettes"
 msgstr "labels"
 
@@ -1062,7 +1062,7 @@ msgid "Supprimer définitivement l'évènement « %(titre)s » ?"
 msgstr "De gebeurtenis ‘%(titre)s’ definitief verwijderen?"
 
 #: .\events\templates\events\_confirmer_suppression.html:21
-#: .\events\templates\events\_detail_evenement.html:72
+#: .\events\templates\events\_detail_evenement.html:79
 msgid "Pièces"
 msgstr "Stukken"
 
@@ -1095,7 +1095,7 @@ msgid "Annuler"
 msgstr "Annuleren"
 
 #: .\events\templates\events\_confirmer_suppression.html:54
-#: .\events\templates\events\_detail_evenement.html:38
+#: .\events\templates\events\_detail_evenement.html:44
 #: .\events\templates\events\parametres.html:69
 #: .\events\templates\events\vue_liste.html:109
 msgid "Supprimer"
@@ -1106,54 +1106,58 @@ msgstr "Verwijderen"
 msgid "Importé par courriel — de %(nom)s (%(adresse)s)"
 msgstr "Geïmporteerd per e-mail — van %(nom)s (%(adresse)s)"
 
-#: .\events\templates\events\_detail_evenement.html:36
+#: .\events\templates\events\_detail_evenement.html:37
+msgid "Afficher en pleine page"
+msgstr "Op volledige pagina tonen"
+
+#: .\events\templates\events\_detail_evenement.html:42
 #: .\events\templates\events\vue_liste.html:105
 msgid "Modifier"
 msgstr "Bewerken"
 
-#: .\events\templates\events\_detail_evenement.html:46
+#: .\events\templates\events\_detail_evenement.html:53
 #: .\events\templates\events\vue_liste.html:71
 msgid "Transfert de :"
 msgstr "Doorgestuurd van:"
 
-#: .\events\templates\events\_detail_evenement.html:51
+#: .\events\templates\events\_detail_evenement.html:58
 #: .\events\templates\events\vue_liste.html:77
 msgid "Transféré ensuite :"
 msgstr "Later doorgestuurd:"
 
-#: .\events\templates\events\_detail_evenement.html:56
+#: .\events\templates\events\_detail_evenement.html:63
 #: .\events\templates\events\vue_liste.html:83
 msgid "En réponse à :"
 msgstr "Antwoord op:"
 
-#: .\events\templates\events\_detail_evenement.html:61
+#: .\events\templates\events\_detail_evenement.html:68
 #: .\events\templates\events\vue_liste.html:89
 msgid "Réponse :"
 msgstr "Antwoord:"
 
-#: .\events\templates\events\_detail_evenement.html:89
-#: .\events\templates\events\_detail_evenement.html:99
+#: .\events\templates\events\_detail_evenement.html:96
+#: .\events\templates\events\_detail_evenement.html:106
 #, python-format
 msgid "Pièce %(n)s"
 msgstr "Stuk %(n)s"
 
-#: .\events\templates\events\_detail_evenement.html:105
+#: .\events\templates\events\_detail_evenement.html:112
 msgid "Ouvrir dans un onglet"
 msgstr "Openen in een tabblad"
 
-#: .\events\templates\events\_detail_evenement.html:114
+#: .\events\templates\events\_detail_evenement.html:121
 msgid "Aucune pièce jointe."
 msgstr "Geen bijgevoegde stukken."
 
-#: .\events\templates\events\_detail_evenement.html:121
+#: .\events\templates\events\_detail_evenement.html:128
 msgid "Faits voisins"
 msgstr "Naburige feiten"
 
-#: .\events\templates\events\_detail_evenement.html:125
+#: .\events\templates\events\_detail_evenement.html:132
 msgid "Fait précédent (flèche gauche)"
 msgstr "Vorig feit (pijl links)"
 
-#: .\events\templates\events\_detail_evenement.html:133
+#: .\events\templates\events\_detail_evenement.html:140
 msgid "Fait suivant (flèche droite)"
 msgstr "Volgend feit (pijl rechts)"
 
@@ -1166,18 +1170,18 @@ msgstr "Voorbeeld van %%(nom)s"
 msgid "Fermer l'aperçu"
 msgstr "Voorbeeld sluiten"
 
-#: .\events\templates\events\_detail_evenement_js.html:153
+#: .\events\templates\events\_detail_evenement_js.html:170
 #: .\events\templates\events\_modal_evenement.html:23
 msgid "Évènement"
 msgstr "Gebeurtenis"
 
-#: .\events\templates\events\_detail_evenement_js.html:154
-#: .\events\templates\events\_detail_evenement_js.html:219
+#: .\events\templates\events\_detail_evenement_js.html:171
+#: .\events\templates\events\_detail_evenement_js.html:236
 #: .\events\templates\events\_formulaire_modal_js.html:37
 msgid "Chargement…"
 msgstr "Laden…"
 
-#: .\events\templates\events\_detail_evenement_js.html:177
+#: .\events\templates\events\_detail_evenement_js.html:194
 msgid ""
 "Impossible de charger cet évènement. Il a peut-être été supprimé, ou votre "
 "accès au dossier a été retiré. Rechargez la page."
@@ -1185,17 +1189,17 @@ msgstr ""
 "Deze gebeurtenis kan niet worden geladen. Misschien werd ze verwijderd, of "
 "werd uw toegang tot het dossier ingetrokken. Laad de pagina opnieuw."
 
-#: .\events\templates\events\_detail_evenement_js.html:218
+#: .\events\templates\events\_detail_evenement_js.html:235
 #: .\events\templates\events\confirmer_suppression.html:10
 #: .\events\templates\events\confirmer_suppression.html:18
 msgid "Supprimer l'évènement"
 msgstr "Gebeurtenis verwijderen"
 
-#: .\events\templates\events\_detail_evenement_js.html:234
+#: .\events\templates\events\_detail_evenement_js.html:251
 msgid "La confirmation n'a pas pu être chargée."
 msgstr "De bevestiging kon niet worden geladen."
 
-#: .\events\templates\events\_detail_evenement_js.html:277
+#: .\events\templates\events\_detail_evenement_js.html:294
 msgid "La suppression a échoué. Rien n'a été supprimé."
 msgstr "Het verwijderen is mislukt. Er is niets verwijderd."
 
@@ -1227,45 +1231,45 @@ msgstr[1] "%(n)s stukken"
 msgid "Mes dossiers"
 msgstr "Mijn dossiers"
 
-#: .\events\templates\events\_entete_dossier.html:26
+#: .\events\templates\events\_entete_dossier.html:30
 msgid "Journal"
 msgstr "Logboek"
 
-#: .\events\templates\events\_entete_dossier.html:30
+#: .\events\templates\events\_entete_dossier.html:34
 #: .\events\templates\events\expediteurs.html:19
 msgid "Expéditeurs"
 msgstr "Afzenders"
 
-#: .\events\templates\events\_entete_dossier.html:36
+#: .\events\templates\events\_entete_dossier.html:40
 msgid "Partager"
 msgstr "Delen"
 
-#: .\events\templates\events\_entete_dossier.html:39
+#: .\events\templates\events\_entete_dossier.html:43
 msgid "Paramètres"
 msgstr "Instellingen"
 
-#: .\events\templates\events\_entete_dossier.html:46
+#: .\events\templates\events\_entete_dossier.html:50
 #, python-format
 msgid "%(n)s doublon possible"
 msgid_plural "%(n)s doublons possibles"
 msgstr[0] "%(n)s mogelijk dubbel"
 msgstr[1] "%(n)s mogelijke dubbels"
 
-#: .\events\templates\events\_entete_dossier.html:55
+#: .\events\templates\events\_entete_dossier.html:59
 msgid "Importer tout de suite les courriels transférés à l'alias du dossier"
 msgstr ""
 "Nu de e-mails importeren die naar het alias van het dossier werden "
 "doorgestuurd"
 
-#: .\events\templates\events\_entete_dossier.html:56
+#: .\events\templates\events\_entete_dossier.html:60
 msgid "Relever les courriels"
 msgstr "E-mails ophalen"
 
-#: .\events\templates\events\_entete_dossier.html:63
+#: .\events\templates\events\_entete_dossier.html:67
 msgid "Raccourci : N"
 msgstr "Sneltoets: N"
 
-#: .\events\templates\events\_entete_dossier.html:64
+#: .\events\templates\events\_entete_dossier.html:68
 #: .\events\templates\events\_formulaire_modal_js.html:125
 #: .\events\templates\events\event_form.html:13
 #: .\events\templates\events\event_form.html:30
@@ -1430,7 +1434,7 @@ msgstr "Opslaan is mislukt. Er werd niets gewijzigd."
 msgid "Modifier l'évènement"
 msgstr "Gebeurtenis bewerken"
 
-#: .\events\templates\events\_modal_evenement.html:25 .\templates\base.html:134
+#: .\events\templates\events\_modal_evenement.html:25 .\templates\base.html:150
 msgid "Fermer"
 msgstr "Sluiten"
 
@@ -1457,6 +1461,10 @@ msgstr "Tijdlijn"
 #: .\events\templates\events\calendrier.html:175 .\events\views.py:163
 msgid "Liste"
 msgstr "Lijst"
+
+#: .\events\templates\events\detail_evenement.html:22
+msgid "Retour au dossier"
+msgstr "Terug naar het dossier"
 
 #: .\events\templates\events\dossier_list.html:31
 #: .\events\templates\events\expediteurs.html:46
@@ -2177,7 +2185,7 @@ msgstr "‘%(absorbe)s’ is samengevoegd in ‘%(garde)s’."
 msgid "Ces deux évènements ne seront plus proposés comme doublons."
 msgstr "Deze twee gebeurtenissen worden niet meer als dubbels voorgesteld."
 
-#: .\events\views.py:591
+#: .\events\views.py:597
 #, python-format
 msgid ""
 "Le fichier « %(name)s » n'est pas d'un type accepté. Types acceptés : "
@@ -2186,7 +2194,7 @@ msgstr ""
 "Het bestand ‘%(name)s’ heeft geen toegestaan type. Toegestane types: "
 "%(allowed)s."
 
-#: .\events\views.py:603
+#: .\events\views.py:609
 #, python-format
 msgid ""
 "Le fichier « %(name)s » est trop lourd (%(taille)s Mo). Taille maximale : "
@@ -2195,12 +2203,12 @@ msgstr ""
 "Het bestand ‘%(name)s’ is te groot (%(taille)s MB). Maximale grootte: "
 "%(max)s MB."
 
-#: .\events\views.py:1046
+#: .\events\views.py:1052
 #, python-format
 msgid "Évènement « %(titre)s » supprimé."
 msgstr "Gebeurtenis ‘%(titre)s’ verwijderd."
 
-#: .\events\views.py:1251
+#: .\events\views.py:1257
 #, python-format
 msgid ""
 "Exchange a refusé l'alias %(alias)s : rien n'a été enregistré. Détail : "
@@ -2209,7 +2217,7 @@ msgstr ""
 "Exchange heeft de alias %(alias)s geweigerd: er is niets opgeslagen. Detail: "
 "%(detail)s"
 
-#: .\events\views.py:1268
+#: .\events\views.py:1274
 #, python-format
 msgid ""
 "L'ancien alias %(alias)s n'a pas pu être retiré d'Exchange : retirez-le à la "
@@ -2219,7 +2227,7 @@ msgstr ""
 "hem handmatig. Zijn e-mails maken geen gebeurtenis meer aan. Detail: "
 "%(detail)s"
 
-#: .\events\views.py:1273
+#: .\events\views.py:1279
 #, python-format
 msgid ""
 "Les courriels transférés à %(alias)s deviendront des évènements de ce "
@@ -2228,31 +2236,31 @@ msgstr ""
 "E-mails die naar %(alias)s worden doorgestuurd, worden gebeurtenissen van "
 "dit dossier."
 
-#: .\events\views.py:1275
+#: .\events\views.py:1281
 msgid "Import par courriel désactivé pour ce dossier."
 msgstr "Import per e-mail uitgeschakeld voor dit dossier."
 
-#: .\events\views.py:1295
+#: .\events\views.py:1301
 msgid "Un import est déjà en cours : réessayez dans une minute."
 msgstr "Er loopt al een import: probeer het over een minuut opnieuw."
 
-#: .\events\views.py:1300
+#: .\events\views.py:1306
 #, python-format
 msgid "La boîte n'a pas pu être relevée : %(detail)s"
 msgstr "De mailbox kon niet worden opgehaald: %(detail)s"
 
-#: .\events\views.py:1305
+#: .\events\views.py:1311
 #, python-format
 msgid "%(n)d courriel importé dans ce dossier."
 msgid_plural "%(n)d courriels importés dans ce dossier."
 msgstr[0] "%(n)d e-mail in dit dossier geïmporteerd."
 msgstr[1] "%(n)d e-mails in dit dossier geïmporteerd."
 
-#: .\events\views.py:1308
+#: .\events\views.py:1314
 msgid "Aucun nouveau courriel pour ce dossier."
 msgstr "Geen nieuwe e-mails voor dit dossier."
 
-#: .\events\views.py:1311
+#: .\events\views.py:1317
 msgid ""
 "Certains courriels n'ont pas pu être importés : ils restent dans la boîte de "
 "réception et seront retentés."
@@ -2260,24 +2268,24 @@ msgstr ""
 "Sommige e-mails konden niet worden geïmporteerd: ze blijven in het Postvak "
 "IN en worden opnieuw geprobeerd."
 
-#: .\events\views.py:1314
+#: .\events\views.py:1320
 #, python-format
 msgid "%(n)d courriel importé"
 msgid_plural "%(n)d courriels importés"
 msgstr[0] "%(n)d e-mail geïmporteerd"
 msgstr[1] "%(n)d e-mails geïmporteerd"
 
-#: .\events\views.py:1330
+#: .\events\views.py:1336
 #, python-format
 msgid "Exchange n'a pas pu être interrogé : %(detail)s"
 msgstr "Exchange kon niet worden geraadpleegd: %(detail)s"
 
-#: .\events\views.py:1333
+#: .\events\views.py:1339
 #, python-format
 msgid "L'alias %(alias)s est actif dans Exchange."
 msgstr "De alias %(alias)s is actief in Exchange."
 
-#: .\events\views.py:1337
+#: .\events\views.py:1343
 #, python-format
 msgid ""
 "L'alias %(alias)s n'existe pas dans Exchange : les courriels transférés "
@@ -2286,49 +2294,49 @@ msgstr ""
 "De alias %(alias)s bestaat niet in Exchange: doorgestuurde e-mails worden "
 "geweigerd. Sla hem opnieuw op om hem opnieuw aan te maken."
 
-#: .\events\views.py:1395
+#: .\events\views.py:1401
 msgid "Dossier renommé."
 msgstr "Dossier hernoemd."
 
-#: .\events\views.py:1426
+#: .\events\views.py:1432
 #, python-format
 msgid "Étiquette « %(nom)s » supprimée."
 msgstr "Label ‘%(nom)s’ verwijderd."
 
-#: .\events\views.py:1430
+#: .\events\views.py:1436
 msgid "Le nom d'une étiquette ne peut pas être vide."
 msgstr "De naam van een label mag niet leeg zijn."
 
-#: .\events\views.py:1432
+#: .\events\views.py:1438
 #, python-format
 msgid "Une étiquette « %(nom)s » existe déjà dans ce dossier."
 msgstr "Er bestaat al een label ‘%(nom)s’ in dit dossier."
 
-#: .\events\views.py:1439
+#: .\events\views.py:1445
 msgid "Étiquette renommée."
 msgstr "Label hernoemd."
 
-#: .\events\views.py:1462
+#: .\events\views.py:1468
 #, python-format
 msgid "Couleur invalide pour %(nom)s."
 msgstr "Ongeldige kleur voor %(nom)s."
 
-#: .\events\views.py:1501
+#: .\events\views.py:1507
 #, python-format
 msgid "Accès accordé à %(compte)s (%(droit)s)."
 msgstr "Toegang toegekend aan %(compte)s (%(droit)s)."
 
-#: .\events\views.py:1543
+#: .\events\views.py:1549
 #, python-format
 msgid "Accès retiré à %(compte)s."
 msgstr "Toegang ingetrokken voor %(compte)s."
 
-#: .\events\views.py:1567
+#: .\events\views.py:1573
 #, python-format
 msgid "Accès au dossier « %(dossier)s »"
 msgstr "Toegang tot het dossier ‘%(dossier)s’"
 
-#: .\events\views.py:1571
+#: .\events\views.py:1577
 #, python-format
 msgid ""
 "%(auteur)s vous donne accès au dossier « %(dossier)s ».\n"
@@ -2349,22 +2357,22 @@ msgstr ""
 "\n"
 "Deze link vervalt op %(date)s. Hij kan maar één keer worden gebruikt.\n"
 
-#: .\events\views.py:1611
+#: .\events\views.py:1617
 #, python-format
 msgid "Invitation envoyée à %(email)s. Elle expire le %(date)s."
 msgstr "Uitnodiging verstuurd naar %(email)s. Ze vervalt op %(date)s."
 
-#: .\events\views.py:1651
+#: .\events\views.py:1657
 #, python-format
 msgid "Invitation annulée pour %(email)s."
 msgstr "Uitnodiging geannuleerd voor %(email)s."
 
-#: .\events\views.py:1691
+#: .\events\views.py:1697
 #, python-format
 msgid "Vous avez désormais accès au dossier « %(dossier)s »."
 msgstr "U hebt nu toegang tot het dossier ‘%(dossier)s’."
 
-#: .\events\views.py:1728
+#: .\events\views.py:1734
 msgid ""
 "Lien créé. Toute personne qui le détient pourra consulter ce dossier, sans "
 "compte et sans trace nominative."
@@ -2372,7 +2380,7 @@ msgstr ""
 "Link aangemaakt. Iedereen die hem heeft, kan dit dossier raadplegen, zonder "
 "account en zonder dat zijn naam wordt geregistreerd."
 
-#: .\events\views.py:1749
+#: .\events\views.py:1755
 msgid "Lien révoqué. Il ne donne plus accès à rien."
 msgstr "Link ingetrokken. Hij geeft nergens meer toegang toe."
 
@@ -2443,26 +2451,26 @@ msgstr "Account aanmaken"
 msgid "Masquer le mot de passe"
 msgstr "Wachtwoord verbergen"
 
-#: .\templates\base.html:94
+#: .\templates\base.html:110
 msgid "Afficher le menu"
 msgstr "Menu tonen"
 
-#: .\templates\base.html:103
+#: .\templates\base.html:119
 msgid "Dossiers"
 msgstr "Dossiers"
 
-#: .\templates\base.html:110
+#: .\templates\base.html:126
 msgid "Tous mes dossiers"
 msgstr "Al mijn dossiers"
 
-#: .\templates\base.html:120
+#: .\templates\base.html:136
 msgid "Se déconnecter"
 msgstr "Afmelden"
 
-#: .\templates\base.html:167 .\templates\base.html:172
+#: .\templates\base.html:183 .\templates\base.html:188
 msgid "Copie impossible ici : sélectionnez l'adresse."
 msgstr "Kopiëren is hier niet mogelijk: selecteer het adres."
 
-#: .\templates\base.html:171
+#: .\templates\base.html:187
 msgid "Copié"
 msgstr "Gekopieerd"

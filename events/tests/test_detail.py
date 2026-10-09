@@ -237,3 +237,36 @@ class SharedLinkDetailTests(DetailFixtureMixin, TestCase):
                 reverse("share_event_detail", args=[self.lecture.token, self.event.pk])
             ),
         )
+
+
+class PleinePageTests(DetailFixtureMixin, TestCase):
+    """L'œil de la popup ouvre l'évènement en pleine page ; la page a un bouton retour."""
+
+    def oeil(self, html):
+        return re.search(r'<a [^>]*data-pleine-page[^>]*>', html)
+
+    def test_la_popup_offre_l_oeil_meme_a_un_lecteur(self):
+        retour = reverse("timeline", args=[self.dossier.pk]) + "?vue=liste"
+        self.client.force_login(self.reader)
+        html = self.client.get(self.url, {"retour": retour}, **AJAX).content.decode()
+        lien = self.oeil(html)
+        self.assertIsNotNone(lien)
+        self.assertIn('href="%s?retour=' % self.url, lien.group(0))
+        self.assertIn("btn-outline-success", lien.group(0))
+        # Un vrai lien : pas `data-voir-evenement`, qui le rouvrirait dans la popup.
+        self.assertNotIn("data-voir-evenement", lien.group(0))
+
+    def test_la_pleine_page_n_a_pas_d_oeil_mais_un_bouton_retour(self):
+        retour = reverse("timeline", args=[self.dossier.pk]) + "?vue=liste"
+        self.client.force_login(self.owner)
+        html = self.client.get(self.url, {"retour": retour}).content.decode()
+        self.assertIsNone(self.oeil(html))
+        self.assertRegex(html, r'<a class="btn btn-outline-secondary[^"]*" href="%s"[^>]*data-retour-dossier'
+                         % re.escape(retour.replace("&", "&amp;")))
+
+    def test_par_un_lien_de_partage_l_oeil_reste_dans_le_partage(self):
+        lien = ShareLink.objects.create(dossier=self.dossier, created_by=self.owner,
+                                        role=DossierAccess.Role.READ)
+        url = reverse("share_event_detail", args=[lien.token, self.event.pk])
+        html = self.client.get(url, **AJAX).content.decode()
+        self.assertIn('href="%s?retour=' % url, self.oeil(html).group(0))
