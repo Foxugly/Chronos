@@ -20,6 +20,13 @@ fi
 
 .venv/bin/pip install --quiet -r requirements.txt
 
+if [ ! -s "$ENV_FILE" ]; then
+  # Sans configuration, migrate et collectstatic ne peuvent pas tourner : on
+  # échoue ici, en clair, plutôt que de laisser un déploiement à moitié fait.
+  echo "ERROR: $ENV_FILE absent ou vide — chronos-env-fetch a-t-il tourné ? (systemctl status chronos-env-fetch)" >&2
+  exit 1
+fi
+
 # Lecture littérale (clé=valeur), jamais `source` : une valeur contenant $( )
 # ou des guillemets ne doit pas être interprétée par le shell (§3.11).
 while IFS='=' read -r cle valeur || [ -n "$cle" ]; do

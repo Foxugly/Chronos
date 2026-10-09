@@ -38,7 +38,11 @@ jobs:
           INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
           SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
-          # Commandes SSM, exécutées par ROOT, dans l'ordre :
+          # Commandes SSM, exécutées par ROOT, dans l'ordre. SSM les enchaîne en UN
+          # script et ne retient que le code de la dernière : sans `set -eu`, une
+          # étape ratée (ssm-deploy.sh sans .env, donc sans migrate) passait pour
+          # un succès dès que le chown final réussissait. `sh` (dash) : pas de pipefail.
+          #   0. set -eu : la première commande en échec arrête tout → Failed ;
           #   1. chown de l'arborescence (répare des objets git laissés root) ;
           #   2. en django, umask 027 : fetch + reset --hard sur origin/main ;
           #   3. en root : unités systemd, script de configuration et nginx
@@ -51,6 +55,7 @@ jobs:
           cat > /tmp/ssm-params.json <<EOF
           {
             "commands": [
+              "set -eu",
               "chown -R django:www-data $A",
               "sudo -u django bash -c 'umask 027; cd $A && git fetch --quiet && git reset --hard --quiet origin/main'",
               "$G:deploy/chronos-env-fetch.service > /etc/systemd/system/chronos-env-fetch.service",

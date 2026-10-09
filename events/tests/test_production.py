@@ -1,15 +1,18 @@
 """Ce qui ne sert qu'en production : `/health/`, pièces servies par nginx,
 courriels par Graph, réglages qui refusent de démarrer mal configurés."""
 
+import json
 import os
 import subprocess
 import sys
+import textwrap
+from pathlib import Path
 from unittest import mock
 
 from django.conf import settings
 from django.core import mail
 from django.db import DatabaseError
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from events.models import DossierAccess, ShareLink
@@ -125,3 +128,25 @@ class CspTests(DocumentFixtureMixin, TestCase):
                 self.assertTrue(en_ligne)
                 for attributs in en_ligne:
                     self.assertIn(f'nonce="{nonce}"', attributs)
+
+
+class DeploiementEchoueEnClairTests(SimpleTestCase):
+    """Le 2026-10-09, le premier déploiement est sorti « Success » sans avoir
+    migré : ssm-deploy.sh avait échoué faute de /run/chronos/.env, mais SSM
+    ne retient que le code de la dernière commande (un chown, réussi)."""
+
+    racine = Path(settings.BASE_DIR)
+
+    def commandes_ssm(self):
+        texte = (self.racine / ".github" / "workflows" / "deploy.yml").read_text(encoding="utf-8")
+        debut = texte.index("cat > /tmp/ssm-params.json <<EOF\n") + len("cat > /tmp/ssm-params.json <<EOF\n")
+        fin = texte.index("\n          EOF", debut)
+        return json.loads(textwrap.dedent(texte[debut:fin]))["commands"]
+
+    def test_la_premiere_commande_ssm_arrete_tout_au_premier_echec(self):
+        self.assertEqual(self.commandes_ssm()[0], "set -eu")
+
+    def test_ssm_deploy_refuse_de_continuer_sans_configuration(self):
+        script = (self.racine / "deploy" / "ssm-deploy.sh").read_text(encoding="utf-8")
+        garde = script.index('if [ ! -s "$ENV_FILE" ]')
+        self.assertLess(garde, script.index("manage.py migrate"))
