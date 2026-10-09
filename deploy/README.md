@@ -61,6 +61,9 @@ SQL
 
 Noms nus (convention de la flotte). `SecureString` pour tout ce qui est secret.
 
+Le minimum pour démarrer est scripté dans **`deploy/ssm-cloudshell.sh`** (CloudShell) ; Graph,
+Exchange et Sentry s'ajoutent ensuite.
+
 | Paramètre | Type | Valeur |
 |---|---|---|
 | `SECRET_KEY` | SecureString | 50+ caractères aléatoires |
