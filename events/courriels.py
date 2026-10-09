@@ -181,18 +181,44 @@ def date_en_toutes_lettres(texte):
         return None
 
 
-def corps_en_texte(message):
-    """Le texte d'un courriel : la partie texte, ou le HTML ramené à du texte."""
-    partie = message.get_body(preferencelist=("plain", "html"))
-    if partie is None:
+#: La suite d'un corps qu'Exchange a détachée en « pièces » ATT00001.txt, ATT00003.htm…
+#: quand un serveur a touché au message en route. La citation du courriel précédent
+#: s'y trouve souvent (n° 12 et 18 du dossier réel) : c'est du texte, pas une pièce.
+SUITE_EXCHANGE = re.compile(r"^ATT\d{5}\.(txt|htm|html)$", re.IGNORECASE)
+
+
+def _texte_de_partie(partie):
+    try:
+        contenu = partie.get_content()
+    except (LookupError, ValueError):
         return ""
-    contenu = partie.get_content()
+    if not isinstance(contenu, str):
+        return ""
     if partie.get_content_type() == "text/html":
         contenu = re.sub(r"(?is)<(script|style).*?</\1>", "", contenu)
         contenu = re.sub(r"(?i)<br\s*/?>|</(p|div|li|tr|h[1-6])>", "\n", contenu)
         contenu = html.unescape(strip_tags(contenu))
     contenu = contenu.replace("\r\n", "\n").replace("\xa0", " ")
     return re.sub(r"\n{3,}", "\n\n", contenu).strip()
+
+
+def _suites_exchange(message):
+    """Le texte des parties ATTnnnnn, dans l'ordre : le texte brut d'abord ; le HTML
+    seulement s'il n'y a aucune suite en texte brut (Exchange met souvent les deux)."""
+    parties = [p for p in message.iter_attachments() if SUITE_EXCHANGE.match(p.get_filename() or "")]
+    brutes = [p for p in parties if p.get_content_type() == "text/plain"]
+    return [t for t in (_texte_de_partie(p) for p in (brutes or parties)) if t]
+
+
+def corps_en_texte(message):
+    """Le texte d'un courriel : la partie texte, ou le HTML ramené à du texte, plus la
+    suite qu'Exchange en aurait détachée (sans répéter ce que le corps contient déjà)."""
+    partie = message.get_body(preferencelist=("plain", "html"))
+    contenu = _texte_de_partie(partie) if partie is not None else ""
+    for suite in _suites_exchange(message):
+        if suite not in contenu:
+            contenu = (contenu + "\n\n" + suite).strip()
+    return contenu
 
 
 def pieces_jointes(message, ignorer=()):
@@ -207,6 +233,8 @@ def pieces_jointes(message, ignorer=()):
         if partie in ignorer or partie.get_content_type() == "message/rfc822":
             continue
         nom = partie.get_filename()
+        if nom and SUITE_EXCHANGE.match(nom):
+            continue  # la suite du corps, lue par `corps_en_texte`
         inline = (partie.get_content_disposition() == "inline") or (partie["Content-ID"] and not nom)
         if partie.get_content_maintype() == "image" and inline:
             continue

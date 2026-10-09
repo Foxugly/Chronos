@@ -176,3 +176,108 @@ class CommandeRelierTests(MediaMixin, TestCase):
         self.assertTrue(CourrielImporte.objects.filter(evenement=self.reponse).exclude(cite_le=None).exists())
         # Rejouer ne refait rien.
         self.assertIn("0 lien(s)", self.lancer("--appliquer"))
+
+
+def reponse_coupee_par_exchange():
+    """Le n° 12 du dossier réel : le corps s'arrête sur « ci-dessous », la citation
+    est dans une pièce `ATT00004.txt` qu'Exchange a détachée du texte."""
+    m = courriel("RE: Mise en demeure", "Veuillez trouver ci-dessous ma réponse.\n\nJean",
+                 de=MOI, a=ACME_BAT, recu="Tue, 29 Sep 2026 07:10:00 +0000", message_id="<coupe@x>")
+    m.add_attachment("Veuillez trouver ci-dessous ma réponse.", subtype="plain", filename="ATT00001.txt")
+    m.add_attachment("<p>De : ACME Bat</p>", subtype="html", filename="ATT00003.htm")
+    m.add_attachment(
+        "De : ACME Bat <contact@acme-bat.example>\nEnvoyé : lundi 28 septembre 2026 20:29\n"
+        "À : Jean <jdupont@exemple.be>\nObjet : Mise en demeure\n\nNous vous mettons en demeure.",
+        subtype="plain", filename="ATT00004.txt")
+    return m.as_bytes()
+
+
+def reponse_citant_deux_messages(premier_cite_present=False):
+    """Le n° 18 du dossier réel : il cite d'abord un courriel absent du dossier, puis un présent."""
+    texte = ("D'accord.\n\n"
+             "De : Paul Durand <info@mediation.example>\nEnvoyé : mardi 29 septembre 2026 09:13\n"
+             "Objet : RE: Mise en demeure\n\nNous regardons.\n\n"
+             "De : ACME Bat <contact@acme-bat.example>\nEnvoyé : lundi 28 septembre 2026 20:29\n"
+             "Objet : Mise en demeure\n\nNous vous mettons en demeure.")
+    return courriel("RE: Mise en demeure", texte, de=MOI, a="info@mediation.example, contact@acme-bat.example",
+                    recu="Tue, 29 Sep 2026 08:00:00 +0000", message_id="<deux@x>").as_bytes()
+
+
+def reponse_de_paul():
+    return courriel("RE: Mise en demeure", "Nous regardons.", de="Paul Durand <info@mediation.example>",
+                    a=MOI, recu="Tue, 29 Sep 2026 07:13:00 +0000", message_id="<paul@x>").as_bytes()
+
+
+class SuiteExchangeTests(SimpleTestCase):
+    def test_la_suite_detachee_par_exchange_revient_dans_le_texte(self):
+        from events.courriels import corps_en_texte, lire, pieces_jointes
+
+        message = lire(reponse_coupee_par_exchange())
+        texte = corps_en_texte(message)
+        self.assertIn("Nous vous mettons en demeure", texte)
+        self.assertEqual(texte.count("Veuillez trouver ci-dessous ma réponse."), 1)  # pas de doublon
+        self.assertEqual(pieces_jointes(message), [])  # ce n'étaient pas des pièces
+
+    def test_la_forme_gmail_a_ecrit_est_une_citation(self):
+        from events.courriels import analyser_en_couches
+        from events.liens import citations
+
+        texte = ("Je conteste.\n\nLe lun. 28 sept. 2026 à 20:29, ACME Bat <contact@acme-bat.example> a écrit :\n"
+                 "> Nous vous mettons en demeure.")
+        (couche,) = analyser_en_couches(courriel("Re: Mise en demeure", texte, de=MOI, a=ACME_BAT).as_bytes(),
+                                        ignorer=[ALIAS])
+        (cite,) = citations(couche)
+        self.assertEqual(cite.expediteur[0], "contact@acme-bat.example")
+        self.assertEqual(cite.moment, datetime.datetime(2026, 9, 28, 20, 29, tzinfo=BRUXELLES))
+
+
+class ReponsesMieuxRelieesTests(MediaMixin, TestCase):
+    def setUp(self):
+        self.dossier = make_dossier(make_user("owner"), name="ACMEBAT")
+        self.dossier.alias_courriel = ALIAS
+        self.dossier.save()
+
+    def importer(self, octets):
+        return importer_couches(self.dossier, analyser_en_couches(octets, ignorer=[ALIAS]))
+
+    def test_la_citation_dans_la_suite_exchange_relie_la_reponse(self):
+        (med,) = self.importer(mise_en_demeure_directe())
+        (reponse,) = self.importer(reponse_coupee_par_exchange())
+        self.assertEqual(reponse.reponse_a, med)
+
+    def test_le_cite_direct_absent_on_relie_au_plus_proche_ancetre_present(self):
+        (med,) = self.importer(mise_en_demeure_directe())
+        (reponse,) = self.importer(reponse_citant_deux_messages())
+        self.assertEqual(reponse.reponse_a, med)
+
+    def test_le_cite_direct_arrive_ensuite_et_le_lien_se_recentre(self):
+        self.importer(mise_en_demeure_directe())
+        (reponse,) = self.importer(reponse_citant_deux_messages())
+        (paul,) = self.importer(reponse_de_paul())
+        reponse.refresh_from_db()
+        self.assertEqual(reponse.reponse_a, paul)
+
+    def test_les_destinataires_sont_gardes_et_affiches(self):
+        (reponse,) = self.importer(reponse_citant_deux_messages())
+        self.assertIn("info@mediation.example", reponse.destinataires)
+        self.assertIn("contact@acme-bat.example", reponse.destinataires)
+        self.client.force_login(self.dossier.owner)
+        page = self.client.get(reverse("event_detail", args=[reponse.pk])).content.decode()
+        self.assertIn("info@mediation.example", page)
+        self.assertIn("Destinataires", page)
+
+
+class CommandeRecalculerTests(MediaMixin, TestCase):
+    def test_recalculer_relit_la_suite_exchange_et_relie(self):
+        dossier = make_dossier(make_user("owner"), name="ACMEBAT")
+        dossier.alias_courriel = ALIAS
+        dossier.save()
+        importer(dossier, analyser(mise_en_demeure_directe()))
+        reponse = importer(dossier, analyser(reponse_coupee_par_exchange()))
+        # Comme avant la lecture de la suite Exchange : ni citation, ni lien, ni destinataires.
+        CourrielImporte.objects.filter(evenement=reponse).update(cite_de="x", cite_le="2020-01-01T00:00Z", cite_objet="x")
+        Event.objects.filter(pk=reponse.pk).update(reponse_a=None, destinataires="")
+        call_command("relier_courriels", "--appliquer", "--recalculer", stdout=StringIO(), stderr=StringIO())
+        reponse.refresh_from_db()
+        self.assertEqual(reponse.reponse_a.title, "Mise en demeure")
+        self.assertIn("contact@acme-bat.example", reponse.destinataires)

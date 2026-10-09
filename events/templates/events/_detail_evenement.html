@@ -28,6 +28,11 @@ la page, et son comportement (aperçu, visionneuse) est posé par
                     {% endblocktranslate %}
                 </div>
             {% endif %}
+            {% if event.destinataires %}
+                <div class="small text-body-secondary mt-1 text-break">
+                    <i class="bi bi-envelope-arrow-up me-1" aria-hidden="true"></i>{% translate "Destinataires :" %} {{ event.destinataires }}
+                </div>
+            {% endif %}
         </div>
         {% if url_modifier or url_pleine_page %}
             <div class="d-flex gap-2 flex-shrink-0">

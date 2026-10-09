@@ -96,17 +96,49 @@ def empreinte_d_evenement(evenement, expediteur):
     return empreinte(expediteur, datetime.datetime.combine(evenement.date, heure), evenement.title)
 
 
+#: « Le lun. 28 sept. 2026 à 20:29, ACME Bat <x@y> a écrit : » (Gmail, Apple Mail),
+#: « On Mon, Sep 28, 2026 at 8:29 PM ACME Bat <x@y> wrote: », « Op … schreef … : ».
+A_ECRIT = re.compile(
+    r"(?im)^[ >]*(?:le|on|op|am)\s+(?P<date>.{6,80}?\d{1,2}[:h.]\d{2}(?:\s*[ap]\.?m\.?)?)[,\s]+"
+    r"(?P<de>[^\n]{1,160}?)\s+(?:a écrit|wrote|schreef|schrieb)\s*:\s*$")
+
+
+def citations(analyse):
+    """Les courriels que cette couche cite, du plus récent (le premier cité, celui
+    auquel elle répond) au plus ancien : chaque bloc « De : … Envoyé : … » du texte,
+    puis chaque ligne « … a écrit : ». Une citation sans date lisible est omise.
+
+    Les objets des lignes « a écrit » ne sont pas écrits : l'objet de la réponse
+    elle-même en tient lieu (même fil)."""
+    texte = analyse.texte or ""
+    trouvees = []
+    reste = texte
+    while True:
+        bloc = _bloc_de_transfert(reste)
+        if not bloc:
+            break
+        champs = bloc[1]
+        ecrite = date_en_toutes_lettres(champs.get("date", ""))
+        if ecrite is not None:
+            position = len(texte) - len(bloc[2])
+            trouvees.append((position, empreinte(
+                champs.get("de", ""), ecrite.replace(tzinfo=BRUXELLES), champs.get("objet", ""))))
+        if bloc[2] == reste:
+            break
+        reste = bloc[2]
+    for m in A_ECRIT.finditer(texte):
+        ecrite = date_en_toutes_lettres(m.group("date"))
+        if ecrite is not None:
+            trouvees.append((m.start(), empreinte(
+                m.group("de"), ecrite.replace(tzinfo=BRUXELLES), analyse.titre)))
+    return [e for _position, e in sorted(trouvees, key=lambda t: t[0])]
+
+
 def citation(analyse):
-    """Le courriel que cette couche cite sous un bloc « De : … Envoyé : … », ou `None`.
+    """Le courriel auquel cette couche répond — le premier qu'elle cite —, ou `None`.
 
     Une réponse cite le message auquel elle répond ; un transfert, ce qu'il transfère
     (déjà relié par `transfert_de`). Sans date lisible, pas d'empreinte : rien à comparer.
     """
-    bloc = _bloc_de_transfert(analyse.texte or "")
-    if not bloc:
-        return None
-    champs = bloc[1]
-    ecrite = date_en_toutes_lettres(champs.get("date", ""))
-    if ecrite is None:
-        return None
-    return empreinte(champs.get("de", ""), ecrite.replace(tzinfo=BRUXELLES), champs.get("objet", ""))
+    trouvees = citations(analyse)
+    return trouvees[0] if trouvees else None

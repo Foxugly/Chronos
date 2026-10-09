@@ -64,6 +64,11 @@ l'est en connaissance de cause.
                             {% if evenement.etiquettes.all %}
                                 <div class="mt-1">{% for etiquette in evenement.etiquettes.all %}<span class="badge rounded-pill text-bg-light border me-1"><i class="bi bi-tag me-1" aria-hidden="true"></i>{{ etiquette.nom }}</span>{% endfor %}</div>
                             {% endif %}
+                            {% if evenement.destinataires %}
+                                <div class="small text-body-secondary mt-1 text-break">
+                                    <i class="bi bi-envelope-arrow-up me-1" aria-hidden="true"></i>{% translate "Destinataires :" %} {{ evenement.destinataires }}
+                                </div>
+                            {% endif %}
                             {% if evenement.lien_transfert_de or evenement.liens_transferts or evenement.lien_reponse_a or evenement.liens_reponses %}
                                 <ul class="list-unstyled small mt-1 mb-0">
                                     {% with origine=evenement.lien_transfert_de %}

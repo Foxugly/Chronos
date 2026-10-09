@@ -432,7 +432,14 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   keeps what each mail quotes). The Doublons page now proposes two imported events that are the
   same mail, keeping the richer one. `manage.py relier_courriels` back-fills existing data:
   **dry run by default** (does the work in a rolled-back transaction), `--appliquer` to write; it
-  never merges or deletes.
+  never merges or deletes. `--recalculer` re-reads every mail's citations (after a reading fix).
+- **Exchange splits bodies**: when a server touches a message in transit, the rest of the body
+  comes as attachments `ATT00001.txt`, `ATT00003.htm`… — the quote of the previous mail lives
+  there (real n° 12, 18). `corps_en_texte` appends them (plain first, no duplicates) and
+  `pieces_jointes` skips them. `liens.citations` reads **every** quoted block (and Gmail/Apple
+  « … a écrit : » lines): a reply links to its direct parent if present, else to the nearest
+  quoted ancestor present, and is re-centred on the parent when it arrives later.
+  `Event.destinataires` (migration `0021`) keeps the mail's To/Cc, shown in detail, list, PDF.
 - `events/import_courriels.py` creates, in **one transaction**, the event (instant, Brussels time), the
   original `.eml`, a `.md` text version (for search / AI), the attachments that pass `_verifier_fichier`
   (refused ones are named in the journal and the `.md`, the rest is still imported), a

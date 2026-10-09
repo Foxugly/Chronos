@@ -34,8 +34,12 @@ class Command(BaseCommand):
         parser.add_argument("--appliquer", action="store_true",
                             help="Écrit les liens (sinon : essai, tout est annulé à la fin).")
         parser.add_argument("--dossier", type=int, help="Un seul dossier (identifiant).")
+        parser.add_argument("--recalculer", action="store_true",
+                            help="Relit les citations de tous les courriels, pas seulement ceux qui n'en ont pas "
+                                 "(après une amélioration de la lecture, ex. la suite détachée par Exchange).")
 
-    def handle(self, *args, appliquer, dossier, **options):
+    def handle(self, *args, appliquer, dossier, recalculer=False, **options):
+        self.recalculer = recalculer
         dossiers = Dossier.objects.filter(pk=dossier) if dossier else Dossier.objects.all()
         with transaction.atomic():
             for d in dossiers.order_by("pk"):
@@ -78,8 +82,13 @@ class Command(BaseCommand):
                 continue
             couches[evenement.pk] = couche
             cite_de, cite_le, cite_objet = champs_cites(couche)
-            CourrielImporte.objects.filter(evenement=evenement, cite_le=None).update(
-                cite_de=cite_de, cite_le=cite_le, cite_objet=cite_objet)
+            traces = CourrielImporte.objects.filter(evenement=evenement)
+            if not self.recalculer:
+                traces = traces.filter(cite_le=None)
+            traces.update(cite_de=cite_de, cite_le=cite_le, cite_objet=cite_objet)
+            if not evenement.destinataires and couche.destinataires:
+                Event.objects.filter(pk=evenement.pk).update(destinataires=couche.destinataires)
+                self.stdout.write("  n°%d : destinataires — %s" % (evenement.pk, couche.destinataires[:80]))
             if evenement.expediteur_id is None:
                 expediteur = expediteur_du_dossier(dossier, couche.expediteur)
                 if expediteur is not None:

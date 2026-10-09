@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 21:52+0200\n"
+"POT-Creation-Date: 2026-10-09 23:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr "linked document"
 msgid "pièces liées"
 msgstr "linked documents"
 
-#: .\events\admin.py:238 .\events\models.py:494 .\events\models.py:933
+#: .\events\admin.py:238 .\events\models.py:496 .\events\models.py:935
 msgid "évènements"
 msgstr "events"
 
@@ -167,7 +167,7 @@ msgstr "email import"
 msgid "auteur inconnu"
 msgstr "unknown author"
 
-#: .\events\export.py:269 .\events\models.py:821
+#: .\events\export.py:269 .\events\models.py:823
 #: .\events\templates\events\journal.html:76
 msgid "via l'administration"
 msgstr "via the administration"
@@ -235,20 +235,25 @@ msgstr "Chronology"
 msgid "Étiquettes : %(noms)s"
 msgstr "Tags: %(noms)s"
 
-#: .\events\export.py:367
+#: .\events\export.py:365
+#, python-format
+msgid "Destinataires : %(qui)s"
+msgstr "Recipients: %(qui)s"
+
+#: .\events\export.py:369
 msgid "hors de cette sélection"
 msgstr "outside this selection"
 
-#: .\events\export.py:374
+#: .\events\export.py:376
 #, python-format
 msgid "Pièce %(numero)s : %(nom)s"
 msgstr "Document %(numero)s: %(nom)s"
 
-#: .\events\export.py:381
+#: .\events\export.py:383
 msgid "Contrôle d'intégrité"
 msgstr "Integrity check"
 
-#: .\events\export.py:383
+#: .\events\export.py:385
 msgid ""
 "Pour chaque pièce, l'empreinte SHA-256 du fichier exporté a été recalculée "
 "et comparée à celle enregistrée lors de son dépôt."
@@ -256,27 +261,27 @@ msgstr ""
 "For each document, the SHA-256 hash of the exported file was recomputed and "
 "compared with the one recorded when it was uploaded."
 
-#: .\events\export.py:387 .\events\templates\events\vue_documents.html:46
+#: .\events\export.py:389 .\events\templates\events\vue_documents.html:46
 msgid "N°"
 msgstr "No."
 
-#: .\events\export.py:387 .\events\templates\events\vue_documents.html:47
+#: .\events\export.py:389 .\events\templates\events\vue_documents.html:47
 msgid "Pièce"
 msgstr "Document"
 
-#: .\events\export.py:387
+#: .\events\export.py:389
 msgid "SHA-256"
 msgstr "SHA-256"
 
-#: .\events\export.py:387
+#: .\events\export.py:389
 msgid "Contrôle"
 msgstr "Check"
 
-#: .\events\export.py:393
+#: .\events\export.py:395
 msgid "conforme"
 msgstr "matches"
 
-#: .\events\export.py:393
+#: .\events\export.py:395
 msgid "DIFFÉRENTE"
 msgstr "DIFFERENT"
 
@@ -314,7 +319,7 @@ msgstr "until %(au)s"
 msgid "saisis à la main"
 msgstr "entered by hand"
 
-#: .\events\filtres.py:163 .\events\models.py:203 .\events\models.py:499
+#: .\events\filtres.py:163 .\events\models.py:203 .\events\models.py:501
 msgid "titre"
 msgstr "title"
 
@@ -349,7 +354,7 @@ msgid "Bureautique"
 msgstr "Office documents"
 
 #: .\events\filtres.py:288 .\events\models.py:49 .\events\models.py:164
-#: .\events\models.py:931
+#: .\events\models.py:933
 msgid "nom"
 msgstr "name"
 
@@ -400,8 +405,8 @@ msgstr "Enter the time, or choose “a date”."
 msgid "Indiquez la date de fin, ou choisissez un autre mode."
 msgstr "Enter the end date, or choose another mode."
 
-#: .\events\forms.py:169 .\events\forms.py:176 .\events\models.py:446
-#: .\events\models.py:456
+#: .\events\forms.py:169 .\events\forms.py:176 .\events\models.py:448
+#: .\events\models.py:458
 msgid "La fin ne peut pas précéder le début."
 msgstr "The end cannot come before the start."
 
@@ -498,7 +503,7 @@ msgstr "The case file's name cannot be empty."
 msgid "propriétaire"
 msgstr "owner"
 
-#: .\events\models.py:56 .\events\models.py:709
+#: .\events\models.py:56 .\events\models.py:711
 msgid "créé le"
 msgstr "created on"
 
@@ -513,9 +518,9 @@ msgid ""
 msgstr "Emails forwarded to this address become events of the case file."
 
 #: .\events\models.py:81 .\events\models.py:160 .\events\models.py:201
-#: .\events\models.py:488 .\events\models.py:585 .\events\models.py:684
-#: .\events\models.py:808 .\events\models.py:859 .\events\models.py:895
-#: .\events\models.py:928
+#: .\events\models.py:490 .\events\models.py:587 .\events\models.py:686
+#: .\events\models.py:810 .\events\models.py:861 .\events\models.py:897
+#: .\events\models.py:930
 msgid "dossier"
 msgstr "case file"
 
@@ -549,7 +554,7 @@ msgstr "Share link"
 msgid "utilisateur"
 msgstr "user"
 
-#: .\events\models.py:107 .\events\models.py:591
+#: .\events\models.py:107 .\events\models.py:593
 msgid "rôle"
 msgstr "role"
 
@@ -577,7 +582,7 @@ msgstr "address"
 msgid "couleur"
 msgstr "colour"
 
-#: .\events\models.py:171 .\events\models.py:234 .\events\models.py:867
+#: .\events\models.py:171 .\events\models.py:234 .\events\models.py:869
 msgid "expéditeur"
 msgstr "sender"
 
@@ -617,316 +622,320 @@ msgstr "version"
 msgid "transfert de"
 msgstr "forwarded from"
 
-#: .\events\models.py:250
+#: .\events\models.py:248
+msgid "destinataires"
+msgstr "recipients"
+
+#: .\events\models.py:252
 msgid "en réponse à"
 msgstr "in reply to"
 
-#: .\events\models.py:320
+#: .\events\models.py:322
 #, python-format
 msgid "%(date)s à %(heure)s"
 msgstr "%(date)s at %(heure)s"
 
-#: .\events\models.py:326
+#: .\events\models.py:328
 #, python-format
 msgid "le %(date)s de %(debut)s à %(fin)s"
 msgstr "on %(date)s from %(debut)s to %(fin)s"
 
-#: .\events\models.py:332
+#: .\events\models.py:334
 #, python-format
 msgid "du %(debut)s à %(heure_debut)s au %(fin)s à %(heure_fin)s"
 msgstr "from %(debut)s at %(heure_debut)s to %(fin)s at %(heure_fin)s"
 
-#: .\events\models.py:338
+#: .\events\models.py:340
 #, python-format
 msgid "du %(debut)s au %(fin)s"
 msgstr "from %(debut)s to %(fin)s"
 
-#: .\events\models.py:438
+#: .\events\models.py:440
 msgid "Un transfert ne peut renvoyer qu'à un évènement du même dossier."
 msgstr "A forward can only refer to an event in the same case file."
 
-#: .\events\models.py:442
+#: .\events\models.py:444
 msgid "Une réponse ne peut renvoyer qu'à un évènement du même dossier."
 msgstr "A reply can only refer to an event in the same case file."
 
-#: .\events\models.py:461
+#: .\events\models.py:463
 msgid "Renseignez l'heure de début, ou une date de fin."
 msgstr "Enter a start time, or an end date."
 
-#: .\events\models.py:500
+#: .\events\models.py:502
 msgid "fichier"
 msgstr "file"
 
-#: .\events\models.py:502
+#: .\events\models.py:504
 msgid "empreinte du contenu"
 msgstr "content hash"
 
-#: .\events\models.py:511
+#: .\events\models.py:513
 msgid "numéro"
 msgstr "number"
 
-#: .\events\models.py:524
+#: .\events\models.py:526
 msgid "document"
 msgstr "document"
 
-#: .\events\models.py:525
+#: .\events\models.py:527
 msgid "documents"
 msgstr "documents"
 
-#: .\events\models.py:579 .\events\templates\events\dossier_share.html:224
+#: .\events\models.py:581 .\events\templates\events\dossier_share.html:224
 msgid "En attente"
 msgstr "Pending"
 
-#: .\events\models.py:580 .\events\templates\events\dossier_share.html:218
+#: .\events\models.py:582 .\events\templates\events\dossier_share.html:218
 msgid "Acceptée"
 msgstr "Accepted"
 
-#: .\events\models.py:581
+#: .\events\models.py:583
 msgid "Révoquée"
 msgstr "Revoked"
 
-#: .\events\models.py:589
+#: .\events\models.py:591
 msgid "adresse invitée"
 msgstr "invited address"
 
-#: .\events\models.py:593 .\events\models.py:701
+#: .\events\models.py:595 .\events\models.py:703
 msgid "jeton"
 msgstr "token"
 
-#: .\events\models.py:597
+#: .\events\models.py:599
 msgid "émise par"
 msgstr "sent by"
 
-#: .\events\models.py:601
+#: .\events\models.py:603
 msgid "émise le"
 msgstr "sent on"
 
-#: .\events\models.py:602 .\events\models.py:710
+#: .\events\models.py:604 .\events\models.py:712
 msgid "expire le"
 msgstr "expires on"
 
-#: .\events\models.py:604
+#: .\events\models.py:606
 msgid "acceptée le"
 msgstr "accepted on"
 
-#: .\events\models.py:607
+#: .\events\models.py:609
 msgid "acceptée par"
 msgstr "accepted by"
 
-#: .\events\models.py:613
+#: .\events\models.py:615
 msgid "révoquée le"
 msgstr "revoked on"
 
-#: .\events\models.py:617
+#: .\events\models.py:619
 msgid "invitation"
 msgstr "invitation"
 
-#: .\events\models.py:618
+#: .\events\models.py:620
 msgid "invitations"
 msgstr "invitations"
 
-#: .\events\models.py:690
+#: .\events\models.py:692
 msgid "droit accordé"
 msgstr "access granted"
 
-#: .\events\models.py:696
+#: .\events\models.py:698
 msgid "destinataire"
 msgstr "recipient"
 
-#: .\events\models.py:699
+#: .\events\models.py:701
 msgid "Pour vous souvenir à qui ce lien a été transmis."
 msgstr "To remember who this link was given to."
 
-#: .\events\models.py:705
+#: .\events\models.py:707
 msgid "créé par"
 msgstr "created by"
 
-#: .\events\models.py:711
+#: .\events\models.py:713
 msgid "révoqué le"
 msgstr "revoked on"
 
-#: .\events\models.py:713
+#: .\events\models.py:715
 msgid "dernier accès"
 msgstr "last accessed"
 
-#: .\events\models.py:714
+#: .\events\models.py:716
 msgid "consultations"
 msgstr "views"
 
-#: .\events\models.py:718 .\events\models.py:817
+#: .\events\models.py:720 .\events\models.py:819
 msgid "lien de partage"
 msgstr "share link"
 
-#: .\events\models.py:719
+#: .\events\models.py:721
 msgid "liens de partage"
 msgstr "share links"
 
-#: .\events\models.py:722
+#: .\events\models.py:724
 #, python-format
 msgid "Lien vers %(dossier)s"
 msgstr "Link to %(dossier)s"
 
-#: .\events\models.py:776
+#: .\events\models.py:778
 msgid "Évènement créé"
 msgstr "Event created"
 
-#: .\events\models.py:777
+#: .\events\models.py:779
 msgid "Évènement modifié"
 msgstr "Event edited"
 
-#: .\events\models.py:778
+#: .\events\models.py:780
 msgid "Évènement supprimé"
 msgstr "Event deleted"
 
-#: .\events\models.py:779
+#: .\events\models.py:781
 msgid "Pièce ajoutée"
 msgstr "Document added"
 
-#: .\events\models.py:780
+#: .\events\models.py:782
 msgid "Pièce retirée d'un évènement"
 msgstr "Document removed from an event"
 
-#: .\events\models.py:781
+#: .\events\models.py:783
 msgid "Pièce supprimée"
 msgstr "Document deleted"
 
-#: .\events\models.py:782
+#: .\events\models.py:784
 msgid "Pièce modifiée"
 msgstr "Document edited"
 
-#: .\events\models.py:783
+#: .\events\models.py:785
 msgid "Accès accordé"
 msgstr "Access granted"
 
-#: .\events\models.py:784
+#: .\events\models.py:786
 msgid "Accès retiré"
 msgstr "Access removed"
 
-#: .\events\models.py:785
+#: .\events\models.py:787
 msgid "Accès modifié"
 msgstr "Access changed"
 
-#: .\events\models.py:786
+#: .\events\models.py:788
 msgid "Invitation envoyée"
 msgstr "Invitation sent"
 
-#: .\events\models.py:787
+#: .\events\models.py:789
 msgid "Invitation annulée"
 msgstr "Invitation cancelled"
 
-#: .\events\models.py:788
+#: .\events\models.py:790
 msgid "Invitation acceptée"
 msgstr "Invitation accepted"
 
-#: .\events\models.py:789
+#: .\events\models.py:791
 msgid "Lien de partage créé"
 msgstr "Share link created"
 
-#: .\events\models.py:790
+#: .\events\models.py:792
 msgid "Lien de partage révoqué"
 msgstr "Share link revoked"
 
-#: .\events\models.py:791
+#: .\events\models.py:793
 msgid "Dossier exporté"
 msgstr "Case file exported"
 
-#: .\events\models.py:792
+#: .\events\models.py:794
 msgid "Évènement importé par courriel"
 msgstr "Event imported by email"
 
-#: .\events\models.py:793
+#: .\events\models.py:795
 msgid "Courriels relevés"
 msgstr "Emails fetched"
 
-#: .\events\models.py:794
+#: .\events\models.py:796
 msgid "Dossier créé"
 msgstr "Case file created"
 
-#: .\events\models.py:795
+#: .\events\models.py:797
 msgid "Dossier modifié"
 msgstr "Case file edited"
 
-#: .\events\models.py:796
+#: .\events\models.py:798
 msgid "Évènements fusionnés"
 msgstr "Events merged"
 
-#: .\events\models.py:797
+#: .\events\models.py:799
 msgid "Doublon possible écarté"
 msgstr "Possible duplicate dismissed"
 
-#: .\events\models.py:811
+#: .\events\models.py:813
 msgid "moment"
 msgstr "time"
 
-#: .\events\models.py:813
+#: .\events\models.py:815
 msgid "auteur"
 msgstr "author"
 
-#: .\events\models.py:822
+#: .\events\models.py:824
 msgid "action"
 msgstr "action"
 
-#: .\events\models.py:824 .\events\models.py:864
+#: .\events\models.py:826 .\events\models.py:866
 msgid "évènement"
 msgstr "event"
 
-#: .\events\models.py:827
+#: .\events\models.py:829
 msgid "objet"
 msgstr "subject"
 
-#: .\events\models.py:828
+#: .\events\models.py:830
 msgid "détails"
 msgstr "details"
 
-#: .\events\models.py:834
+#: .\events\models.py:836
 msgid "entrée du journal"
 msgstr "log entry"
 
-#: .\events\models.py:835
+#: .\events\models.py:837
 msgid "journal"
 msgstr "log"
 
-#: .\events\models.py:862
+#: .\events\models.py:864
 msgid "identifiant du courriel"
 msgstr "email ID"
 
-#: .\events\models.py:870
+#: .\events\models.py:872
 msgid "cite : expéditeur"
 msgstr "quotes: sender"
 
-#: .\events\models.py:871
+#: .\events\models.py:873
 msgid "cite : date"
 msgstr "quotes: date"
 
-#: .\events\models.py:872
+#: .\events\models.py:874
 msgid "cite : objet"
 msgstr "quotes: subject"
 
-#: .\events\models.py:873
+#: .\events\models.py:875
 msgid "importé le"
 msgstr "imported on"
 
-#: .\events\models.py:876
+#: .\events\models.py:878
 msgid "courriel importé"
 msgstr "imported email"
 
-#: .\events\models.py:877
+#: .\events\models.py:879
 msgid "courriels importés"
 msgstr "imported emails"
 
-#: .\events\models.py:907
+#: .\events\models.py:909
 msgid "paire de doublons écartée"
 msgstr "dismissed duplicate pair"
 
-#: .\events\models.py:908
+#: .\events\models.py:910
 msgid "paires de doublons écartées"
 msgstr "dismissed duplicate pairs"
 
-#: .\events\models.py:938
+#: .\events\models.py:940
 msgid "étiquette"
 msgstr "tag"
 
-#: .\events\models.py:939 .\events\views.py:1094
+#: .\events\models.py:941 .\events\views.py:1094
 msgid "étiquettes"
 msgstr "tags"
 
@@ -1054,7 +1063,7 @@ msgid "Supprimer définitivement l'évènement « %(titre)s » ?"
 msgstr "Permanently delete the event “%(titre)s”?"
 
 #: .\events\templates\events\_confirmer_suppression.html:21
-#: .\events\templates\events\_detail_evenement.html:79
+#: .\events\templates\events\_detail_evenement.html:84
 msgid "Pièces"
 msgstr "Documents"
 
@@ -1087,9 +1096,9 @@ msgid "Annuler"
 msgstr "Cancel"
 
 #: .\events\templates\events\_confirmer_suppression.html:54
-#: .\events\templates\events\_detail_evenement.html:44
+#: .\events\templates\events\_detail_evenement.html:49
 #: .\events\templates\events\parametres.html:70
-#: .\events\templates\events\vue_liste.html:109
+#: .\events\templates\events\vue_liste.html:114
 msgid "Supprimer"
 msgstr "Delete"
 
@@ -1098,58 +1107,63 @@ msgstr "Delete"
 msgid "Importé par courriel — de %(nom)s (%(adresse)s)"
 msgstr "Imported by email — from %(nom)s (%(adresse)s)"
 
-#: .\events\templates\events\_detail_evenement.html:37
+#: .\events\templates\events\_detail_evenement.html:33
+#: .\events\templates\events\vue_liste.html:69
+msgid "Destinataires :"
+msgstr "Recipients:"
+
+#: .\events\templates\events\_detail_evenement.html:42
 msgid "Afficher en pleine page"
 msgstr "Show full page"
 
-#: .\events\templates\events\_detail_evenement.html:42
-#: .\events\templates\events\vue_liste.html:105
+#: .\events\templates\events\_detail_evenement.html:47
+#: .\events\templates\events\vue_liste.html:110
 msgid "Modifier"
 msgstr "Edit"
 
-#: .\events\templates\events\_detail_evenement.html:53
-#: .\events\templates\events\vue_liste.html:71
+#: .\events\templates\events\_detail_evenement.html:58
+#: .\events\templates\events\vue_liste.html:76
 msgid "Transfert de :"
 msgstr "Forwarded from:"
 
-#: .\events\templates\events\_detail_evenement.html:58
-#: .\events\templates\events\vue_liste.html:77
+#: .\events\templates\events\_detail_evenement.html:63
+#: .\events\templates\events\vue_liste.html:82
 msgid "Transféré ensuite :"
 msgstr "Forwarded later:"
 
-#: .\events\templates\events\_detail_evenement.html:63
-#: .\events\templates\events\vue_liste.html:83
+#: .\events\templates\events\_detail_evenement.html:68
+#: .\events\templates\events\vue_liste.html:88
 msgid "En réponse à :"
 msgstr "In reply to:"
 
-#: .\events\templates\events\_detail_evenement.html:68
-#: .\events\templates\events\vue_liste.html:89
+#: .\events\templates\events\_detail_evenement.html:73
+#: .\events\templates\events\vue_liste.html:94
 msgid "Réponse :"
 msgstr "Reply:"
 
-#: .\events\templates\events\_detail_evenement.html:96
-#: .\events\templates\events\_detail_evenement.html:106
+#: .\events\templates\events\_detail_evenement.html:101
+#: .\events\templates\events\_detail_evenement.html:111
 #, python-format
 msgid "Pièce %(n)s"
 msgstr "Document %(n)s"
 
-#: .\events\templates\events\_detail_evenement.html:112
+#: .\events\templates\events\_detail_evenement.html:117
 msgid "Ouvrir dans un onglet"
 msgstr "Open in a tab"
 
-#: .\events\templates\events\_detail_evenement.html:121
+#: .\events\templates\events\_detail_evenement.html:126
 msgid "Aucune pièce jointe."
 msgstr "No attached documents."
 
-#: .\events\templates\events\_detail_evenement.html:128
+#: .\events\templates\events\_detail_evenement.html:133
 msgid "Faits voisins"
 msgstr "Adjacent facts"
 
-#: .\events\templates\events\_detail_evenement.html:132
+#: .\events\templates\events\_detail_evenement.html:137
 msgid "Fait précédent (flèche gauche)"
 msgstr "Previous fact (left arrow)"
 
-#: .\events\templates\events\_detail_evenement.html:140
+#: .\events\templates\events\_detail_evenement.html:145
 msgid "Fait suivant (flèche droite)"
 msgstr "Next fact (right arrow)"
 
@@ -2105,7 +2119,7 @@ msgid "Déposée le"
 msgstr "Added on"
 
 #: .\events\templates\events\vue_documents.html:64
-#: .\events\templates\events\vue_liste.html:97
+#: .\events\templates\events\vue_liste.html:102
 msgid "Trouvé dans :"
 msgstr "Found in:"
 
@@ -2117,7 +2131,7 @@ msgstr "no event"
 msgid "Ce dossier ne contient encore aucune pièce."
 msgstr "This case file contains no documents yet."
 
-#: .\events\templates\events\vue_liste.html:135
+#: .\events\templates\events\vue_liste.html:140
 msgid "Ce dossier ne contient encore aucun évènement."
 msgstr "This case file has no events yet."
 
@@ -2502,7 +2516,9 @@ msgstr "Who"
 msgid ""
 "Chronos est édité par Foxugly SRL (Belgique). Pour toute question sur vos "
 "données : hello@foxugly.com."
-msgstr "Chronos is published by Foxugly SRL (Belgium). For any question about your data: hello@foxugly.com."
+msgstr ""
+"Chronos is published by Foxugly SRL (Belgium). For any question about your "
+"data: hello@foxugly.com."
 
 #: .\templates\confidentialite.html:28
 msgid "Ce que Chronos conserve"
@@ -2518,13 +2534,17 @@ msgstr "Your account: username, email address and password, stored hashed."
 msgid ""
 "Les dossiers, évènements et pièces que vous ou les personnes autorisées y "
 "déposez, y compris les courriels transférés à l'alias d'un dossier."
-msgstr "The case files, events and documents that you or authorised people add, including emails forwarded to a case file's alias."
+msgstr ""
+"The case files, events and documents that you or authorised people add, "
+"including emails forwarded to a case file's alias."
 
 #: .\templates\confidentialite.html:35
 msgid ""
 "Le journal de chaque dossier (qui a fait quoi, et quand). Il ne peut pas "
 "être effacé : il garantit l'intégrité des pièces."
-msgstr "Each case file's log (who did what, and when). It cannot be erased: it guarantees the integrity of the evidence."
+msgstr ""
+"Each case file's log (who did what, and when). It cannot be erased: it "
+"guarantees the integrity of the evidence."
 
 #: .\templates\confidentialite.html:41
 msgid "Qui y a accès"
@@ -2535,7 +2555,9 @@ msgid ""
 "Le propriétaire d'un dossier, et les personnes qu'il autorise ou à qui il "
 "remet un lien de partage. Les pièces ne sont jamais publiques : chaque "
 "téléchargement vérifie vos droits."
-msgstr "The owner of a case file, and the people they authorise or give a share link to. Documents are never public: every download checks your rights."
+msgstr ""
+"The owner of a case file, and the people they authorise or give a share link "
+"to. Documents are never public: every download checks your rights."
 
 #: .\templates\confidentialite.html:47
 msgid "Cookies"
@@ -2547,7 +2569,10 @@ msgid ""
 "falsification de requêtes, et un cookie pour la langue choisie. Le thème "
 "clair ou sombre est mémorisé dans votre navigateur. Aucun cookie "
 "publicitaire, aucune mesure d'audience."
-msgstr "A session cookie (your sign-in), a cookie protecting against request forgery, and a cookie for the chosen language. The light or dark theme is remembered in your browser. No advertising cookies, no audience measurement."
+msgstr ""
+"A session cookie (your sign-in), a cookie protecting against request "
+"forgery, and a cookie for the chosen language. The light or dark theme is "
+"remembered in your browser. No advertising cookies, no audience measurement."
 
 #: .\templates\confidentialite.html:54
 msgid "Hébergement et prestataires"
@@ -2575,4 +2600,7 @@ msgid ""
 "Vous pouvez demander l'accès à vos données, leur rectification ou leur "
 "suppression en écrivant à hello@foxugly.com. Le journal d'un dossier est "
 "conservé tant que le dossier existe."
-msgstr "You can ask for access to your data, its correction or its deletion by writing to hello@foxugly.com. A case file's log is kept as long as the case file exists."
+msgstr ""
+"You can ask for access to your data, its correction or its deletion by "
+"writing to hello@foxugly.com. A case file's log is kept as long as the case "
+"file exists."

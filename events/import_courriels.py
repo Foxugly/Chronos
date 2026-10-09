@@ -10,6 +10,7 @@ pas stocké deux fois). Une pièce refusée n'empêche pas l'import du reste :
 elle est nommée dans le journal et dans la version texte du courriel.
 """
 
+import datetime
 import hashlib
 from collections import Counter
 from contextlib import contextmanager
@@ -24,8 +25,9 @@ from django.utils import timezone
 from .couleurs import prochaine_couleur
 from .courriels import _bloc_de_transfert, adresses, analyser_en_couches, en_markdown, lire, texte_en_html
 from .graph import ClientGraph
+from .courriels import BRUXELLES
 from .liens import (
-    adresse_de, citation, empreinte, empreinte_d_evenement, empreinte_de_couche,
+    adresse_de, citation, citations, empreinte, empreinte_d_evenement, empreinte_de_couche,
 )
 from .journal import consigner, consigner_pieces, instantane
 from .models import CourrielImporte, Dossier, Event, Expediteur, Journal
@@ -126,27 +128,42 @@ def meme_courriel(couche, traces):
 
 def relier(evenement, couche, traces):
     """Relie `evenement` au courriel qu'il cite (en amont) et ceux qui le citent à lui
-    (en aval). Rend la liste des `(réponse, courriel cité)` reliés."""
+    (en aval). Rend la liste des `(réponse, courriel cité)` reliés.
+
+    En amont, les citations sont essayées dans l'ordre : si le courriel auquel il répond
+    n'est pas dans le dossier, on le relie au plus proche ancêtre cité qui y est (n° 18
+    du dossier réel). En aval, un courriel relié ainsi à un ancêtre est **recentré** sur
+    celui qui arrive s'il est le courriel qu'il cite directement."""
     relies = []
-    cite = None if couche.transfert else citation(couche)
-    if cite and evenement.reponse_a_id is None:
-        amont = [t.evenement for t in traces
-                 if t.evenement_id != evenement.pk and cite.correspond(empreinte_de_trace(t))]
-        if amont:
-            cible = max(amont, key=lambda e: (_richesse(e), -e.pk))
-            if cible.reponse_a_id != evenement.pk:
-                Event.objects.filter(pk=evenement.pk).update(reponse_a=cible)
-                evenement.reponse_a = cible
-                relies.append((evenement, cible))
+    if not couche.transfert and evenement.reponse_a_id is None:
+        for cite in citations(couche):
+            amont = [t.evenement for t in traces
+                     if t.evenement_id != evenement.pk and cite.correspond(empreinte_de_trace(t))]
+            if amont:
+                cible = max(amont, key=lambda e: (_richesse(e), -e.pk))
+                if cible.reponse_a_id != evenement.pk:
+                    Event.objects.filter(pk=evenement.pk).update(reponse_a=cible)
+                    evenement.reponse_a = cible
+                    relies.append((evenement, cible))
+                break
     soi = empreinte_de_couche(couche)
     for t in traces:
         aval = t.evenement
-        if (aval.pk != evenement.pk and aval.reponse_a_id is None and evenement.reponse_a_id != aval.pk
-                and soi.correspond(citation_de_trace(t))):
+        if aval.pk == evenement.pk or aval.reponse_a_id == evenement.pk or evenement.reponse_a_id == aval.pk:
+            continue
+        if not soi.correspond(citation_de_trace(t)):
+            continue
+        actuel = aval.reponse_a
+        if actuel is None or _moment(actuel) < soi.moment:
             Event.objects.filter(pk=aval.pk).update(reponse_a=evenement)
             aval.reponse_a = evenement
             relies.append((aval, evenement))
     return relies
+
+
+def _moment(evenement):
+    heure = evenement.heure or datetime.time(0, 0)
+    return datetime.datetime.combine(evenement.date, heure).replace(tzinfo=BRUXELLES)
 
 
 def champs_cites(analyse):
@@ -224,6 +241,7 @@ def importer(dossier, analyse, transfert_de=None):
             heure=moment.time().replace(microsecond=0),
             description=nettoyer(description),
             transfert_de=transfert_de if transfert_de and transfert_de.dossier_id == dossier.pk else None,
+            destinataires=analyse.destinataires or "",
         )
 
         acceptees, refusees = [], []

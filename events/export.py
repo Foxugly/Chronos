@@ -361,6 +361,8 @@ def _pdf(dossier, evenements, numeros, controles, auteur, selection="", total=No
         noms = [e.nom for e in evenement.etiquettes.all()]
         if noms:
             bloc.append(Paragraph(_texte_pdf(_("Étiquettes : %(noms)s") % {"noms": ", ".join(noms)}), petit))
+        if evenement.destinataires:
+            bloc.append(Paragraph(_texte_pdf(_("Destinataires : %(qui)s") % {"qui": evenement.destinataires}), petit))
         for gabarit, autre in liens.get(evenement.pk, []):
             texte = gabarit % {"titre": autre.title, "periode": autre.periode_affichee}
             if autre.pk not in liens["retenus"]:

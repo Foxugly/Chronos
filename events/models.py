@@ -244,6 +244,8 @@ class Event(models.Model):
         "self", verbose_name=gettext_lazy("transfert de"), related_name="transferts",
         null=True, blank=True, on_delete=models.SET_NULL,
     )
+    # Les destinataires (À, Cc) d'un évènement issu d'un courriel, tels qu'écrits.
+    destinataires = models.TextField(gettext_lazy("destinataires"), blank=True)
     # Le courriel auquel celui-ci répond — celui qu'il cite sous un bloc « De : …
     # Envoyé : … » (`events/liens.py`). Même règle : même dossier seulement.
     reponse_a = models.ForeignKey(
