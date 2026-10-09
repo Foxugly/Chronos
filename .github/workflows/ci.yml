@@ -58,6 +58,10 @@ jobs:
         run: python manage.py makemigrations --check --dry-run
 
       - name: Contrôles de déploiement
+        # Comme en production (SSM) : sans GRAPH_SENDER, les courriels partiraient
+        # sur la console, et mail.E001 le refuse à raison.
+        env:
+          GRAPH_SENDER: chronos@foxugly.com
         run: python manage.py check --deploy --fail-level ERROR
 
       - name: Suite de tests (PostgreSQL 16)
