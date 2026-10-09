@@ -1,8 +1,9 @@
 """Accès à la boîte d'import par Microsoft Graph (Exchange Online).
 
 Exchange Online n'accepte plus l'IMAP par mot de passe : l'application est
-déclarée dans Entra ID (permission d'application `Mail.ReadWrite`, limitée à
-cette seule boîte par une `ApplicationAccessPolicy`) et s'authentifie par
+déclarée dans Entra ID (rôles Exchange `Application Mail.ReadWrite` et
+`Application Mail.Send`, limités aux seules boîtes d'import et d'expédition —
+`deploy/m365-setup.ps1`) et s'authentifie par
 « client credentials ». Aucune dépendance : `urllib` suffit pour ces quatre
 appels.
 
@@ -10,6 +11,7 @@ Réglages (variables d'environnement, lues dans `config/settings.py`) :
 `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `COURRIEL_BOITE`.
 """
 
+import datetime
 import json
 import urllib.error
 import urllib.parse
@@ -96,9 +98,12 @@ class ClientGraph:
 
     # --- la boîte ------------------------------------------------------------
 
-    def messages_recus(self):
-        """Les courriels de la boîte de réception, du plus ancien au plus récent."""
+    def messages_recus(self, depuis):
+        """Les courriels de la boîte de réception reçus depuis `depuis` (datetime
+        avec fuseau), du plus ancien au plus récent."""
+        borne = depuis.astimezone(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         url = "/mailFolders/inbox/messages?%s" % urllib.parse.urlencode({
+            "$filter": "receivedDateTime ge %s" % borne,
             "$select": "id,internetMessageId,receivedDateTime,subject",
             "$orderby": "receivedDateTime asc",
             "$top": "50",

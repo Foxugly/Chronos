@@ -80,6 +80,15 @@ Réglé dans le code le 2026-10-09 (n'est plus à faire) :
 
 ## Fait
 
+### Import de courriels sur une boîte partagée — 2026-10-09
+
+- Seuls les courriels des **dernières 24 h** sont lus (`COURRIEL_FENETRE`). Ceux qui visent un alias
+  sont importés puis rangés dans un dossier Outlook **du nom du dossier Chronos** ; les autres ne
+  sont ni déplacés ni cités dans les journaux. Les dossiers « Importés » / « Non importés » ne
+  servent plus. Décision du propriétaire : la boîte d'import est `hello@`, qui sert à autre chose.
+- `deploy/m365-setup.ps1` : applications Entra, droits Exchange limités, SSM et activation sur la
+  machine, en un script.
+
 ### Numéros de pièces, étiquettes, navigation, impression, tableau de bord — 2026-10-09
 
 - **Numéros de pièces définitifs** (1 à 77 attribués dans l'ordre de la chronologie) : affichés

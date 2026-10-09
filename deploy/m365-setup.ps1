@@ -85,23 +85,9 @@ foreach ($boite in @($BoiteImport, $Expediteur) | Select-Object -Unique) {
     Ok "boîte $boite ($($mbx.RecipientTypeDetails))"
 }
 
-# L'import parcourt TOUTE la boîte de réception de la boîte d'import et range chaque
-# courriel qui ne vise aucun alias dans « Non importés ». Une boîte déjà utilisée
-# verrait donc sa boîte de réception vidée : on s'arrête et on demande.
-$reception = Get-EXOMailboxFolderStatistics -Identity $BoiteImport -FolderScope Inbox |
-    Where-Object FolderType -eq "Inbox"
-if ($reception.ItemsInFolder -gt 0) {
-    Write-Host @"
-
-  ATTENTION : la boîte de réception de $BoiteImport contient $($reception.ItemsInFolder) courriel(s).
-  Toutes les 10 minutes, Chronos déplacera chaque courriel qui ne vise aucun alias de dossier
-  vers le dossier « Non importés » : cette boîte de réception sera vidée, et le restera.
-  Une boîte partagée dédiée (gratuite) évite cela :
-    New-Mailbox -Shared -Name "Chronos" -PrimarySmtpAddress chronos@foxugly.com
-"@ -ForegroundColor Red
-    $reponse = Read-Host "  Pour continuer quand même avec $BoiteImport, tape exactement : VIDER"
-    if ($reponse -cne "VIDER") { throw "Arrêt : choisis une boîte dédiée à l'import." }
-}
+# La boîte d'import peut servir à autre chose : Chronos ne lit que les dernières 24 h,
+# ne déplace que les courriels adressés à un alias (vers un dossier Outlook du nom du
+# dossier Chronos) et laisse tous les autres en place.
 
 function Application-Entra($nom) {
     $app = Get-MgApplication -Filter "displayName eq '$nom'" -All

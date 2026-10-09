@@ -389,8 +389,11 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   (refused ones are named in the journal and the `.md`, the rest is still imported), a
   `CourrielImporte` row and the journal. Signature images (`Content-ID` / inline) are skipped.
 - **Never twice:** `CourrielImporte` is unique per `(dossier, message_id)` of the *original* mail.
-- The mailbox is never emptied: imported mail goes to the Outlook folder « Importés », mail that
-  matches no alias or fails to parse to « Non importés ». Re-running is safe.
+- **The import mailbox may be a shared, everyday one (hello@…).** Only mail received in the last
+  24 h (`COURRIEL_FENETRE`) is read; mail addressed to a dossier alias is imported, then moved to an
+  Outlook folder **named after the Chronos dossier**. Everything else is left where it is and never
+  named in the logs. A mail that fails stays in the inbox and is retried while in the window.
+  Re-running is safe (`CourrielImporte`). Owner's decision, 2026-10-09.
 - `--essai` analyses without creating or moving anything; `--fichier x.eml --dossier N` imports a saved
   mail without touching the mailbox. Real sample mails go in `exemples_courriels/` (git-ignored).
 - `eml` and `md` were added to `ALLOWED_DOCUMENT_EXTENSIONS`; both are served as downloads.

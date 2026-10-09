@@ -3,6 +3,7 @@
 import datetime
 import shutil
 import tempfile
+import urllib.parse
 from email.message import EmailMessage
 from email.utils import parsedate_to_datetime
 from io import StringIO
@@ -13,6 +14,7 @@ from zoneinfo import ZoneInfo
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from events.courriels import analyser
 from events.import_courriels import dossier_destinataire, importer
@@ -170,8 +172,10 @@ class FausseBoite:
     def __init__(self, messages):
         self.messages = messages  # {id: octets}
         self.ranges = {}
+        self.depuis = None
 
-    def messages_recus(self):
+    def messages_recus(self, depuis):
+        self.depuis = depuis
         return [{"id": i, "subject": "x"} for i in list(self.messages)]
 
     def mime(self, identifiant):
@@ -186,7 +190,7 @@ class FausseBoite:
 
 class CommandeTests(MediaMixin, TestCase):
     def setUp(self):
-        self.dossier = make_dossier(make_user("owner"))
+        self.dossier = make_dossier(make_user("owner"), name="Litige SDB")
         self.dossier.alias_courriel = ALIAS
         self.dossier.save()
 
@@ -196,15 +200,32 @@ class CommandeTests(MediaMixin, TestCase):
             call_command("importer_courriels", *args, stdout=sortie, stderr=StringIO())
         return sortie.getvalue()
 
-    def test_importe_et_range(self):
+    def test_importe_et_range_dans_le_dossier_du_meme_nom(self):
         boite = FausseBoite({
             "1": courriel("TR: x", "y", joint=original()).as_bytes(),
             "2": courriel("Pub", "rien", a="inconnu@exemple.be", message_id="<pub@x>").as_bytes(),
         })
         sortie = self.lancer(boite)
-        self.assertEqual(boite.ranges, {"1": "Importés", "2": "Non importés"})
+        self.assertEqual(boite.ranges, {"1": "Litige SDB"})
         self.assertEqual(Event.objects.count(), 1)
-        self.assertIn("1 importé(s), 1 sans alias, 0 en échec", sortie)
+        self.assertIn("1 importé(s), 0 déjà importé(s), 1 sans alias, 0 en échec", sortie)
+
+    def test_un_courriel_sans_alias_n_est_ni_deplace_ni_cite(self):
+        """La boîte peut servir à autre chose : ce qui ne vise aucun alias ne
+        bouge pas, et son objet n'apparaît pas dans les journaux."""
+        boite = FausseBoite({
+            "2": courriel("Facture privée", "rien", a="inconnu@exemple.be", message_id="<pub@x>").as_bytes(),
+        })
+        sortie = self.lancer(boite)
+        self.assertEqual(boite.ranges, {})
+        self.assertNotIn("Facture privée", sortie)
+
+    def test_ne_parcourt_que_les_dernieres_24_heures(self):
+        boite = FausseBoite({})
+        avant = timezone.now()
+        self.lancer(boite)
+        self.assertLessEqual(boite.depuis, avant - datetime.timedelta(hours=24) + datetime.timedelta(seconds=5))
+        self.assertGreaterEqual(boite.depuis, avant - datetime.timedelta(hours=24) - datetime.timedelta(seconds=5))
 
     def test_l_essai_ne_cree_ni_ne_range_rien(self):
         boite = FausseBoite({"1": courriel("TR: x", "y", joint=original()).as_bytes()})
@@ -217,8 +238,16 @@ class CommandeTests(MediaMixin, TestCase):
         importer(self.dossier, analyser(octets))
         boite = FausseBoite({"1": octets})
         self.lancer(boite)
-        self.assertEqual(boite.ranges, {"1": "Importés"})
+        self.assertEqual(boite.ranges, {"1": "Litige SDB"})
         self.assertEqual(Event.objects.count(), 1)
+
+    def test_un_courriel_en_echec_reste_dans_la_boite_de_reception(self):
+        boite = FausseBoite({"1": courriel("TR: x", "y", joint=original()).as_bytes()})
+        with mock.patch("events.management.commands.importer_courriels.importer",
+                        side_effect=ValueError("illisible")):
+            sortie = self.lancer(boite)
+        self.assertEqual(boite.ranges, {})
+        self.assertIn("0 importé(s), 0 déjà importé(s), 0 sans alias, 1 en échec", sortie)
 
     def test_depuis_un_fichier_eml(self):
         chemin = Path(self.media_root) / "exemple.eml"
@@ -406,3 +435,16 @@ class TransfertDeTransfertTests(TestCase):
         self.assertIn("contact@acme-bat.example", a.expediteur)
         self.assertEqual(a.texte, "Monsieur Dupont,")
         self.assertEqual(a.commentaire, "Pour le dossier.\n\nBonjour Maître.")
+
+
+class ClientGraphBoiteTests(TestCase):
+    def test_ne_demande_que_les_courriels_recus_depuis_la_date_donnee(self):
+        from events.graph import ClientGraph
+
+        client = ClientGraph("t", "c", "s", "hello@exemple.be")
+        depuis = datetime.datetime(2026, 10, 8, 12, 30, tzinfo=datetime.timezone.utc)
+        with mock.patch.object(ClientGraph, "_appel", return_value={"value": []}) as appel:
+            list(client.messages_recus(depuis))
+        url = urllib.parse.unquote_plus(appel.call_args.args[1])
+        self.assertIn("$filter=receivedDateTime ge 2026-10-08T12:30:00Z", url)
+        self.assertIn("/mailFolders/inbox/messages", url)

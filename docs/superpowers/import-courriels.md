@@ -93,5 +93,7 @@ Le résultat de chaque passage s'ajoute à `sauvegardes\courriels.log`.
   de sa réception.
 - Le texte que vous écrivez au-dessus d'un transfert est gardé, à part, dans la version `.md`.
 
-Dans la boîte : un courriel importé est rangé dans **Importés** ; un courriel qui ne vise aucun alias
-(ou illisible) dans **Non importés**. Rien n'est supprimé.
+Dans la boîte : seuls les courriels des **dernières 24 heures** sont lus. Un courriel adressé à l'alias
+d'un dossier est importé puis rangé dans un dossier Outlook **du nom du dossier Chronos** ; tous les
+autres restent où ils sont — la boîte peut servir à autre chose. Un courriel illisible reste dans la
+boîte de réception (retenté tant qu'il a moins de 24 h). Rien n'est supprimé.

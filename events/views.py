@@ -1183,8 +1183,9 @@ def dossier_alias(request, dossier_id):
     l'alias elle-même, dans cet ordre : **ajouter** le nouvel alias dans
     Exchange — en cas d'échec, rien n'est enregistré et la page le dit —,
     **enregistrer** dans Chronos, puis **retirer** l'ancien. Si ce retrait
-    échoue, l'ancien alias reste actif dans Exchange (ses courriels iront dans
-    « Non importés ») et un avertissement demande de le retirer à la main.
+    échoue, l'ancien alias reste actif dans Exchange (ses courriels resteront
+    dans la boîte de réception, sans être importés) et un avertissement demande
+    de le retirer à la main.
     Sans configuration, l'alias se crée à la main.
     """
     dossier = get_dossier_for_owner(request.user, dossier_id)

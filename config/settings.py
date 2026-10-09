@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 import os
@@ -245,8 +246,11 @@ EXCHANGE_PS_SCRIPT_PATH = os.environ.get(
     "EXCHANGE_PS_SCRIPT_PATH", str(BASE_DIR / "scripts" / "exchange" / "manage_alias.ps1"))
 EXCHANGE_PWSH = os.environ.get("EXCHANGE_PWSH", "pwsh")
 EXCHANGE_PS_TIMEOUT = int(os.environ.get("EXCHANGE_PS_TIMEOUT", "90"))
-COURRIEL_DOSSIER_IMPORTES = "Importés"
-COURRIEL_DOSSIER_NON_IMPORTES = "Non importés"
+# L'import ne parcourt que les courriels reçus pendant cette durée : la boîte
+# peut servir à autre chose, et un courriel importé quitte la boîte de réception
+# (rangé dans un dossier Outlook du nom du dossier Chronos). 24 h couvrent une
+# machine arrêtée une nuit ; au-delà, `--fichier` importe un .eml à la main.
+COURRIEL_FENETRE = timedelta(hours=24)
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
