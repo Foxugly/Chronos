@@ -24,7 +24,7 @@ Ce qui s'installe **une fois, à la main, par root** : sudoers, base, dossiers, 
 
 ## 1 bis. DNS
 
-Enregistrement `A` `chronos.foxugly.com` → `54.229.220.110` (comme `tm.foxugly.com`).
+Route 53, zone `foxugly.com` : enregistrement `A` `chronos` → `54.229.220.110` (comme `tm.foxugly.com`).
 Le certificat `foxugly.com` est un joker (`*.foxugly.com`) : rien à émettre.
 
 ## 2. IAM (hors machine — jamais avec les clés root de la machine, §3.5)
