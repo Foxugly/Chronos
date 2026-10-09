@@ -41,7 +41,7 @@ class FormFragmentTests(TestCase):
             reverse("event_add", args=[self.dossier.pk])
         ).content.decode()
         self.assertIn("<!DOCTYPE html>", page)
-        self.assertIn("navbar-brand", page)
+        self.assertIn("topbar__brand", page)
         self.assertIn("data-event-form", page)
 
     def test_the_two_renderings_use_distinct_field_ids(self):

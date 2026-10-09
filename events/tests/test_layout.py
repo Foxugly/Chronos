@@ -6,6 +6,7 @@ pages servies hors de la chronologie n'héritaient d'aucune mise en page
 commune.
 """
 
+import re
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -78,7 +79,7 @@ class EventFormInheritsTheSharedLayoutTests(TestCase):
         ).content.decode()
 
     def test_the_form_now_carries_the_shared_navbar(self):
-        self.assertIn("navbar-brand", self._formulaire())
+        self.assertIn("topbar__brand", self._formulaire())
 
     def test_the_form_declares_a_single_document(self):
         page = self._formulaire()
@@ -94,7 +95,9 @@ class EventFormInheritsTheSharedLayoutTests(TestCase):
         """Le site sert des pièces de dossier : une compromission de CDN qui
         injecterait du script est dans le périmètre."""
         page = self._formulaire()
-        ressources = page.count('src="https://') + page.count('href="https://')
+        # Les ressources *chargées* (script, feuille de style), pas les simples liens
+        # (le footer pointe vers foxugly.com, qui n'est rien chargé dans la page).
+        ressources = len(re.findall(r'<(?:script|link)\b[^>]*\b(?:src|href)="https://', page))
         self.assertEqual(ressources, page.count("integrity="))
 
     def test_the_pending_file_list_is_built_without_markup(self):

@@ -54,3 +54,10 @@ def langue(request):
             "format_date": format_date,
         }
     }
+
+
+def application(request):
+    """Le nom, la version et l'année du footer (standard de la flotte)."""
+    from django.utils import timezone
+
+    return {"application": {"version": settings.VERSION, "annee": timezone.localdate().year}}

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 20:57+0200\n"
+"POT-Creation-Date: 2026-10-09 21:52+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -163,16 +163,16 @@ msgstr "share link “%(nom)s”"
 msgid "import de courriels"
 msgstr "email import"
 
-#: .\events\export.py:267 .\events\templates\events\journal.html:72
+#: .\events\export.py:267 .\events\templates\events\journal.html:73
 msgid "auteur inconnu"
 msgstr "unknown author"
 
 #: .\events\export.py:269 .\events\models.py:821
-#: .\events\templates\events\journal.html:75
+#: .\events\templates\events\journal.html:76
 msgid "via l'administration"
 msgstr "via the administration"
 
-#: .\events\export.py:284 .\events\templates\events\journal.html:120
+#: .\events\export.py:284 .\events\templates\events\journal.html:121
 msgid "Rien n'a encore été inscrit au journal."
 msgstr "Nothing has been recorded in the log yet."
 
@@ -527,8 +527,8 @@ msgstr "case files"
 msgid "Lecture"
 msgstr "Read"
 
-#: .\events\models.py:91 .\events\templates\events\dossier_share.html:45
-#: .\events\templates\events\dossier_share.html:300
+#: .\events\models.py:91 .\events\templates\events\dossier_share.html:46
+#: .\events\templates\events\dossier_share.html:301
 #: .\events\templates\events\invitation_accept.html:36
 msgid "Lecture et écriture"
 msgstr "Read and write"
@@ -673,11 +673,11 @@ msgstr "document"
 msgid "documents"
 msgstr "documents"
 
-#: .\events\models.py:579 .\events\templates\events\dossier_share.html:223
+#: .\events\models.py:579 .\events\templates\events\dossier_share.html:224
 msgid "En attente"
 msgstr "Pending"
 
-#: .\events\models.py:580 .\events\templates\events\dossier_share.html:217
+#: .\events\models.py:580 .\events\templates\events\dossier_share.html:218
 msgid "Acceptée"
 msgstr "Accepted"
 
@@ -1082,13 +1082,13 @@ msgstr ""
 
 #: .\events\templates\events\_confirmer_suppression.html:53
 #: .\events\templates\events\_event_form.html:230
-#: .\events\templates\events\dossier_share.html:243
+#: .\events\templates\events\dossier_share.html:244
 msgid "Annuler"
 msgstr "Cancel"
 
 #: .\events\templates\events\_confirmer_suppression.html:54
 #: .\events\templates\events\_detail_evenement.html:44
-#: .\events\templates\events\parametres.html:69
+#: .\events\templates\events\parametres.html:70
 #: .\events\templates\events\vue_liste.html:109
 msgid "Supprimer"
 msgstr "Delete"
@@ -1209,7 +1209,7 @@ msgid "Saisi à la main"
 msgstr "Entered by hand"
 
 #: .\events\templates\events\_doublon_cote.html:26
-#: .\events\templates\events\dossier_list.html:32
+#: .\events\templates\events\dossier_list.html:36
 #: .\events\templates\events\vue_semaine.html:60
 #, python-format
 msgid "%(n)s pièce"
@@ -1217,54 +1217,55 @@ msgid_plural "%(n)s pièces"
 msgstr[0] "%(n)s document"
 msgstr[1] "%(n)s documents"
 
-#: .\events\templates\events\_entete_dossier.html:15
+#: .\events\templates\events\_entete_dossier.html:16
 #: .\events\templates\events\dossier_list.html:10
-#: .\events\templates\events\dossier_list.html:13
+#: .\events\templates\events\dossier_list.html:15 .\templates\base.html:96
+#: .\templates\base.html:128
 msgid "Mes dossiers"
 msgstr "My case files"
 
-#: .\events\templates\events\_entete_dossier.html:30
-msgid "Journal"
-msgstr "Log"
-
-#: .\events\templates\events\_entete_dossier.html:34
-#: .\events\templates\events\expediteurs.html:19
-msgid "Expéditeurs"
-msgstr "Senders"
-
-#: .\events\templates\events\_entete_dossier.html:40
-msgid "Partager"
-msgstr "Share"
-
-#: .\events\templates\events\_entete_dossier.html:43
-msgid "Paramètres"
-msgstr "Settings"
-
-#: .\events\templates\events\_entete_dossier.html:50
+#: .\events\templates\events\_entete_dossier.html:23
 #, python-format
 msgid "%(n)s doublon possible"
 msgid_plural "%(n)s doublons possibles"
 msgstr[0] "%(n)s possible duplicate"
 msgstr[1] "%(n)s possible duplicates"
 
-#: .\events\templates\events\_entete_dossier.html:59
-msgid "Importer tout de suite les courriels transférés à l'alias du dossier"
-msgstr "Import now the emails forwarded to this case file's alias"
-
-#: .\events\templates\events\_entete_dossier.html:60
-msgid "Relever les courriels"
-msgstr "Fetch emails"
-
-#: .\events\templates\events\_entete_dossier.html:67
+#: .\events\templates\events\_entete_dossier.html:29
 msgid "Raccourci : N"
 msgstr "Shortcut: N"
 
-#: .\events\templates\events\_entete_dossier.html:68
+#: .\events\templates\events\_entete_dossier.html:30
 #: .\events\templates\events\_formulaire_modal_js.html:125
 #: .\events\templates\events\event_form.html:13
 #: .\events\templates\events\event_form.html:30
 msgid "Nouvel évènement"
 msgstr "New event"
+
+#: .\events\templates\events\_entete_dossier.html:42
+msgid "Journal"
+msgstr "Log"
+
+#: .\events\templates\events\_entete_dossier.html:46
+#: .\events\templates\events\expediteurs.html:18
+msgid "Expéditeurs"
+msgstr "Senders"
+
+#: .\events\templates\events\_entete_dossier.html:55
+msgid "Importer tout de suite les courriels transférés à l'alias du dossier"
+msgstr "Import now the emails forwarded to this case file's alias"
+
+#: .\events\templates\events\_entete_dossier.html:56
+msgid "Relever les courriels"
+msgstr "Fetch emails"
+
+#: .\events\templates\events\_entete_dossier.html:63
+msgid "Partager"
+msgstr "Share"
+
+#: .\events\templates\events\_entete_dossier.html:66
+msgid "Paramètres"
+msgstr "Settings"
 
 #: .\events\templates\events\_event_form.html:31
 msgid "Titre"
@@ -1312,7 +1313,7 @@ msgid "Documents existants"
 msgstr "Existing documents"
 
 #: .\events\templates\events\_event_form.html:142
-#: .\events\templates\events\parametres.html:46
+#: .\events\templates\events\parametres.html:47
 msgid "Étiquettes"
 msgstr "Tags"
 
@@ -1352,8 +1353,8 @@ msgid "%(extensions)s — %(taille)s Mo maximum par fichier."
 msgstr "%(extensions)s — %(taille)s MB maximum per file."
 
 #: .\events\templates\events\_event_form.html:231
-#: .\events\templates\events\expediteurs.html:52
-#: .\events\templates\events\parametres.html:37
+#: .\events\templates\events\expediteurs.html:53
+#: .\events\templates\events\parametres.html:38
 msgid "Enregistrer"
 msgstr "Save"
 
@@ -1423,7 +1424,7 @@ msgstr "Saving failed. Nothing was changed."
 msgid "Modifier l'évènement"
 msgstr "Edit event"
 
-#: .\events\templates\events\_modal_evenement.html:25 .\templates\base.html:150
+#: .\events\templates\events\_modal_evenement.html:25 .\templates\base.html:163
 msgid "Fermer"
 msgstr "Close"
 
@@ -1451,47 +1452,52 @@ msgstr "Timeline"
 msgid "Liste"
 msgstr "List"
 
-#: .\events\templates\events\detail_evenement.html:22
+#: .\events\templates\events\detail_evenement.html:23
+#: .\events\templates\events\dossier_share.html:21
+#: .\events\templates\events\doublons.html:18
+#: .\events\templates\events\expediteurs.html:17
+#: .\events\templates\events\journal.html:31
+#: .\events\templates\events\parametres.html:19
 msgid "Retour au dossier"
 msgstr "Back to the case file"
 
-#: .\events\templates\events\dossier_list.html:31
-#: .\events\templates\events\expediteurs.html:46
-#: .\events\templates\events\parametres.html:61
+#: .\events\templates\events\dossier_list.html:35
+#: .\events\templates\events\expediteurs.html:47
+#: .\events\templates\events\parametres.html:62
 #, python-format
 msgid "%(n)s évènement"
 msgid_plural "%(n)s évènements"
 msgstr[0] "%(n)s event"
 msgstr[1] "%(n)s events"
 
-#: .\events\templates\events\dossier_list.html:37
+#: .\events\templates\events\dossier_list.html:41
 #, python-format
 msgid "%(n)s doublon possible à examiner"
 msgid_plural "%(n)s doublons possibles à examiner"
 msgstr[0] "%(n)s possible duplicate to review"
 msgstr[1] "%(n)s possible duplicates to review"
 
-#: .\events\templates\events\dossier_list.html:42
+#: .\events\templates\events\dossier_list.html:46
 msgid "Derniers faits"
 msgstr "Latest facts"
 
-#: .\events\templates\events\dossier_list.html:52
+#: .\events\templates\events\dossier_list.html:56
 msgid "Aucun fait pour l'instant."
 msgstr "No facts yet."
 
-#: .\events\templates\events\dossier_list.html:56
+#: .\events\templates\events\dossier_list.html:60
 msgid "Derniers courriels importés"
 msgstr "Latest imported emails"
 
-#: .\events\templates\events\dossier_list.html:71
+#: .\events\templates\events\dossier_list.html:75
 msgid "Import par courriel :"
 msgstr "Email import:"
 
-#: .\events\templates\events\dossier_list.html:75
+#: .\events\templates\events\dossier_list.html:79
 msgid "Activer l'import par courriel"
 msgstr "Enable email import"
 
-#: .\events\templates\events\dossier_list.html:86
+#: .\events\templates\events\dossier_list.html:90
 msgid ""
 "Aucun dossier ne vous est accessible pour l'instant. Le propriétaire d'un "
 "dossier peut vous y donner accès."
@@ -1504,57 +1510,57 @@ msgstr ""
 msgid "Partage — %(nom)s"
 msgstr "Sharing — %(nom)s"
 
-#: .\events\templates\events\dossier_share.html:23
+#: .\events\templates\events\dossier_share.html:22
 msgid "Partage du dossier"
 msgstr "Case file sharing"
 
-#: .\events\templates\events\dossier_share.html:27
+#: .\events\templates\events\dossier_share.html:28
 msgid "Personnes ayant accès"
 msgstr "People with access"
 
-#: .\events\templates\events\dossier_share.html:33 .\events\views.py:322
+#: .\events\templates\events\dossier_share.html:34 .\events\views.py:322
 msgid "Propriétaire"
 msgstr "Owner"
 
-#: .\events\templates\events\dossier_share.html:36
+#: .\events\templates\events\dossier_share.html:37
 msgid "Ne peut pas être retiré"
 msgstr "Cannot be removed"
 
-#: .\events\templates\events\dossier_share.html:47
-#: .\events\templates\events\dossier_share.html:292
+#: .\events\templates\events\dossier_share.html:48
+#: .\events\templates\events\dossier_share.html:293
 #: .\events\templates\events\invitation_accept.html:45
 msgid "Lecture seule"
 msgstr "Read only"
 
-#: .\events\templates\events\dossier_share.html:50
+#: .\events\templates\events\dossier_share.html:51
 #, python-format
 msgid "Accordé le %(quand)s"
 msgstr "Granted on %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:51
-#: .\events\templates\events\dossier_share.html:228
-#: .\events\templates\events\journal.html:62
+#: .\events\templates\events\dossier_share.html:52
+#: .\events\templates\events\dossier_share.html:229
+#: .\events\templates\events\journal.html:63
 #, python-format
 msgid "par %(nom)s"
 msgstr "by %(nom)s"
 
-#: .\events\templates\events\dossier_share.html:59
+#: .\events\templates\events\dossier_share.html:60
 msgid "Retirer l'accès"
 msgstr "Remove access"
 
-#: .\events\templates\events\dossier_share.html:64
+#: .\events\templates\events\dossier_share.html:65
 msgid "Personne d'autre n'a accès à ce dossier."
 msgstr "No one else has access to this case file."
 
-#: .\events\templates\events\dossier_share.html:73
+#: .\events\templates\events\dossier_share.html:74
 msgid "Lien de consultation, sans compte"
 msgstr "View link, without an account"
 
-#: .\events\templates\events\dossier_share.html:76
+#: .\events\templates\events\dossier_share.html:77
 msgid "C'est le seul accès anonyme de l'application."
 msgstr "This is the only anonymous access in the application."
 
-#: .\events\templates\events\dossier_share.html:77
+#: .\events\templates\events\dossier_share.html:78
 msgid ""
 "Toute personne qui détient le lien consulte le dossier, sans compte et sans "
 "que vous sachiez qui elle est. Un lien se retransfère, se copie, se retrouve "
@@ -1567,65 +1573,65 @@ msgstr ""
 "a browser history. It gives <strong>read-only</strong> access and you can "
 "cut it off at any time — but you cannot take back what has already been read."
 
-#: .\events\templates\events\dossier_share.html:105
+#: .\events\templates\events\dossier_share.html:106
 msgid "Créer un lien"
 msgstr "Create a link"
 
-#: .\events\templates\events\dossier_share.html:113
+#: .\events\templates\events\dossier_share.html:114
 msgid "Liens existants"
 msgstr "Existing links"
 
-#: .\events\templates\events\dossier_share.html:120
+#: .\events\templates\events\dossier_share.html:121
 msgid "Sans destinataire noté"
 msgstr "No recipient noted"
 
-#: .\events\templates\events\dossier_share.html:123
+#: .\events\templates\events\dossier_share.html:124
 msgid "Révoqué"
 msgstr "Revoked"
 
-#: .\events\templates\events\dossier_share.html:125
+#: .\events\templates\events\dossier_share.html:126
 msgid "Expiré"
 msgstr "Expired"
 
-#: .\events\templates\events\dossier_share.html:127
+#: .\events\templates\events\dossier_share.html:128
 msgid "Actif"
 msgstr "Active"
 
-#: .\events\templates\events\dossier_share.html:136
+#: .\events\templates\events\dossier_share.html:137
 #, python-format
 msgid "Créé le %(quand)s"
 msgstr "Created on %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:138
+#: .\events\templates\events\dossier_share.html:139
 #, python-format
 msgid "expire le %(quand)s"
 msgstr "expires on %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:140
+#: .\events\templates\events\dossier_share.html:141
 msgid "sans expiration"
 msgstr "no expiry"
 
-#: .\events\templates\events\dossier_share.html:142
+#: .\events\templates\events\dossier_share.html:143
 #, python-format
 msgid "consulté %(n)s fois"
 msgid_plural "consulté %(n)s fois"
 msgstr[0] "viewed %(n)s time"
 msgstr[1] "viewed %(n)s times"
 
-#: .\events\templates\events\dossier_share.html:144
+#: .\events\templates\events\dossier_share.html:145
 #, python-format
 msgid "dernier accès le %(quand)s"
 msgstr "last accessed on %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:154
+#: .\events\templates\events\dossier_share.html:155
 msgid "Révoquer"
 msgstr "Revoke"
 
-#: .\events\templates\events\dossier_share.html:168
+#: .\events\templates\events\dossier_share.html:169
 msgid "Inviter par courriel"
 msgstr "Invite by email"
 
-#: .\events\templates\events\dossier_share.html:171
+#: .\events\templates\events\dossier_share.html:172
 msgid ""
 "L'invitation part par courriel et contient un lien. <strong>Qui détient ce "
 "lien peut s'en servir</strong>, avec le compte sous lequel il est connecté : "
@@ -1637,45 +1643,45 @@ msgstr ""
 "emails get forwarded. For someone whose account you already know, the direct "
 "grant below is safer."
 
-#: .\events\templates\events\dossier_share.html:203
+#: .\events\templates\events\dossier_share.html:204
 msgid "Inviter"
 msgstr "Invite"
 
-#: .\events\templates\events\dossier_share.html:210
+#: .\events\templates\events\dossier_share.html:211
 msgid "Invitations émises"
 msgstr "Invitations sent"
 
-#: .\events\templates\events\dossier_share.html:219
+#: .\events\templates\events\dossier_share.html:220
 msgid "Annulée"
 msgstr "Cancelled"
 
-#: .\events\templates\events\dossier_share.html:221
+#: .\events\templates\events\dossier_share.html:222
 msgid "Expirée"
 msgstr "Expired"
 
-#: .\events\templates\events\dossier_share.html:227
+#: .\events\templates\events\dossier_share.html:228
 #, python-format
 msgid "Acceptée le %(quand)s"
 msgstr "Accepted on %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:230
+#: .\events\templates\events\dossier_share.html:231
 #, python-format
 msgid "Émise le %(emise)s, expire le %(expire)s"
 msgstr "Sent on %(emise)s, expires on %(expire)s"
 
-#: .\events\templates\events\dossier_share.html:256
+#: .\events\templates\events\dossier_share.html:257
 msgid "Donner accès à un compte existant"
 msgstr "Give access to an existing account"
 
-#: .\events\templates\events\dossier_share.html:282
+#: .\events\templates\events\dossier_share.html:283
 msgid "Accorder"
 msgstr "Grant"
 
-#: .\events\templates\events\dossier_share.html:289
+#: .\events\templates\events\dossier_share.html:290
 msgid "Ce que chaque droit permet"
 msgstr "What each right allows"
 
-#: .\events\templates\events\dossier_share.html:293
+#: .\events\templates\events\dossier_share.html:294
 msgid ""
 "consulter la chronologie, les évènements et les pièces. Aucune modification, "
 "aucun retrait, aucun ajout."
@@ -1683,7 +1689,7 @@ msgstr ""
 "view the chronology, the events and the documents. No changes, no removals, "
 "no additions."
 
-#: .\events\templates\events\dossier_share.html:301
+#: .\events\templates\events\dossier_share.html:302
 msgid ""
 "tout ce qui précède, plus créer et modifier des évènements, ajouter des "
 "pièces et en retirer. Ne permet pas de partager le dossier : vous seul "
@@ -1693,7 +1699,7 @@ msgstr ""
 "documents. Does not allow sharing the case file: only you decide who has "
 "access."
 
-#: .\events\templates\events\dossier_share.html:311
+#: .\events\templates\events\dossier_share.html:312
 msgid ""
 "Tous les comptes existants ont déjà accès à ce dossier. Les comptes se "
 "créent dans l'administration."
@@ -1706,11 +1712,11 @@ msgstr ""
 msgid "Doublons — %(nom)s"
 msgstr "Duplicates — %(nom)s"
 
-#: .\events\templates\events\doublons.html:20
+#: .\events\templates\events\doublons.html:19
 msgid "Doublons possibles"
 msgstr "Possible duplicates"
 
-#: .\events\templates\events\doublons.html:22
+#: .\events\templates\events\doublons.html:23
 msgid ""
 "Deux évènements qui partagent une pièce à un jour d'écart au plus, ou qui "
 "tombent le même jour avec des titres proches. Fusionner garde l'un des deux "
@@ -1723,19 +1729,19 @@ msgstr ""
 "its documents, its description (appended, with its original title and date), "
 "its sender. The log keeps the absorbed event in full."
 
-#: .\events\templates\events\doublons.html:50
+#: .\events\templates\events\doublons.html:51
 msgid "En commun :"
 msgstr "In common:"
 
-#: .\events\templates\events\doublons.html:58
+#: .\events\templates\events\doublons.html:59
 msgid "Ce ne sont pas des doublons"
 msgstr "These are not duplicates"
 
-#: .\events\templates\events\doublons.html:61
+#: .\events\templates\events\doublons.html:62
 msgid "Fusionner dans l'évènement choisi"
 msgstr "Merge into the chosen event"
 
-#: .\events\templates\events\doublons.html:69
+#: .\events\templates\events\doublons.html:70
 msgid "Aucun doublon possible dans ce dossier."
 msgstr "No possible duplicates in this case file."
 
@@ -1744,7 +1750,7 @@ msgstr "No possible duplicates in this case file."
 msgid "Expéditeurs — %(nom)s"
 msgstr "Senders — %(nom)s"
 
-#: .\events\templates\events\expediteurs.html:21
+#: .\events\templates\events\expediteurs.html:22
 msgid ""
 "Chaque personne dont un courriel a été importé a sa couleur. Ses évènements "
 "la prennent, partout : la changer ici les recolore tous."
@@ -1752,12 +1758,12 @@ msgstr ""
 "Each person whose email has been imported has a colour. Their events take it "
 "everywhere: changing it here recolours them all."
 
-#: .\events\templates\events\expediteurs.html:36
+#: .\events\templates\events\expediteurs.html:37
 #, python-format
 msgid "Couleur de %(nom)s"
 msgstr "Colour of %(nom)s"
 
-#: .\events\templates\events\expediteurs.html:56
+#: .\events\templates\events\expediteurs.html:57
 msgid "Aucun courriel n'a encore été importé dans ce dossier."
 msgstr "No email has been imported into this case file yet."
 
@@ -1840,11 +1846,11 @@ msgstr ""
 msgid "Accepter l'invitation"
 msgstr "Accept the invitation"
 
-#: .\events\templates\events\journal.html:33
+#: .\events\templates\events\journal.html:32
 msgid "Journal du dossier"
 msgstr "Case file log"
 
-#: .\events\templates\events\journal.html:35
+#: .\events\templates\events\journal.html:36
 msgid ""
 "Chaque modification du dossier y est inscrite, et rien ne peut en être "
 "effacé. Le journal commence le 8 octobre 2026 : ce qui précède n'a pas "
@@ -1854,41 +1860,41 @@ msgstr ""
 "from it. The log starts on 8 October 2026: what happened before left no "
 "trace."
 
-#: .\events\templates\events\journal.html:52
+#: .\events\templates\events\journal.html:53
 #, python-format
 msgid "évènement « %(titre)s »"
 msgstr "event “%(titre)s”"
 
-#: .\events\templates\events\journal.html:65
+#: .\events\templates\events\journal.html:66
 #, python-format
 msgid "par le lien de partage « %(nom)s »"
 msgstr "via the share link “%(nom)s”"
 
-#: .\events\templates\events\journal.html:67
+#: .\events\templates\events\journal.html:68
 msgid "par un lien de partage"
 msgstr "via a share link"
 
-#: .\events\templates\events\journal.html:70
+#: .\events\templates\events\journal.html:71
 msgid "par l'import de courriels"
 msgstr "by the email import"
 
-#: .\events\templates\events\journal.html:84
+#: .\events\templates\events\journal.html:85
 msgid "Champ"
 msgstr "Field"
 
-#: .\events\templates\events\journal.html:86
+#: .\events\templates\events\journal.html:87
 msgid "Avant"
 msgstr "Before"
 
-#: .\events\templates\events\journal.html:87
+#: .\events\templates\events\journal.html:88
 msgid "Après"
 msgstr "After"
 
-#: .\events\templates\events\journal.html:89
+#: .\events\templates\events\journal.html:90
 msgid "Valeur"
 msgstr "Value"
 
-#: .\events\templates\events\journal.html:111
+#: .\events\templates\events\journal.html:112
 msgid "contenu déjà présent dans le dossier : rattaché, pas stocké deux fois"
 msgstr "content already in the case file: linked, not stored twice"
 
@@ -1897,19 +1903,19 @@ msgstr "content already in the case file: linked, not stored twice"
 msgid "Paramètres — %(nom)s"
 msgstr "Settings — %(nom)s"
 
-#: .\events\templates\events\parametres.html:21
+#: .\events\templates\events\parametres.html:20
 msgid "Paramètres du dossier"
 msgstr "Case file settings"
 
-#: .\events\templates\events\parametres.html:25
+#: .\events\templates\events\parametres.html:26
 msgid "Général"
 msgstr "General"
 
-#: .\events\templates\events\parametres.html:28
+#: .\events\templates\events\parametres.html:29
 msgid "Nom du dossier"
 msgstr "Case file name"
 
-#: .\events\templates\events\parametres.html:49
+#: .\events\templates\events\parametres.html:50
 msgid ""
 "Elles se créent depuis le formulaire d'un évènement. Supprimer une étiquette "
 "la retire des évènements, qui restent."
@@ -1917,33 +1923,33 @@ msgstr ""
 "They are created from an event's form. Deleting a tag removes it from the "
 "events, which remain."
 
-#: .\events\templates\events\parametres.html:59
+#: .\events\templates\events\parametres.html:60
 msgid "Nom de l'étiquette"
 msgstr "Tag name"
 
-#: .\events\templates\events\parametres.html:65
+#: .\events\templates\events\parametres.html:66
 msgid "Renommer"
 msgstr "Rename"
 
-#: .\events\templates\events\parametres.html:79
+#: .\events\templates\events\parametres.html:80
 msgid ""
 "Aucune étiquette pour l'instant. Elles se créent depuis le formulaire d'un "
 "évènement."
 msgstr "No tags yet. They are created from an event's form."
 
-#: .\events\templates\events\parametres.html:88
+#: .\events\templates\events\parametres.html:89
 msgid "Import par courriel"
 msgstr "Import by email"
 
-#: .\events\templates\events\parametres.html:90
+#: .\events\templates\events\parametres.html:91
 msgid "Activé"
 msgstr "Enabled"
 
-#: .\events\templates\events\parametres.html:92
+#: .\events\templates\events\parametres.html:93
 msgid "Désactivé"
 msgstr "Disabled"
 
-#: .\events\templates\events\parametres.html:97
+#: .\events\templates\events\parametres.html:98
 msgid ""
 "Un courriel transféré à cette adresse devient un évènement du dossier : sa "
 "date de réception, son objet, son texte, ses pièces jointes, et le courriel "
@@ -1955,7 +1961,7 @@ msgstr ""
 "attached as a document. The address must exist in Exchange as an alias of "
 "the import mailbox."
 
-#: .\events\templates\events\parametres.html:106
+#: .\events\templates\events\parametres.html:107
 msgid ""
 "Toute personne qui connaît cette adresse peut ajouter un évènement. "
 "Choisissez-la difficile à deviner ; changez-la si elle a circulé."
@@ -1963,11 +1969,11 @@ msgstr ""
 "Anyone who knows this address can add an event. Choose one that is hard to "
 "guess; change it if it has been passed around."
 
-#: .\events\templates\events\parametres.html:114
+#: .\events\templates\events\parametres.html:115
 msgid "Adresse actuelle :"
 msgstr "Current address:"
 
-#: .\events\templates\events\parametres.html:119
+#: .\events\templates\events\parametres.html:120
 #, python-format
 msgid ""
 "Cette adresse reçoit toujours, mais ne suit pas le format des alias (…"
@@ -1976,35 +1982,35 @@ msgstr ""
 "This address still receives mail, but does not follow the alias format (…"
 "%(suffixe)s). Save a new one below."
 
-#: .\events\templates\events\parametres.html:131
+#: .\events\templates\events\parametres.html:132
 msgid "Nouvel alias"
 msgstr "New alias"
 
-#: .\events\templates\events\parametres.html:131
+#: .\events\templates\events\parametres.html:132
 msgid "Alias de courriel"
 msgstr "Email alias"
 
-#: .\events\templates\events\parametres.html:152
+#: .\events\templates\events\parametres.html:153
 msgid "Modifier l'alias"
 msgstr "Change alias"
 
-#: .\events\templates\events\parametres.html:154
+#: .\events\templates\events\parametres.html:155
 msgid "Ajouter l'alias"
 msgstr "Add alias"
 
-#: .\events\templates\events\parametres.html:160
+#: .\events\templates\events\parametres.html:161
 msgid "Proposition :"
 msgstr "Suggestion:"
 
-#: .\events\templates\events\parametres.html:163
+#: .\events\templates\events\parametres.html:164
 msgid "utiliser"
 msgstr "use"
 
-#: .\events\templates\events\parametres.html:173
+#: .\events\templates\events\parametres.html:174
 msgid "Désactiver l'import par courriel"
 msgstr "Disable email import"
 
-#: .\events\templates\events\parametres.html:181
+#: .\events\templates\events\parametres.html:182
 msgid ""
 "Chronos crée, change et retire l'alias dans Exchange lui-même. Comptez une "
 "dizaine de secondes par opération."
@@ -2012,15 +2018,15 @@ msgstr ""
 "Chronos creates, changes and removes the alias in Exchange itself. Allow "
 "about ten seconds per operation."
 
-#: .\events\templates\events\parametres.html:187
+#: .\events\templates\events\parametres.html:188
 msgid "Vérifier dans Exchange"
 msgstr "Check in Exchange"
 
-#: .\events\templates\events\parametres.html:193
+#: .\events\templates\events\parametres.html:194
 msgid "Créer l'alias dans Exchange"
 msgstr "Create the alias in Exchange"
 
-#: .\events\templates\events\parametres.html:195
+#: .\events\templates\events\parametres.html:196
 msgid ""
 "L'application ne crée pas l'alias : ajoutez-le à la boîte d'import, puis "
 "enregistrez-le ici. En PowerShell, module ExchangeOnlineManagement :"
@@ -2028,7 +2034,7 @@ msgstr ""
 "The application does not create the alias: add it to the import mailbox, "
 "then save it here. In PowerShell, ExchangeOnlineManagement module:"
 
-#: .\events\templates\events\parametres.html:221
+#: .\events\templates\events\parametres.html:222
 msgid "Échange avec Exchange en cours…"
 msgstr "Talking to Exchange…"
 
@@ -2400,52 +2406,173 @@ msgstr "Back to the home page"
 msgid "Langue"
 msgstr "Language"
 
-#: .\templates\account\login.html:19 .\templates\account\login.html:63
-#: .\templates\account\login.html:114
+#: .\templates\account\login.html:19 .\templates\account\login.html:59
+#: .\templates\account\login.html:110
 msgid "Sign In"
 msgstr "Sign In"
 
-#: .\templates\account\login.html:96 .\templates\account\login.html:97
-#: .\templates\account\login.html:134
+#: .\templates\account\login.html:92 .\templates\account\login.html:93
+#: .\templates\account\login.html:129
 msgid "Afficher le mot de passe"
 msgstr "Show password"
 
-#: .\templates\account\login.html:110
+#: .\templates\account\login.html:106
 msgid "Mot de passe oublié ?"
 msgstr "Forgot password?"
 
-#: .\templates\account\login.html:120
+#: .\templates\account\login.html:116
 msgid "Pas encore de compte ?"
 msgstr "No account yet?"
 
-#: .\templates\account\login.html:121
+#: .\templates\account\login.html:117
 msgid "Créer un compte"
 msgstr "Create an account"
 
-#: .\templates\account\login.html:135
+#: .\templates\account\login.html:130
 msgid "Masquer le mot de passe"
 msgstr "Hide password"
 
-#: .\templates\base.html:110
-msgid "Afficher le menu"
-msgstr "Show menu"
+#: .\templates\base.html:83
+msgid "Aller au contenu"
+msgstr "Skip to content"
 
-#: .\templates\base.html:119
-msgid "Dossiers"
-msgstr "Case files"
+#: .\templates\base.html:92
+msgid "Navigation principale"
+msgstr "Main navigation"
 
-#: .\templates\base.html:126
-msgid "Tous mes dossiers"
-msgstr "All my case files"
+#: .\templates\base.html:101
+msgid "Accès rapide"
+msgstr "Quick access"
 
-#: .\templates\base.html:136
+#: .\templates\base.html:116
+msgid "Basculer le thème"
+msgstr "Toggle theme"
+
+#: .\templates\base.html:123
+msgid "Mon compte"
+msgstr "My account"
+
+#: .\templates\base.html:130
+msgid "Administration"
+msgstr "Administration"
+
+#: .\templates\base.html:137
 msgid "Se déconnecter"
 msgstr "Sign out"
 
-#: .\templates\base.html:183 .\templates\base.html:188
+#: .\templates\base.html:145
+msgid "Se connecter"
+msgstr "Sign in"
+
+#: .\templates\base.html:150
+msgid "Afficher le menu"
+msgstr "Show menu"
+
+#: .\templates\base.html:173
+msgid "La chronologie d'un dossier, pièces à l'appui."
+msgstr "A case file's timeline, with the evidence."
+
+#: .\templates\base.html:175
+#, python-format
+msgid "Version %(version)s"
+msgstr "Version %(version)s"
+
+#: .\templates\base.html:181 .\templates\confidentialite.html:11
+#: .\templates\confidentialite.html:16
+msgid "Confidentialité"
+msgstr "Privacy"
+
+#: .\templates\base.html:183
+msgid "Tous droits réservés."
+msgstr "All rights reserved."
+
+#: .\templates\base.html:214 .\templates\base.html:219
 msgid "Copie impossible ici : sélectionnez l'adresse."
 msgstr "Copying is not possible here: select the address."
 
-#: .\templates\base.html:187
+#: .\templates\base.html:218
 msgid "Copié"
 msgstr "Copied"
+
+#: .\templates\confidentialite.html:22
+msgid "Qui"
+msgstr "Who"
+
+#: .\templates\confidentialite.html:23
+msgid ""
+"Chronos est édité par Foxugly SRL (Belgique). Pour toute question sur vos "
+"données : hello@foxugly.com."
+msgstr "Chronos is published by Foxugly SRL (Belgium). For any question about your data: hello@foxugly.com."
+
+#: .\templates\confidentialite.html:28
+msgid "Ce que Chronos conserve"
+msgstr "What Chronos keeps"
+
+#: .\templates\confidentialite.html:30
+msgid ""
+"Votre compte : nom d'utilisateur, adresse e-mail et mot de passe, conservé "
+"chiffré."
+msgstr "Your account: username, email address and password, stored hashed."
+
+#: .\templates\confidentialite.html:31
+msgid ""
+"Les dossiers, évènements et pièces que vous ou les personnes autorisées y "
+"déposez, y compris les courriels transférés à l'alias d'un dossier."
+msgstr "The case files, events and documents that you or authorised people add, including emails forwarded to a case file's alias."
+
+#: .\templates\confidentialite.html:35
+msgid ""
+"Le journal de chaque dossier (qui a fait quoi, et quand). Il ne peut pas "
+"être effacé : il garantit l'intégrité des pièces."
+msgstr "Each case file's log (who did what, and when). It cannot be erased: it guarantees the integrity of the evidence."
+
+#: .\templates\confidentialite.html:41
+msgid "Qui y a accès"
+msgstr "Who has access"
+
+#: .\templates\confidentialite.html:42
+msgid ""
+"Le propriétaire d'un dossier, et les personnes qu'il autorise ou à qui il "
+"remet un lien de partage. Les pièces ne sont jamais publiques : chaque "
+"téléchargement vérifie vos droits."
+msgstr "The owner of a case file, and the people they authorise or give a share link to. Documents are never public: every download checks your rights."
+
+#: .\templates\confidentialite.html:47
+msgid "Cookies"
+msgstr "Cookies"
+
+#: .\templates\confidentialite.html:48
+msgid ""
+"Un cookie de session (votre connexion), un cookie de protection contre la "
+"falsification de requêtes, et un cookie pour la langue choisie. Le thème "
+"clair ou sombre est mémorisé dans votre navigateur. Aucun cookie "
+"publicitaire, aucune mesure d'audience."
+msgstr "A session cookie (your sign-in), a cookie protecting against request forgery, and a cookie for the chosen language. The light or dark theme is remembered in your browser. No advertising cookies, no audience measurement."
+
+#: .\templates\confidentialite.html:54
+msgid "Hébergement et prestataires"
+msgstr "Hosting and providers"
+
+#: .\templates\confidentialite.html:56
+msgid ""
+"Serveur et base de données : Amazon Web Services, en Irlande (eu-west-1)."
+msgstr "Server and database: Amazon Web Services, in Ireland (eu-west-1)."
+
+#: .\templates\confidentialite.html:57
+msgid "Courriels (boîte d'import, envoi des invitations) : Microsoft 365."
+msgstr "Emails (import mailbox, sending invitations): Microsoft 365."
+
+#: .\templates\confidentialite.html:58
+msgid "Suivi des erreurs : Sentry, en Allemagne, sans données personnelles."
+msgstr "Error tracking: Sentry, in Germany, without personal data."
+
+#: .\templates\confidentialite.html:61
+msgid "Vos droits"
+msgstr "Your rights"
+
+#: .\templates\confidentialite.html:62
+msgid ""
+"Vous pouvez demander l'accès à vos données, leur rectification ou leur "
+"suppression en écrivant à hello@foxugly.com. Le journal d'un dossier est "
+"conservé tant que le dossier existe."
+msgstr "You can ask for access to your data, its correction or its deletion by writing to hello@foxugly.com. A case file's log is kept as long as the case file exists."

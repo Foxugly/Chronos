@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% comment %}
+Page de confidentialité, lien obligatoire du footer de la flotte
+(STANDARD-frontend-layout.md). Factuelle : elle décrit ce que fait le code et
+l'hébergement, sans engagement juridique de plus — à relire par le propriétaire
+avant de faire foi (2026-10-09). Publique : on doit pouvoir la lire avant de
+créer un compte.
+{% endcomment %}
+
+{% block title %}{% translate "Confidentialité" %} — Chronos{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <div class="page-header__left"></div>
+        <h1 class="page-header__title"><i class="bi bi-shield-check" aria-hidden="true"></i>{% translate "Confidentialité" %}</h1>
+        <div class="page-header__right"></div>
+    </div>
+
+    <div class="card shadow-sm mx-auto" style="max-width: 48rem;">
+        <div class="card-body p-4">
+            <h2 class="h5">{% translate "Qui" %}</h2>
+            <p>{% blocktranslate trimmed %}
+                Chronos est édité par Foxugly SRL (Belgique). Pour toute question sur vos données :
+                hello@foxugly.com.
+            {% endblocktranslate %}</p>
+
+            <h2 class="h5 mt-4">{% translate "Ce que Chronos conserve" %}</h2>
+            <ul>
+                <li>{% blocktranslate trimmed %}Votre compte : nom d'utilisateur, adresse e-mail et mot de passe, conservé chiffré.{% endblocktranslate %}</li>
+                <li>{% blocktranslate trimmed %}
+                    Les dossiers, évènements et pièces que vous ou les personnes autorisées y déposez, y
+                    compris les courriels transférés à l'alias d'un dossier.
+                {% endblocktranslate %}</li>
+                <li>{% blocktranslate trimmed %}
+                    Le journal de chaque dossier (qui a fait quoi, et quand). Il ne peut pas être effacé : il
+                    garantit l'intégrité des pièces.
+                {% endblocktranslate %}</li>
+            </ul>
+
+            <h2 class="h5 mt-4">{% translate "Qui y a accès" %}</h2>
+            <p>{% blocktranslate trimmed %}
+                Le propriétaire d'un dossier, et les personnes qu'il autorise ou à qui il remet un lien de
+                partage. Les pièces ne sont jamais publiques : chaque téléchargement vérifie vos droits.
+            {% endblocktranslate %}</p>
+
+            <h2 class="h5 mt-4">{% translate "Cookies" %}</h2>
+            <p>{% blocktranslate trimmed %}
+                Un cookie de session (votre connexion), un cookie de protection contre la falsification
+                de requêtes, et un cookie pour la langue choisie. Le thème clair ou sombre est mémorisé
+                dans votre navigateur. Aucun cookie publicitaire, aucune mesure d'audience.
+            {% endblocktranslate %}</p>
+
+            <h2 class="h5 mt-4">{% translate "Hébergement et prestataires" %}</h2>
+            <ul>
+                <li>{% blocktranslate trimmed %}Serveur et base de données : Amazon Web Services, en Irlande (eu-west-1).{% endblocktranslate %}</li>
+                <li>{% blocktranslate trimmed %}Courriels (boîte d'import, envoi des invitations) : Microsoft 365.{% endblocktranslate %}</li>
+                <li>{% blocktranslate trimmed %}Suivi des erreurs : Sentry, en Allemagne, sans données personnelles.{% endblocktranslate %}</li>
+            </ul>
+
+            <h2 class="h5 mt-4">{% translate "Vos droits" %}</h2>
+            <p class="mb-0">{% blocktranslate trimmed %}
+                Vous pouvez demander l'accès à vos données, leur rectification ou leur suppression en
+                écrivant à hello@foxugly.com. Le journal d'un dossier est conservé tant que le dossier
+                existe.
+            {% endblocktranslate %}</p>
+        </div>
+    </div>
+{% endblock %}

@@ -1,64 +1,52 @@
-{% load i18n %}<!DOCTYPE html>
+{% load i18n static %}<!DOCTYPE html>
 <html lang="{{ langue.code|default:'fr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Chronos{% endblock %}</title>
+    {# Thème avant tout rendu (anti-flash) : le choix mémorisé, sinon celui du système. #}
+    {# Inline, donc avec le nonce de la CSP — sans lui, le navigateur le bloque (OPERATIONS §STANDARD). #}
+    <script nonce="{{ csp_nonce }}">
+    (function () {
+        var theme = null;
+        try { theme = localStorage.getItem("theme"); } catch (e) { /* stockage indisponible */ }
+        var sombre = theme ? theme === "dark"
+            : !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        var racine = document.documentElement;
+        racine.setAttribute("data-bs-theme", sombre ? "dark" : "light");
+        racine.classList.toggle("dark-mode", sombre);
+    })();
+    </script>
+    <link rel="icon" href="{% static 'img/chronos.svg' %}" type="image/svg+xml">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
           rel="stylesheet"
           integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
           crossorigin="anonymous">
+    {# Les icônes des boutons, sur tout le site. #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+          integrity="sha384-CK2SzKma4jA5H/MXDUU7i1TqZlCFaD4T01vtyDFvPlD97JQyS+IsSh1nI2EFbpyk"
+          crossorigin="anonymous">
+    {# L'habillage de la flotte (tokens, topbar, footer, page-header, thème sombre). #}
+    <link rel="stylesheet" href="{% static 'css/chronos.css' %}">
     <style>
-        /* La place de la barre de défilement est toujours réservée : sans
-           cela, passer d'un onglet court (chronologie) à un long (liste)
-           décale tout l'en-tête de sa largeur. */
-        html {
-            scrollbar-gutter: stable;
-        }
         /* Impression : le contenu seul. Ni navigation, ni onglets, ni filtres,
            ni boutons ; des blocs qui ne se coupent pas en bas de page ; les
            liens en texte. La vue Liste et l'onglet Documents en tirent un
            document présentable (« Imprimer »). */
         @media print {
             body { background: #fff !important; }
-            nav.navbar, .nav-tabs, [data-barre-filtres], .btn, .btn-group,
+            .nav-tabs, [data-barre-filtres], .btn, .btn-group,
             .modal, .alert-dismissible, [data-pas-a-l-impression] { display: none !important; }
             main { padding: 0 !important; max-width: none !important; }
             a { color: inherit !important; text-decoration: none !important; }
             .card, .list-group-item { break-inside: avoid; box-shadow: none !important; }
             .badge { border: 1px solid #999; color: #000 !important; background: #fff !important; }
         }
-        /* Un titre que la barre de navigation affiche déjà (le nom du dossier) :
-           masqué à l'écran large, sans le retirer aux lecteurs d'écran ni à
-           l'impression (`@media screen` : la règle ne s'applique pas au papier). */
-        @media screen and (min-width: 992px) {
-            .titre-doublon-barre {
-                position: absolute !important;
-                width: 1px !important;
-                height: 1px !important;
-                padding: 0 !important;
-                margin: -1px !important;
-                overflow: hidden !important;
-                clip: rect(0, 0, 0, 0) !important;
-                white-space: nowrap !important;
-                border: 0 !important;
-            }
-        }
         /* Sélecteur de langue, sur le modèle de QuizOnline : bouton compact,
-           menu arrondi et ombré, langue courante cochée. */
+           menu arrondi et ombré, langue courante cochée. Dans la topbar, son
+           déclencheur prend le gabarit des autres actions (chronos.css). */
         .selecteur-langue__declencheur {
-            background: var(--bs-tertiary-bg);
-            color: var(--bs-body-color);
-            border: 1px solid var(--bs-border-color);
-            border-radius: 8px;
-            padding: .4rem .6rem;
-            font-size: .8125rem;
-            font-weight: 600;
             line-height: 1;
-        }
-        .selecteur-langue__declencheur:hover,
-        .selecteur-langue__declencheur[aria-expanded="true"] {
-            background: var(--bs-secondary-bg);
         }
         .selecteur-langue__menu {
             min-width: 6rem;
@@ -89,59 +77,84 @@
             color: var(--bs-primary);
         }
     </style>
-    {# Les icônes des boutons, sur tout le site. #}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
-          integrity="sha384-CK2SzKma4jA5H/MXDUU7i1TqZlCFaD4T01vtyDFvPlD97JQyS+IsSh1nI2EFbpyk"
-          crossorigin="anonymous">
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-body-tertiary d-flex flex-column min-vh-100">
-<nav class="navbar navbar-expand-lg bg-body border-bottom">
-    <div class="container-fluid px-3">
-        <a class="navbar-brand fw-semibold" href="{% url 'dossier_list' %}">Chronos</a>
-        {# Hors du menu repliable : la langue se choisit aussi sur téléphone, #}
-        {# avant la connexion et depuis un lien de partage.                   #}
-        <div class="d-flex align-items-center gap-2 ms-auto order-lg-last ms-lg-3">
-            {% block selecteur_langue %}{% include "_selecteur_langue.html" %}{% endblock %}
-        </div>
-        {% if user.is_authenticated %}
-            <button class="navbar-toggler ms-2" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#barre" aria-controls="barre" aria-expanded="false"
-                    aria-label="{% translate "Afficher le menu" %}">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="barre">
-                <ul class="navbar-nav me-auto">
-                    {% if accessible_dossiers %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button"
-                               data-bs-toggle="dropdown" aria-expanded="false">
-                                {% block dossier_courant %}{% translate "Dossiers" %}{% endblock %}
-                            </a>
-                            <ul class="dropdown-menu">
-                                {% for d in accessible_dossiers %}
-                                    <li><a class="dropdown-item" href="{% url 'timeline' d.pk %}">{{ d.name }}</a></li>
-                                {% endfor %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'dossier_list' %}">{% translate "Tous mes dossiers" %}</a></li>
-                            </ul>
-                        </li>
-                    {% endif %}
-                </ul>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="text-body-secondary small">{{ user.get_username }}</span>
-                    <form method="post" action="{% url 'account_logout' %}" class="m-0">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>{% translate "Se déconnecter" %}
+<body class="app-shell">
+<a class="skip-link" href="#main-content">{% translate "Aller au contenu" %}</a>
+{% url 'dossier_list' as url_mes_dossiers %}
+<header class="topbar" data-topbar>
+    <div class="topbar__inner">
+        <a class="topbar__brand" href="{{ url_mes_dossiers }}">
+            <span class="topbar__brand-icon"><img src="{% static 'img/chronos.svg' %}" alt="" width="26" height="26"></span>
+            <span class="topbar__brand-name">Chronos</span>
+        </a>
+
+        <nav class="topbar__nav" id="topbar-nav" aria-label="{% translate "Navigation principale" %}">
+            {% if user.is_authenticated %}
+                <a class="topbar__link{% if request.path == url_mes_dossiers %} topbar__link--active{% endif %}"
+                   href="{{ url_mes_dossiers }}"{% if request.path == url_mes_dossiers %} aria-current="page"{% endif %}>
+                    <i class="bi bi-folder2-open" aria-hidden="true"></i>{% translate "Mes dossiers" %}
+                </a>
+                {% if accessible_dossiers|length > 1 %}
+                    <div class="dropdown">
+                        <button class="topbar__link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-collection" aria-hidden="true"></i>{% translate "Accès rapide" %}
                         </button>
-                    </form>
+                        <ul class="dropdown-menu">
+                            {% for d in accessible_dossiers %}
+                                <li><a class="dropdown-item" href="{% url 'timeline' d.pk %}">{{ d.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </nav>
+
+        <div class="topbar__actions">
+            {# Ordre fixe de la flotte : thème → langue → utilisateur. #}
+            <button type="button" class="topbar__action" data-basculer-theme
+                    title="{% translate "Basculer le thème" %}" aria-label="{% translate "Basculer le thème" %}">
+                <i class="bi bi-moon-stars" aria-hidden="true"></i>
+            </button>
+            {% block selecteur_langue %}{% include "_selecteur_langue.html" %}{% endblock %}
+            {% if user.is_authenticated %}
+                <div class="dropdown">
+                    <button class="topbar__action dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                            aria-label="{% translate "Mon compte" %}">
+                        <i class="bi bi-person-circle" aria-hidden="true"></i><span class="topbar__user-name">{{ user.get_username }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><span class="dropdown-item-text small text-body-secondary">{{ user.get_username }}</span></li>
+                        <li><a class="dropdown-item" href="{{ url_mes_dossiers }}"><i class="bi bi-folder2-open me-2" aria-hidden="true"></i>{% translate "Mes dossiers" %}</a></li>
+                        {% if user.is_staff %}
+                            <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-shield-lock me-2" aria-hidden="true"></i>{% translate "Administration" %}</a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="post" action="{% url 'account_logout' %}" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item">
+                                    <i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>{% translate "Se déconnecter" %}
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
-            </div>
-        {% endif %}
+            {% else %}
+                <a class="topbar__action topbar__action--login" href="{% url 'account_login' %}">
+                    <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i><span class="topbar__user-name">{% translate "Se connecter" %}</span>
+                </a>
+            {% endif %}
+            {% if user.is_authenticated %}
+                <button type="button" class="topbar__action topbar__toggle" data-basculer-menu
+                        aria-controls="topbar-nav" aria-expanded="false" aria-label="{% translate "Afficher le menu" %}">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+            {% endif %}
+        </div>
     </div>
-</nav>
-<main class="{% block main_class %}container{% endblock %} py-4 flex-grow-1">
+</header>
+<main id="main-content" tabindex="-1" class="main-container {% block main_class %}{% endblock %}">
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{% if message.level_tag == 'error' %}danger{% elif message.level_tag == 'debug' %}secondary{% else %}{{ message.level_tag }}{% endif %} alert-dismissible fade show"
@@ -151,8 +164,26 @@
             </div>
         {% endfor %}
     {% endif %}
-    {% block content %}{% endblock %}
+    {# Ouverture et fermeture d'un cadre commun (la carte d'authentification d'allauth). #}
+    {% block avant_contenu %}{% endblock %}{% block content %}{% endblock %}{% block apres_contenu %}{% endblock %}
 </main>
+<footer class="app-footer">
+    <div class="app-footer__inner">
+        <span class="app-footer__brand">Chronos</span>
+        <span>{% translate "La chronologie d'un dossier, pièces à l'appui." %}</span>
+        <span class="app-footer__meta">
+            <span>{% blocktranslate with version=application.version %}Version {{ version }}{% endblocktranslate %}</span>
+            <span class="app-footer__sep" aria-hidden="true">·</span>
+            <span class="app-footer__author">© {{ application.annee }}
+                <a class="app-footer__author" href="https://www.foxugly.com" target="_blank" rel="noopener noreferrer">
+                    <img src="{% static 'img/foxugly-logo.svg' %}" alt="" aria-hidden="true">Foxugly</a></span>
+            <span class="app-footer__sep" aria-hidden="true">·</span>
+            <a href="{% url 'confidentialite' %}">{% translate "Confidentialité" %}</a>
+            <span class="app-footer__sep" aria-hidden="true">·</span>
+            <span>{% translate "Tous droits réservés." %}</span>
+        </span>
+    </div>
+</footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
@@ -188,6 +219,41 @@ document.addEventListener("click", function (evenement) {
         function () { signaler("bi-x-lg", "{{ _("Copie impossible ici : sélectionnez l'adresse.")|escapejs }}"); }
     );
 });
+</script>
+<script nonce="{{ csp_nonce }}">
+"use strict";
+// Thème : le bouton bascule clair/sombre et mémorise le choix (localStorage["theme"],
+// comme toute la flotte). Le script du <head> l'a déjà appliqué avant le rendu.
+(function () {
+    const racine = document.documentElement;
+    const bouton = document.querySelector("[data-basculer-theme]");
+    function afficher() {
+        const sombre = racine.getAttribute("data-bs-theme") === "dark";
+        if (bouton) {
+            bouton.querySelector("i").className = sombre ? "bi bi-sun" : "bi bi-moon-stars";
+            bouton.setAttribute("aria-pressed", sombre ? "true" : "false");
+        }
+    }
+    afficher();
+    if (bouton) {
+        bouton.addEventListener("click", function () {
+            const sombre = racine.getAttribute("data-bs-theme") !== "dark";
+            racine.setAttribute("data-bs-theme", sombre ? "dark" : "light");
+            racine.classList.toggle("dark-mode", sombre);
+            try { localStorage.setItem("theme", sombre ? "dark" : "light"); } catch (e) { /* privé */ }
+            afficher();
+        });
+    }
+    // Sous 1024 px, la navigation se replie : le bouton menu l'ouvre et la ferme.
+    const menu = document.querySelector("[data-basculer-menu]");
+    const barre = document.querySelector("[data-topbar]");
+    if (menu && barre) {
+        menu.addEventListener("click", function () {
+            const ouverte = barre.classList.toggle("topbar--ouverte");
+            menu.setAttribute("aria-expanded", ouverte ? "true" : "false");
+        });
+    }
+})();
 </script>
 {% block extra_js %}{% endblock %}
 </body>

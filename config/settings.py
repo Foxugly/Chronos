@@ -113,6 +113,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'events.context_processors.accessible_dossiers',
                 'events.context_processors.langue',
+                'events.context_processors.application',
             ],
         },
     },
@@ -198,7 +199,13 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# Version affichée dans le footer et par /health/ (standard de la flotte : une
+# valeur fournie à l'exécution, ici `CHRONOS_VERSION` depuis SSM, sinon celle du code).
+VERSION = os.environ.get("CHRONOS_VERSION", "").strip() or "1.1.0"
+
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Les fichiers de l'habillage commun à la flotte (logo, feuille de style des tokens).
+STATICFILES_DIRS = [BASE_DIR / 'static']
 MEDIA_URL = '/media/'
 MEDIA_ROOT = Path(os.environ.get("MEDIA_ROOT") or BASE_DIR / 'media')
 

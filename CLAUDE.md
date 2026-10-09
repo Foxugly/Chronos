@@ -190,6 +190,22 @@ older allauth the login page would redirect to itself.
 
 ## Front end
 
+**Fleet layout** (2026-10-09): Chronos follows `foxugly-ops/STANDARD-frontend-layout.md`
+(QuizOnline / FoxRunner are the references), translated to Django + Bootstrap. One stylesheet,
+`static/css/chronos.css` (the standard's design tokens copied verbatim, Bootstrap colours remapped:
+`btn-primary` = emerald action, `btn-success` = create, `btn-outline-info` = edit in blue,
+`btn-outline-danger` = delete), plus `static/img/` (Chronos logo = favicon, Foxugly logo). In
+`base.html`: skip link → dark gradient `topbar` (brand · « Mes dossiers » nav · actions in the
+fixed fleet order **theme → language → user**, hamburger drawer below 1024 px) → `main.main-container`
+(80 rem) → `app-footer` (Chronos · tagline · `Version` (`settings.VERSION`, `CHRONOS_VERSION` env
+overrides; also `/health/`) · © Foxugly · Confidentialité). Every page header is the 3-column
+`page-header` (Retour · centred `<h1>` · actions); the dossier header puts « Nouvel évènement »
+there and the secondary actions in a row below. **Dark mode**: `localStorage["theme"]`, applied
+before render by an inline `<head>` script **with the CSP nonce** (sets `data-bs-theme` and
+`.dark-mode`); vis-timeline, FullCalendar and Quill have dark overrides in `chronos.css`. All
+allauth pages share one `auth-card`, opened/closed by the `avant_contenu` / `apres_contenu`
+blocks of `base.html`. `/confidentialite/` is public (owner to review the wording).
+
 No npm, no bundler, no build step. Bootstrap 5.3.8, Bootstrap Icons, vis-timeline, FullCalendar,
 Font Awesome, glightbox, Quill and flatpickr all load from CDNs. No jQuery.
 
@@ -679,5 +695,4 @@ What is deliberately **not** done, and recorded in `backlog.md` (section « Ouve
   (Documents removed *through the application* do have their file deleted — see invariant 4.)
 - Production follow-ups (owner's side or fleet-wide): Sentry is wired since 2026-10-09
   (`chronos-backend`) and UptimeRobot watches `/health/`; `OPERATIONS.md` (repo `foxugly-ops`) does not list Chronos,
-  no off-box backup (S3), HSTS sent twice (Django and nginx), `/health/` reports
-  `"version": "unknown"`, and the dossier's alias predates the suffix and should be re-saved.
+  no off-box backup (S3), HSTS sent twice (Django and nginx).

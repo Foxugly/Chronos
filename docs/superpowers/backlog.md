@@ -19,7 +19,6 @@ l'historique de ce qui a été tranché, et pourquoi.
   table du §3.11 — et Facilitation, qui y manque aussi.
 - **Copie hors machine des sauvegardes** (S3) : la flotte n'a pas encore de convention.
 - **HSTS envoyé deux fois** (Django et nginx, durées différentes) : en retirer un.
-- **`/health/` affiche `"version": "unknown"`** : la version déployée n'est pas transmise.
 - **Échéances** : secret de l'application « Chronos » et certificat « Chronos Exchange »
   expirent le **2028-10-09** (relancer `deploy/m365-setup.ps1`).
 - **Vérifier dans un navigateur** le champ d'alias en `input-group` et le bouton « Copier »
@@ -117,6 +116,17 @@ Le site est en FR / NL / EN (voir « Fait »). Restent :
   orphelins, ce qui cascaderait sur leurs `Document`. Sans effet dans les tests actuels.
 
 ## Fait
+
+### Habillage de la flotte — 2026-10-09
+
+- Chronos suit `STANDARD-frontend-layout.md` : topbar sombre (marque, « Mes dossiers », thème →
+  langue → utilisateur, tiroir sous 1024 px), footer (version, © Foxugly, Confidentialité),
+  en-tête de page 3 colonnes partout, carte commune aux pages de connexion, tokens et couleurs
+  sémantiques de la flotte (emerald, vert créer, bleu éditer, rouge supprimer), **thème sombre**
+  (sans flash : script en tête avec nonce ; chronologie, calendrier et éditeur retouchés).
+- Favicon (fin du 404), version affichée (`settings.VERSION`, aussi dans `/health/`).
+- **À relire par le propriétaire** : la page `/confidentialite/` (factuelle, rédigée d'après le
+  code et l'hébergement).
 
 ### Mise en production — 2026-10-09
 

@@ -21,6 +21,7 @@ from django.shortcuts import redirect
 from django.urls import path, include, reverse
 
 from config.sante import sante
+from django.views.generic import TemplateView
 from django.views.i18n import set_language
 
 
@@ -70,6 +71,9 @@ urlpatterns = [
 # il pose un cookie et redirige vers `next`, qu'il valide lui-même
 # (`url_has_allowed_host_and_scheme`) — pas de redirection ouverte.
 path("i18n/setlang/", login_not_required(set_language), name="set_language"),
+    # Publique comme la connexion : on doit pouvoir la lire avant de créer un compte.
+    path("confidentialite/", login_not_required(TemplateView.as_view(template_name="confidentialite.html")),
+         name="confidentialite"),
 path("admin/login/", admin_login_redirect),
 path("admin/", admin.site.urls),
 path("accounts/email/", account_email_closed),

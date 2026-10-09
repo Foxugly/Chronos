@@ -9,50 +9,46 @@ regarde.
 Les liens conservent le jeton de partage le cas échéant : passer d'une vue à
 l'autre ne doit pas éjecter un visiteur anonyme hors de son lien.
 {% endcomment %}
-<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
-    <div>
+{# En-tête de page de la flotte : Retour · titre centré · action principale (créer). #}
+<div class="page-header mb-2">
+    <div class="page-header__left">
         {% if not lien_partage %}
-            <a href="{% url 'dossier_list' %}" class="text-decoration-none small d-print-none"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Mes dossiers" %}</a>
+            <a href="{% url 'dossier_list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Mes dossiers" %}</a>
         {% endif %}
-        {# Sur grand écran, la barre de navigation montre déjà le dossier (son sélecteur) : #}
-        {# le titre y est masqué, mais reste lu par les lecteurs d'écran et imprimé (la    #}
-        {# barre, elle, ne s'imprime pas). Visible sur téléphone (menu replié) et par un   #}
-        {# lien de partage, où la barre n'affiche aucun dossier.                           #}
-        <h1 class="h3 mb-0{% if not lien_partage %} titre-doublon-barre{% endif %}">{{ dossier.name }}</h1>
     </div>
-
-    <div class="d-flex flex-wrap gap-2">
-        {% if lien_partage %}
-            {% include "events/_bouton_export.html" %}
-        {% endif %}
-        {% if not lien_partage %}
-            <a href="{% url 'dossier_journal' dossier.pk %}" class="btn btn-outline-secondary">
-                <i class="bi bi-journal-text me-1" aria-hidden="true"></i>{% translate "Journal" %}
-            </a>
-            {% if dossier.expediteurs.exists %}
-                <a href="{% url 'dossier_expediteurs' dossier.pk %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-people me-1" aria-hidden="true"></i>{% translate "Expéditeurs" %}
-                </a>
-            {% endif %}
-            {% include "events/_bouton_export.html" %}
-            {% if dossier.owner_id == user.id %}
-                <a href="{% url 'dossier_share' dossier.pk %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-share me-1" aria-hidden="true"></i>{% translate "Partager" %}
-                </a>
-                <a href="{% url 'dossier_parametres' dossier.pk %}" class="btn btn-outline-secondary"
-                   title="{% translate "Paramètres" %}" aria-label="{% translate "Paramètres" %}">
-                    <i class="bi bi-gear" aria-hidden="true"></i>
-                </a>
-            {% endif %}
-        {% endif %}
+    <h1 class="page-header__title">{{ dossier.name }}</h1>
+    <div class="page-header__right">
         {% if peut_ecrire and nb_doublons and not lien_partage %}
             <a href="{% url 'dossier_doublons' dossier.pk %}" class="btn btn-outline-warning">
                 <i class="bi bi-intersect me-1" aria-hidden="true"></i>{% blocktranslate trimmed count n=nb_doublons %}{{ n }} doublon possible{% plural %}{{ n }} doublons possibles{% endblocktranslate %}
             </a>
         {% endif %}
-        {% if peut_relever and not lien_partage %}
+        {% if peut_ecrire %}
+            <a href="{% if lien_partage %}{% url 'share_event_add' lien_partage.token %}{% else %}{% url 'event_add' dossier.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}"
+               class="btn btn-success" data-ouvrir-formulaire
+               aria-keyshortcuts="n" title="{% translate "Raccourci : N" %}">
+                <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{% translate "Nouvel évènement" %}
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{# Actions secondaires du dossier, sous l'en-tête : une rangée discrète, alignée à droite. #}
+<div class="d-flex flex-wrap justify-content-start justify-content-sm-end gap-2 mb-3 d-print-none">
+    {% if lien_partage %}
+        {% include "events/_bouton_export.html" %}
+    {% else %}
+        <a href="{% url 'dossier_journal' dossier.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-journal-text me-1" aria-hidden="true"></i>{% translate "Journal" %}
+        </a>
+        {% if dossier.expediteurs.exists %}
+            <a href="{% url 'dossier_expediteurs' dossier.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-people me-1" aria-hidden="true"></i>{% translate "Expéditeurs" %}
+            </a>
+        {% endif %}
+        {% if peut_relever %}
             {# POST : relever la boîte ne doit pas partir sur un préchargement. #}
-            <form method="post" action="{% url 'dossier_relever' dossier.pk %}" class="d-inline d-print-none">
+            <form method="post" action="{% url 'dossier_relever' dossier.pk %}" class="d-inline">
                 {% csrf_token %}
                 <input type="hidden" name="retour" value="{{ request.get_full_path }}">
                 <button type="submit" class="btn btn-outline-secondary"
@@ -61,14 +57,17 @@ l'autre ne doit pas éjecter un visiteur anonyme hors de son lien.
                 </button>
             </form>
         {% endif %}
-        {% if peut_ecrire %}
-            <a href="{% if lien_partage %}{% url 'share_event_add' lien_partage.token %}{% else %}{% url 'event_add' dossier.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}"
-               class="btn btn-primary" data-ouvrir-formulaire
-               aria-keyshortcuts="n" title="{% translate "Raccourci : N" %}">
-                <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{% translate "Nouvel évènement" %}
+        {% include "events/_bouton_export.html" %}
+        {% if dossier.owner_id == user.id %}
+            <a href="{% url 'dossier_share' dossier.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-share me-1" aria-hidden="true"></i>{% translate "Partager" %}
+            </a>
+            <a href="{% url 'dossier_parametres' dossier.pk %}" class="btn btn-outline-secondary"
+               title="{% translate "Paramètres" %}" aria-label="{% translate "Paramètres" %}">
+                <i class="bi bi-gear" aria-hidden="true"></i>
             </a>
         {% endif %}
-    </div>
+    {% endif %}
 </div>
 
 {# Quatre onglets (`onglets` dans `_contexte_de_vue`). Le calendrier choisit #}

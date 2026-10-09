@@ -17,10 +17,14 @@ fragment dans un modal sans quitter la page.
 {% endblock %}
 
 {% block content %}
-    {# Retour à la vue du dossier d'où l'on vient (chronologie, liste, calendrier…). #}
-    <p class="mb-3 d-print-none">
-        <a class="btn btn-outline-secondary btn-sm" href="{{ url_retour }}" data-retour-dossier><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Retour au dossier" %}</a>
-    </p>
+    {# En-tête de page : Retour vers la vue du dossier d'où l'on vient, le dossier au centre. #}
+    <div class="page-header">
+        <div class="page-header__left">
+            <a class="btn btn-outline-secondary btn-sm" href="{{ url_retour }}" data-retour-dossier><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Retour au dossier" %}</a>
+        </div>
+        <h1 class="page-header__title">{{ dossier.name }}</h1>
+        <div class="page-header__right"></div>
+    </div>
     <div class="card">
         <div class="card-body">
             {% include "events/_detail_evenement.html" %}

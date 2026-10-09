@@ -13,10 +13,11 @@ courriels — du texte, échappé par Django.
 {% block dossier_courant %}{{ dossier.name }}{% endblock %}
 
 {% block content %}
-    <p class="mb-2">
-        <a class="text-decoration-none" href="{% url 'timeline' dossier.pk %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{{ dossier.name }}</a>
-    </p>
-    <h1 class="h3"><i class="bi bi-people me-2 text-body-secondary" aria-hidden="true"></i>{% translate "Expéditeurs" %}</h1>
+    <div class="page-header">
+        <div class="page-header__left"><a class="btn btn-outline-secondary btn-sm" href="{% url 'timeline' dossier.pk %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Retour au dossier" %}</a></div>
+        <h1 class="page-header__title"><i class="bi bi-people" aria-hidden="true"></i>{% translate "Expéditeurs" %}</h1>
+        <div class="page-header__right"></div>
+    </div>
     <p class="text-body-secondary small">
         {% blocktranslate trimmed %}
             Chaque personne dont un courriel a été importé a sa couleur. Ses évènements la prennent,

@@ -11,6 +11,7 @@ s'exécuterait dans la session du propriétaire, avec son cookie et son jeton
 CSRF, sur des pièces de litige.
 """
 
+import re
 from django.test import TestCase
 from django.urls import reverse
 
@@ -174,7 +175,9 @@ class TheEditorIsOnlyAConvenienceTests(TestCase):
     def test_the_editor_is_served_with_its_integrity_hash(self):
         page = self._page()
         self.assertIn("quill", page)
-        ressources = page.count('src="https://') + page.count('href="https://')
+        # Les ressources *chargées* (script, feuille de style), pas les simples liens
+        # (le footer pointe vers foxugly.com, qui n'est rien chargé dans la page).
+        ressources = len(re.findall(r'<(?:script|link)\b[^>]*\b(?:src|href)="https://', page))
         self.assertEqual(ressources, page.count("integrity="))
 
     def test_the_textarea_stays_usable_without_javascript(self):

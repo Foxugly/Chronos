@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 20:57+0200\n"
+"POT-Creation-Date: 2026-10-09 21:52+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -163,16 +163,16 @@ msgstr "deellink ‘%(nom)s’"
 msgid "import de courriels"
 msgstr "e-mailimport"
 
-#: .\events\export.py:267 .\events\templates\events\journal.html:72
+#: .\events\export.py:267 .\events\templates\events\journal.html:73
 msgid "auteur inconnu"
 msgstr "onbekende auteur"
 
 #: .\events\export.py:269 .\events\models.py:821
-#: .\events\templates\events\journal.html:75
+#: .\events\templates\events\journal.html:76
 msgid "via l'administration"
 msgstr "via het beheer"
 
-#: .\events\export.py:284 .\events\templates\events\journal.html:120
+#: .\events\export.py:284 .\events\templates\events\journal.html:121
 msgid "Rien n'a encore été inscrit au journal."
 msgstr "Er staat nog niets in het logboek."
 
@@ -532,8 +532,8 @@ msgstr "dossiers"
 msgid "Lecture"
 msgstr "Lezen"
 
-#: .\events\models.py:91 .\events\templates\events\dossier_share.html:45
-#: .\events\templates\events\dossier_share.html:300
+#: .\events\models.py:91 .\events\templates\events\dossier_share.html:46
+#: .\events\templates\events\dossier_share.html:301
 #: .\events\templates\events\invitation_accept.html:36
 msgid "Lecture et écriture"
 msgstr "Lezen en schrijven"
@@ -681,11 +681,11 @@ msgstr "document"
 msgid "documents"
 msgstr "documenten"
 
-#: .\events\models.py:579 .\events\templates\events\dossier_share.html:223
+#: .\events\models.py:579 .\events\templates\events\dossier_share.html:224
 msgid "En attente"
 msgstr "In afwachting"
 
-#: .\events\models.py:580 .\events\templates\events\dossier_share.html:217
+#: .\events\models.py:580 .\events\templates\events\dossier_share.html:218
 msgid "Acceptée"
 msgstr "Aanvaard"
 
@@ -1090,13 +1090,13 @@ msgstr ""
 
 #: .\events\templates\events\_confirmer_suppression.html:53
 #: .\events\templates\events\_event_form.html:230
-#: .\events\templates\events\dossier_share.html:243
+#: .\events\templates\events\dossier_share.html:244
 msgid "Annuler"
 msgstr "Annuleren"
 
 #: .\events\templates\events\_confirmer_suppression.html:54
 #: .\events\templates\events\_detail_evenement.html:44
-#: .\events\templates\events\parametres.html:69
+#: .\events\templates\events\parametres.html:70
 #: .\events\templates\events\vue_liste.html:109
 msgid "Supprimer"
 msgstr "Verwijderen"
@@ -1217,7 +1217,7 @@ msgid "Saisi à la main"
 msgstr "Handmatig ingevoerd"
 
 #: .\events\templates\events\_doublon_cote.html:26
-#: .\events\templates\events\dossier_list.html:32
+#: .\events\templates\events\dossier_list.html:36
 #: .\events\templates\events\vue_semaine.html:60
 #, python-format
 msgid "%(n)s pièce"
@@ -1225,56 +1225,57 @@ msgid_plural "%(n)s pièces"
 msgstr[0] "%(n)s stuk"
 msgstr[1] "%(n)s stukken"
 
-#: .\events\templates\events\_entete_dossier.html:15
+#: .\events\templates\events\_entete_dossier.html:16
 #: .\events\templates\events\dossier_list.html:10
-#: .\events\templates\events\dossier_list.html:13
+#: .\events\templates\events\dossier_list.html:15 .\templates\base.html:96
+#: .\templates\base.html:128
 msgid "Mes dossiers"
 msgstr "Mijn dossiers"
 
-#: .\events\templates\events\_entete_dossier.html:30
-msgid "Journal"
-msgstr "Logboek"
-
-#: .\events\templates\events\_entete_dossier.html:34
-#: .\events\templates\events\expediteurs.html:19
-msgid "Expéditeurs"
-msgstr "Afzenders"
-
-#: .\events\templates\events\_entete_dossier.html:40
-msgid "Partager"
-msgstr "Delen"
-
-#: .\events\templates\events\_entete_dossier.html:43
-msgid "Paramètres"
-msgstr "Instellingen"
-
-#: .\events\templates\events\_entete_dossier.html:50
+#: .\events\templates\events\_entete_dossier.html:23
 #, python-format
 msgid "%(n)s doublon possible"
 msgid_plural "%(n)s doublons possibles"
 msgstr[0] "%(n)s mogelijk dubbel"
 msgstr[1] "%(n)s mogelijke dubbels"
 
-#: .\events\templates\events\_entete_dossier.html:59
-msgid "Importer tout de suite les courriels transférés à l'alias du dossier"
-msgstr ""
-"Nu de e-mails importeren die naar het alias van het dossier werden "
-"doorgestuurd"
-
-#: .\events\templates\events\_entete_dossier.html:60
-msgid "Relever les courriels"
-msgstr "E-mails ophalen"
-
-#: .\events\templates\events\_entete_dossier.html:67
+#: .\events\templates\events\_entete_dossier.html:29
 msgid "Raccourci : N"
 msgstr "Sneltoets: N"
 
-#: .\events\templates\events\_entete_dossier.html:68
+#: .\events\templates\events\_entete_dossier.html:30
 #: .\events\templates\events\_formulaire_modal_js.html:125
 #: .\events\templates\events\event_form.html:13
 #: .\events\templates\events\event_form.html:30
 msgid "Nouvel évènement"
 msgstr "Nieuwe gebeurtenis"
+
+#: .\events\templates\events\_entete_dossier.html:42
+msgid "Journal"
+msgstr "Logboek"
+
+#: .\events\templates\events\_entete_dossier.html:46
+#: .\events\templates\events\expediteurs.html:18
+msgid "Expéditeurs"
+msgstr "Afzenders"
+
+#: .\events\templates\events\_entete_dossier.html:55
+msgid "Importer tout de suite les courriels transférés à l'alias du dossier"
+msgstr ""
+"Nu de e-mails importeren die naar het alias van het dossier werden "
+"doorgestuurd"
+
+#: .\events\templates\events\_entete_dossier.html:56
+msgid "Relever les courriels"
+msgstr "E-mails ophalen"
+
+#: .\events\templates\events\_entete_dossier.html:63
+msgid "Partager"
+msgstr "Delen"
+
+#: .\events\templates\events\_entete_dossier.html:66
+msgid "Paramètres"
+msgstr "Instellingen"
 
 #: .\events\templates\events\_event_form.html:31
 msgid "Titre"
@@ -1322,7 +1323,7 @@ msgid "Documents existants"
 msgstr "Bestaande documenten"
 
 #: .\events\templates\events\_event_form.html:142
-#: .\events\templates\events\parametres.html:46
+#: .\events\templates\events\parametres.html:47
 msgid "Étiquettes"
 msgstr "Labels"
 
@@ -1362,8 +1363,8 @@ msgid "%(extensions)s — %(taille)s Mo maximum par fichier."
 msgstr "%(extensions)s — maximaal %(taille)s MB per bestand."
 
 #: .\events\templates\events\_event_form.html:231
-#: .\events\templates\events\expediteurs.html:52
-#: .\events\templates\events\parametres.html:37
+#: .\events\templates\events\expediteurs.html:53
+#: .\events\templates\events\parametres.html:38
 msgid "Enregistrer"
 msgstr "Opslaan"
 
@@ -1434,7 +1435,7 @@ msgstr "Opslaan is mislukt. Er werd niets gewijzigd."
 msgid "Modifier l'évènement"
 msgstr "Gebeurtenis bewerken"
 
-#: .\events\templates\events\_modal_evenement.html:25 .\templates\base.html:150
+#: .\events\templates\events\_modal_evenement.html:25 .\templates\base.html:163
 msgid "Fermer"
 msgstr "Sluiten"
 
@@ -1462,47 +1463,52 @@ msgstr "Tijdlijn"
 msgid "Liste"
 msgstr "Lijst"
 
-#: .\events\templates\events\detail_evenement.html:22
+#: .\events\templates\events\detail_evenement.html:23
+#: .\events\templates\events\dossier_share.html:21
+#: .\events\templates\events\doublons.html:18
+#: .\events\templates\events\expediteurs.html:17
+#: .\events\templates\events\journal.html:31
+#: .\events\templates\events\parametres.html:19
 msgid "Retour au dossier"
 msgstr "Terug naar het dossier"
 
-#: .\events\templates\events\dossier_list.html:31
-#: .\events\templates\events\expediteurs.html:46
-#: .\events\templates\events\parametres.html:61
+#: .\events\templates\events\dossier_list.html:35
+#: .\events\templates\events\expediteurs.html:47
+#: .\events\templates\events\parametres.html:62
 #, python-format
 msgid "%(n)s évènement"
 msgid_plural "%(n)s évènements"
 msgstr[0] "%(n)s gebeurtenis"
 msgstr[1] "%(n)s gebeurtenissen"
 
-#: .\events\templates\events\dossier_list.html:37
+#: .\events\templates\events\dossier_list.html:41
 #, python-format
 msgid "%(n)s doublon possible à examiner"
 msgid_plural "%(n)s doublons possibles à examiner"
 msgstr[0] "%(n)s mogelijk dubbel te bekijken"
 msgstr[1] "%(n)s mogelijke dubbels te bekijken"
 
-#: .\events\templates\events\dossier_list.html:42
+#: .\events\templates\events\dossier_list.html:46
 msgid "Derniers faits"
 msgstr "Laatste feiten"
 
-#: .\events\templates\events\dossier_list.html:52
+#: .\events\templates\events\dossier_list.html:56
 msgid "Aucun fait pour l'instant."
 msgstr "Nog geen feiten."
 
-#: .\events\templates\events\dossier_list.html:56
+#: .\events\templates\events\dossier_list.html:60
 msgid "Derniers courriels importés"
 msgstr "Laatst geïmporteerde e-mails"
 
-#: .\events\templates\events\dossier_list.html:71
+#: .\events\templates\events\dossier_list.html:75
 msgid "Import par courriel :"
 msgstr "Import per e-mail:"
 
-#: .\events\templates\events\dossier_list.html:75
+#: .\events\templates\events\dossier_list.html:79
 msgid "Activer l'import par courriel"
 msgstr "Import per e-mail inschakelen"
 
-#: .\events\templates\events\dossier_list.html:86
+#: .\events\templates\events\dossier_list.html:90
 msgid ""
 "Aucun dossier ne vous est accessible pour l'instant. Le propriétaire d'un "
 "dossier peut vous y donner accès."
@@ -1515,57 +1521,57 @@ msgstr ""
 msgid "Partage — %(nom)s"
 msgstr "Delen — %(nom)s"
 
-#: .\events\templates\events\dossier_share.html:23
+#: .\events\templates\events\dossier_share.html:22
 msgid "Partage du dossier"
 msgstr "Dossier delen"
 
-#: .\events\templates\events\dossier_share.html:27
+#: .\events\templates\events\dossier_share.html:28
 msgid "Personnes ayant accès"
 msgstr "Personen met toegang"
 
-#: .\events\templates\events\dossier_share.html:33 .\events\views.py:322
+#: .\events\templates\events\dossier_share.html:34 .\events\views.py:322
 msgid "Propriétaire"
 msgstr "Eigenaar"
 
-#: .\events\templates\events\dossier_share.html:36
+#: .\events\templates\events\dossier_share.html:37
 msgid "Ne peut pas être retiré"
 msgstr "Kan niet worden verwijderd"
 
-#: .\events\templates\events\dossier_share.html:47
-#: .\events\templates\events\dossier_share.html:292
+#: .\events\templates\events\dossier_share.html:48
+#: .\events\templates\events\dossier_share.html:293
 #: .\events\templates\events\invitation_accept.html:45
 msgid "Lecture seule"
 msgstr "Alleen lezen"
 
-#: .\events\templates\events\dossier_share.html:50
+#: .\events\templates\events\dossier_share.html:51
 #, python-format
 msgid "Accordé le %(quand)s"
 msgstr "Toegekend op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:51
-#: .\events\templates\events\dossier_share.html:228
-#: .\events\templates\events\journal.html:62
+#: .\events\templates\events\dossier_share.html:52
+#: .\events\templates\events\dossier_share.html:229
+#: .\events\templates\events\journal.html:63
 #, python-format
 msgid "par %(nom)s"
 msgstr "door %(nom)s"
 
-#: .\events\templates\events\dossier_share.html:59
+#: .\events\templates\events\dossier_share.html:60
 msgid "Retirer l'accès"
 msgstr "Toegang intrekken"
 
-#: .\events\templates\events\dossier_share.html:64
+#: .\events\templates\events\dossier_share.html:65
 msgid "Personne d'autre n'a accès à ce dossier."
 msgstr "Niemand anders heeft toegang tot dit dossier."
 
-#: .\events\templates\events\dossier_share.html:73
+#: .\events\templates\events\dossier_share.html:74
 msgid "Lien de consultation, sans compte"
 msgstr "Link om te raadplegen, zonder account"
 
-#: .\events\templates\events\dossier_share.html:76
+#: .\events\templates\events\dossier_share.html:77
 msgid "C'est le seul accès anonyme de l'application."
 msgstr "Dit is de enige anonieme toegang van de toepassing."
 
-#: .\events\templates\events\dossier_share.html:77
+#: .\events\templates\events\dossier_share.html:78
 msgid ""
 "Toute personne qui détient le lien consulte le dossier, sans compte et sans "
 "que vous sachiez qui elle est. Un lien se retransfère, se copie, se retrouve "
@@ -1579,65 +1585,65 @@ msgstr ""
 "strong> en u kunt hem op elk moment intrekken — maar wat al gelezen is, kunt "
 "u niet terugnemen."
 
-#: .\events\templates\events\dossier_share.html:105
+#: .\events\templates\events\dossier_share.html:106
 msgid "Créer un lien"
 msgstr "Link aanmaken"
 
-#: .\events\templates\events\dossier_share.html:113
+#: .\events\templates\events\dossier_share.html:114
 msgid "Liens existants"
 msgstr "Bestaande links"
 
-#: .\events\templates\events\dossier_share.html:120
+#: .\events\templates\events\dossier_share.html:121
 msgid "Sans destinataire noté"
 msgstr "Geen ontvanger genoteerd"
 
-#: .\events\templates\events\dossier_share.html:123
+#: .\events\templates\events\dossier_share.html:124
 msgid "Révoqué"
 msgstr "Ingetrokken"
 
-#: .\events\templates\events\dossier_share.html:125
+#: .\events\templates\events\dossier_share.html:126
 msgid "Expiré"
 msgstr "Vervallen"
 
-#: .\events\templates\events\dossier_share.html:127
+#: .\events\templates\events\dossier_share.html:128
 msgid "Actif"
 msgstr "Actief"
 
-#: .\events\templates\events\dossier_share.html:136
+#: .\events\templates\events\dossier_share.html:137
 #, python-format
 msgid "Créé le %(quand)s"
 msgstr "Aangemaakt op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:138
+#: .\events\templates\events\dossier_share.html:139
 #, python-format
 msgid "expire le %(quand)s"
 msgstr "vervalt op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:140
+#: .\events\templates\events\dossier_share.html:141
 msgid "sans expiration"
 msgstr "zonder vervaldatum"
 
-#: .\events\templates\events\dossier_share.html:142
+#: .\events\templates\events\dossier_share.html:143
 #, python-format
 msgid "consulté %(n)s fois"
 msgid_plural "consulté %(n)s fois"
 msgstr[0] "%(n)s keer geraadpleegd"
 msgstr[1] "%(n)s keer geraadpleegd"
 
-#: .\events\templates\events\dossier_share.html:144
+#: .\events\templates\events\dossier_share.html:145
 #, python-format
 msgid "dernier accès le %(quand)s"
 msgstr "laatste toegang op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:154
+#: .\events\templates\events\dossier_share.html:155
 msgid "Révoquer"
 msgstr "Intrekken"
 
-#: .\events\templates\events\dossier_share.html:168
+#: .\events\templates\events\dossier_share.html:169
 msgid "Inviter par courriel"
 msgstr "Uitnodigen per e-mail"
 
-#: .\events\templates\events\dossier_share.html:171
+#: .\events\templates\events\dossier_share.html:172
 msgid ""
 "L'invitation part par courriel et contient un lien. <strong>Qui détient ce "
 "lien peut s'en servir</strong>, avec le compte sous lequel il est connecté : "
@@ -1649,45 +1655,45 @@ msgstr ""
 "aangemeld: e-mails worden doorgestuurd. Voor iemand van wie u het account al "
 "kent, is de rechtstreekse toekenning hieronder veiliger."
 
-#: .\events\templates\events\dossier_share.html:203
+#: .\events\templates\events\dossier_share.html:204
 msgid "Inviter"
 msgstr "Uitnodigen"
 
-#: .\events\templates\events\dossier_share.html:210
+#: .\events\templates\events\dossier_share.html:211
 msgid "Invitations émises"
 msgstr "Verstuurde uitnodigingen"
 
-#: .\events\templates\events\dossier_share.html:219
+#: .\events\templates\events\dossier_share.html:220
 msgid "Annulée"
 msgstr "Geannuleerd"
 
-#: .\events\templates\events\dossier_share.html:221
+#: .\events\templates\events\dossier_share.html:222
 msgid "Expirée"
 msgstr "Vervallen"
 
-#: .\events\templates\events\dossier_share.html:227
+#: .\events\templates\events\dossier_share.html:228
 #, python-format
 msgid "Acceptée le %(quand)s"
 msgstr "Aanvaard op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:230
+#: .\events\templates\events\dossier_share.html:231
 #, python-format
 msgid "Émise le %(emise)s, expire le %(expire)s"
 msgstr "Verstuurd op %(emise)s, vervalt op %(expire)s"
 
-#: .\events\templates\events\dossier_share.html:256
+#: .\events\templates\events\dossier_share.html:257
 msgid "Donner accès à un compte existant"
 msgstr "Toegang geven aan een bestaand account"
 
-#: .\events\templates\events\dossier_share.html:282
+#: .\events\templates\events\dossier_share.html:283
 msgid "Accorder"
 msgstr "Toekennen"
 
-#: .\events\templates\events\dossier_share.html:289
+#: .\events\templates\events\dossier_share.html:290
 msgid "Ce que chaque droit permet"
 msgstr "Wat elk recht toelaat"
 
-#: .\events\templates\events\dossier_share.html:293
+#: .\events\templates\events\dossier_share.html:294
 msgid ""
 "consulter la chronologie, les évènements et les pièces. Aucune modification, "
 "aucun retrait, aucun ajout."
@@ -1695,7 +1701,7 @@ msgstr ""
 "de chronologie, de gebeurtenissen en de stukken raadplegen. Geen wijziging, "
 "geen verwijdering, geen toevoeging."
 
-#: .\events\templates\events\dossier_share.html:301
+#: .\events\templates\events\dossier_share.html:302
 msgid ""
 "tout ce qui précède, plus créer et modifier des évènements, ajouter des "
 "pièces et en retirer. Ne permet pas de partager le dossier : vous seul "
@@ -1705,7 +1711,7 @@ msgstr ""
 "en verwijderen. Het dossier delen kan niet: alleen u beslist wie er toegang "
 "toe heeft."
 
-#: .\events\templates\events\dossier_share.html:311
+#: .\events\templates\events\dossier_share.html:312
 msgid ""
 "Tous les comptes existants ont déjà accès à ce dossier. Les comptes se "
 "créent dans l'administration."
@@ -1718,11 +1724,11 @@ msgstr ""
 msgid "Doublons — %(nom)s"
 msgstr "Dubbels — %(nom)s"
 
-#: .\events\templates\events\doublons.html:20
+#: .\events\templates\events\doublons.html:19
 msgid "Doublons possibles"
 msgstr "Mogelijke dubbels"
 
-#: .\events\templates\events\doublons.html:22
+#: .\events\templates\events\doublons.html:23
 msgid ""
 "Deux évènements qui partagent une pièce à un jour d'écart au plus, ou qui "
 "tombent le même jour avec des titres proches. Fusionner garde l'un des deux "
@@ -1736,19 +1742,19 @@ msgstr ""
 "toegevoegd, met haar oorspronkelijke titel en datum), haar afzender. Het "
 "logboek bewaart de opgenomen gebeurtenis volledig."
 
-#: .\events\templates\events\doublons.html:50
+#: .\events\templates\events\doublons.html:51
 msgid "En commun :"
 msgstr "Gemeenschappelijk:"
 
-#: .\events\templates\events\doublons.html:58
+#: .\events\templates\events\doublons.html:59
 msgid "Ce ne sont pas des doublons"
 msgstr "Dit zijn geen dubbels"
 
-#: .\events\templates\events\doublons.html:61
+#: .\events\templates\events\doublons.html:62
 msgid "Fusionner dans l'évènement choisi"
 msgstr "Samenvoegen in de gekozen gebeurtenis"
 
-#: .\events\templates\events\doublons.html:69
+#: .\events\templates\events\doublons.html:70
 msgid "Aucun doublon possible dans ce dossier."
 msgstr "Geen mogelijke dubbels in dit dossier."
 
@@ -1757,7 +1763,7 @@ msgstr "Geen mogelijke dubbels in dit dossier."
 msgid "Expéditeurs — %(nom)s"
 msgstr "Afzenders — %(nom)s"
 
-#: .\events\templates\events\expediteurs.html:21
+#: .\events\templates\events\expediteurs.html:22
 msgid ""
 "Chaque personne dont un courriel a été importé a sa couleur. Ses évènements "
 "la prennent, partout : la changer ici les recolore tous."
@@ -1766,12 +1772,12 @@ msgstr ""
 "Zijn gebeurtenissen krijgen die kleur, overal: hier wijzigen kleurt ze "
 "allemaal opnieuw."
 
-#: .\events\templates\events\expediteurs.html:36
+#: .\events\templates\events\expediteurs.html:37
 #, python-format
 msgid "Couleur de %(nom)s"
 msgstr "Kleur van %(nom)s"
 
-#: .\events\templates\events\expediteurs.html:56
+#: .\events\templates\events\expediteurs.html:57
 msgid "Aucun courriel n'a encore été importé dans ce dossier."
 msgstr "Er werd nog geen e-mail in dit dossier geïmporteerd."
 
@@ -1855,11 +1861,11 @@ msgstr ""
 msgid "Accepter l'invitation"
 msgstr "Uitnodiging aanvaarden"
 
-#: .\events\templates\events\journal.html:33
+#: .\events\templates\events\journal.html:32
 msgid "Journal du dossier"
 msgstr "Logboek van het dossier"
 
-#: .\events\templates\events\journal.html:35
+#: .\events\templates\events\journal.html:36
 msgid ""
 "Chaque modification du dossier y est inscrite, et rien ne peut en être "
 "effacé. Le journal commence le 8 octobre 2026 : ce qui précède n'a pas "
@@ -1869,41 +1875,41 @@ msgstr ""
 "worden gewist. Het logboek begint op 8 oktober 2026: wat daarvoor gebeurde, "
 "liet geen spoor na."
 
-#: .\events\templates\events\journal.html:52
+#: .\events\templates\events\journal.html:53
 #, python-format
 msgid "évènement « %(titre)s »"
 msgstr "gebeurtenis ‘%(titre)s’"
 
-#: .\events\templates\events\journal.html:65
+#: .\events\templates\events\journal.html:66
 #, python-format
 msgid "par le lien de partage « %(nom)s »"
 msgstr "via de deellink ‘%(nom)s’"
 
-#: .\events\templates\events\journal.html:67
+#: .\events\templates\events\journal.html:68
 msgid "par un lien de partage"
 msgstr "via een deellink"
 
-#: .\events\templates\events\journal.html:70
+#: .\events\templates\events\journal.html:71
 msgid "par l'import de courriels"
 msgstr "door de e-mailimport"
 
-#: .\events\templates\events\journal.html:84
+#: .\events\templates\events\journal.html:85
 msgid "Champ"
 msgstr "Veld"
 
-#: .\events\templates\events\journal.html:86
+#: .\events\templates\events\journal.html:87
 msgid "Avant"
 msgstr "Voor"
 
-#: .\events\templates\events\journal.html:87
+#: .\events\templates\events\journal.html:88
 msgid "Après"
 msgstr "Na"
 
-#: .\events\templates\events\journal.html:89
+#: .\events\templates\events\journal.html:90
 msgid "Valeur"
 msgstr "Waarde"
 
-#: .\events\templates\events\journal.html:111
+#: .\events\templates\events\journal.html:112
 msgid "contenu déjà présent dans le dossier : rattaché, pas stocké deux fois"
 msgstr ""
 "inhoud al aanwezig in het dossier: gekoppeld, niet twee keer opgeslagen"
@@ -1913,19 +1919,19 @@ msgstr ""
 msgid "Paramètres — %(nom)s"
 msgstr "Instellingen — %(nom)s"
 
-#: .\events\templates\events\parametres.html:21
+#: .\events\templates\events\parametres.html:20
 msgid "Paramètres du dossier"
 msgstr "Instellingen van het dossier"
 
-#: .\events\templates\events\parametres.html:25
+#: .\events\templates\events\parametres.html:26
 msgid "Général"
 msgstr "Algemeen"
 
-#: .\events\templates\events\parametres.html:28
+#: .\events\templates\events\parametres.html:29
 msgid "Nom du dossier"
 msgstr "Naam van het dossier"
 
-#: .\events\templates\events\parametres.html:49
+#: .\events\templates\events\parametres.html:50
 msgid ""
 "Elles se créent depuis le formulaire d'un évènement. Supprimer une étiquette "
 "la retire des évènements, qui restent."
@@ -1933,15 +1939,15 @@ msgstr ""
 "Ze worden aangemaakt vanuit het formulier van een gebeurtenis. Een label "
 "verwijderen haalt het weg bij de gebeurtenissen, die blijven bestaan."
 
-#: .\events\templates\events\parametres.html:59
+#: .\events\templates\events\parametres.html:60
 msgid "Nom de l'étiquette"
 msgstr "Naam van het label"
 
-#: .\events\templates\events\parametres.html:65
+#: .\events\templates\events\parametres.html:66
 msgid "Renommer"
 msgstr "Hernoemen"
 
-#: .\events\templates\events\parametres.html:79
+#: .\events\templates\events\parametres.html:80
 msgid ""
 "Aucune étiquette pour l'instant. Elles se créent depuis le formulaire d'un "
 "évènement."
@@ -1949,19 +1955,19 @@ msgstr ""
 "Nog geen labels. Ze worden aangemaakt vanuit het formulier van een "
 "gebeurtenis."
 
-#: .\events\templates\events\parametres.html:88
+#: .\events\templates\events\parametres.html:89
 msgid "Import par courriel"
 msgstr "Import per e-mail"
 
-#: .\events\templates\events\parametres.html:90
+#: .\events\templates\events\parametres.html:91
 msgid "Activé"
 msgstr "Ingeschakeld"
 
-#: .\events\templates\events\parametres.html:92
+#: .\events\templates\events\parametres.html:93
 msgid "Désactivé"
 msgstr "Uitgeschakeld"
 
-#: .\events\templates\events\parametres.html:97
+#: .\events\templates\events\parametres.html:98
 msgid ""
 "Un courriel transféré à cette adresse devient un évènement du dossier : sa "
 "date de réception, son objet, son texte, ses pièces jointes, et le courriel "
@@ -1973,7 +1979,7 @@ msgstr ""
 "volledige e-mail als stuk. Het adres moet in Exchange bestaan als alias van "
 "de importmailbox."
 
-#: .\events\templates\events\parametres.html:106
+#: .\events\templates\events\parametres.html:107
 msgid ""
 "Toute personne qui connaît cette adresse peut ajouter un évènement. "
 "Choisissez-la difficile à deviner ; changez-la si elle a circulé."
@@ -1981,11 +1987,11 @@ msgstr ""
 "Iedereen die dit adres kent, kan een gebeurtenis toevoegen. Kies een adres "
 "dat moeilijk te raden is; wijzig het als het de ronde heeft gedaan."
 
-#: .\events\templates\events\parametres.html:114
+#: .\events\templates\events\parametres.html:115
 msgid "Adresse actuelle :"
 msgstr "Huidig adres:"
 
-#: .\events\templates\events\parametres.html:119
+#: .\events\templates\events\parametres.html:120
 #, python-format
 msgid ""
 "Cette adresse reçoit toujours, mais ne suit pas le format des alias (…"
@@ -1994,35 +2000,35 @@ msgstr ""
 "Dit adres ontvangt nog steeds, maar volgt het formaat van de aliassen niet (…"
 "%(suffixe)s). Sla hieronder een nieuw adres op."
 
-#: .\events\templates\events\parametres.html:131
+#: .\events\templates\events\parametres.html:132
 msgid "Nouvel alias"
 msgstr "Nieuwe alias"
 
-#: .\events\templates\events\parametres.html:131
+#: .\events\templates\events\parametres.html:132
 msgid "Alias de courriel"
 msgstr "E-mailalias"
 
-#: .\events\templates\events\parametres.html:152
+#: .\events\templates\events\parametres.html:153
 msgid "Modifier l'alias"
 msgstr "Alias wijzigen"
 
-#: .\events\templates\events\parametres.html:154
+#: .\events\templates\events\parametres.html:155
 msgid "Ajouter l'alias"
 msgstr "Alias toevoegen"
 
-#: .\events\templates\events\parametres.html:160
+#: .\events\templates\events\parametres.html:161
 msgid "Proposition :"
 msgstr "Voorstel:"
 
-#: .\events\templates\events\parametres.html:163
+#: .\events\templates\events\parametres.html:164
 msgid "utiliser"
 msgstr "gebruiken"
 
-#: .\events\templates\events\parametres.html:173
+#: .\events\templates\events\parametres.html:174
 msgid "Désactiver l'import par courriel"
 msgstr "Import per e-mail uitschakelen"
 
-#: .\events\templates\events\parametres.html:181
+#: .\events\templates\events\parametres.html:182
 msgid ""
 "Chronos crée, change et retire l'alias dans Exchange lui-même. Comptez une "
 "dizaine de secondes par opération."
@@ -2030,15 +2036,15 @@ msgstr ""
 "Chronos maakt, wijzigt en verwijdert de alias zelf in Exchange. Reken op een "
 "tiental seconden per handeling."
 
-#: .\events\templates\events\parametres.html:187
+#: .\events\templates\events\parametres.html:188
 msgid "Vérifier dans Exchange"
 msgstr "Controleren in Exchange"
 
-#: .\events\templates\events\parametres.html:193
+#: .\events\templates\events\parametres.html:194
 msgid "Créer l'alias dans Exchange"
 msgstr "De alias in Exchange aanmaken"
 
-#: .\events\templates\events\parametres.html:195
+#: .\events\templates\events\parametres.html:196
 msgid ""
 "L'application ne crée pas l'alias : ajoutez-le à la boîte d'import, puis "
 "enregistrez-le ici. En PowerShell, module ExchangeOnlineManagement :"
@@ -2046,7 +2052,7 @@ msgstr ""
 "De toepassing maakt de alias niet aan: voeg hem toe aan de importmailbox en "
 "sla hem daarna hier op. In PowerShell, module ExchangeOnlineManagement:"
 
-#: .\events\templates\events\parametres.html:221
+#: .\events\templates\events\parametres.html:222
 msgid "Échange avec Exchange en cours…"
 msgstr "Bezig met Exchange…"
 
@@ -2425,52 +2431,173 @@ msgstr "Terug naar de startpagina"
 msgid "Langue"
 msgstr "Taal"
 
-#: .\templates\account\login.html:19 .\templates\account\login.html:63
-#: .\templates\account\login.html:114
+#: .\templates\account\login.html:19 .\templates\account\login.html:59
+#: .\templates\account\login.html:110
 msgid "Sign In"
 msgstr "Aanmelden"
 
-#: .\templates\account\login.html:96 .\templates\account\login.html:97
-#: .\templates\account\login.html:134
+#: .\templates\account\login.html:92 .\templates\account\login.html:93
+#: .\templates\account\login.html:129
 msgid "Afficher le mot de passe"
 msgstr "Wachtwoord tonen"
 
-#: .\templates\account\login.html:110
+#: .\templates\account\login.html:106
 msgid "Mot de passe oublié ?"
 msgstr "Wachtwoord vergeten?"
 
-#: .\templates\account\login.html:120
+#: .\templates\account\login.html:116
 msgid "Pas encore de compte ?"
 msgstr "Nog geen account?"
 
-#: .\templates\account\login.html:121
+#: .\templates\account\login.html:117
 msgid "Créer un compte"
 msgstr "Account aanmaken"
 
-#: .\templates\account\login.html:135
+#: .\templates\account\login.html:130
 msgid "Masquer le mot de passe"
 msgstr "Wachtwoord verbergen"
 
-#: .\templates\base.html:110
-msgid "Afficher le menu"
-msgstr "Menu tonen"
+#: .\templates\base.html:83
+msgid "Aller au contenu"
+msgstr "Naar de inhoud"
 
-#: .\templates\base.html:119
-msgid "Dossiers"
-msgstr "Dossiers"
+#: .\templates\base.html:92
+msgid "Navigation principale"
+msgstr "Hoofdnavigatie"
 
-#: .\templates\base.html:126
-msgid "Tous mes dossiers"
-msgstr "Al mijn dossiers"
+#: .\templates\base.html:101
+msgid "Accès rapide"
+msgstr "Snelle toegang"
 
-#: .\templates\base.html:136
+#: .\templates\base.html:116
+msgid "Basculer le thème"
+msgstr "Thema wisselen"
+
+#: .\templates\base.html:123
+msgid "Mon compte"
+msgstr "Mijn account"
+
+#: .\templates\base.html:130
+msgid "Administration"
+msgstr "Beheer"
+
+#: .\templates\base.html:137
 msgid "Se déconnecter"
 msgstr "Afmelden"
 
-#: .\templates\base.html:183 .\templates\base.html:188
+#: .\templates\base.html:145
+msgid "Se connecter"
+msgstr "Aanmelden"
+
+#: .\templates\base.html:150
+msgid "Afficher le menu"
+msgstr "Menu tonen"
+
+#: .\templates\base.html:173
+msgid "La chronologie d'un dossier, pièces à l'appui."
+msgstr "De chronologie van een dossier, met de stukken erbij."
+
+#: .\templates\base.html:175
+#, python-format
+msgid "Version %(version)s"
+msgstr "Versie %(version)s"
+
+#: .\templates\base.html:181 .\templates\confidentialite.html:11
+#: .\templates\confidentialite.html:16
+msgid "Confidentialité"
+msgstr "Privacy"
+
+#: .\templates\base.html:183
+msgid "Tous droits réservés."
+msgstr "Alle rechten voorbehouden."
+
+#: .\templates\base.html:214 .\templates\base.html:219
 msgid "Copie impossible ici : sélectionnez l'adresse."
 msgstr "Kopiëren is hier niet mogelijk: selecteer het adres."
 
-#: .\templates\base.html:187
+#: .\templates\base.html:218
 msgid "Copié"
 msgstr "Gekopieerd"
+
+#: .\templates\confidentialite.html:22
+msgid "Qui"
+msgstr "Wie"
+
+#: .\templates\confidentialite.html:23
+msgid ""
+"Chronos est édité par Foxugly SRL (Belgique). Pour toute question sur vos "
+"données : hello@foxugly.com."
+msgstr "Chronos wordt uitgegeven door Foxugly SRL (België). Voor vragen over uw gegevens: hello@foxugly.com."
+
+#: .\templates\confidentialite.html:28
+msgid "Ce que Chronos conserve"
+msgstr "Wat Chronos bewaart"
+
+#: .\templates\confidentialite.html:30
+msgid ""
+"Votre compte : nom d'utilisateur, adresse e-mail et mot de passe, conservé "
+"chiffré."
+msgstr "Uw account: gebruikersnaam, e-mailadres en wachtwoord, versleuteld bewaard."
+
+#: .\templates\confidentialite.html:31
+msgid ""
+"Les dossiers, évènements et pièces que vous ou les personnes autorisées y "
+"déposez, y compris les courriels transférés à l'alias d'un dossier."
+msgstr "De dossiers, gebeurtenissen en stukken die u of de gemachtigde personen erin plaatsen, met inbegrip van e-mails die naar het alias van een dossier worden doorgestuurd."
+
+#: .\templates\confidentialite.html:35
+msgid ""
+"Le journal de chaque dossier (qui a fait quoi, et quand). Il ne peut pas "
+"être effacé : il garantit l'intégrité des pièces."
+msgstr "Het logboek van elk dossier (wie wat deed, en wanneer). Het kan niet worden gewist: het waarborgt de integriteit van de stukken."
+
+#: .\templates\confidentialite.html:41
+msgid "Qui y a accès"
+msgstr "Wie heeft toegang"
+
+#: .\templates\confidentialite.html:42
+msgid ""
+"Le propriétaire d'un dossier, et les personnes qu'il autorise ou à qui il "
+"remet un lien de partage. Les pièces ne sont jamais publiques : chaque "
+"téléchargement vérifie vos droits."
+msgstr "De eigenaar van een dossier, en de personen die hij toegang geeft of aan wie hij een deellink bezorgt. De stukken zijn nooit openbaar: bij elke download worden uw rechten gecontroleerd."
+
+#: .\templates\confidentialite.html:47
+msgid "Cookies"
+msgstr "Cookies"
+
+#: .\templates\confidentialite.html:48
+msgid ""
+"Un cookie de session (votre connexion), un cookie de protection contre la "
+"falsification de requêtes, et un cookie pour la langue choisie. Le thème "
+"clair ou sombre est mémorisé dans votre navigateur. Aucun cookie "
+"publicitaire, aucune mesure d'audience."
+msgstr "Een sessiecookie (uw aanmelding), een cookie ter bescherming tegen vervalste verzoeken, en een cookie voor de gekozen taal. Het lichte of donkere thema wordt in uw browser onthouden. Geen advertentiecookies, geen bezoekersmetingen."
+
+#: .\templates\confidentialite.html:54
+msgid "Hébergement et prestataires"
+msgstr "Hosting en dienstverleners"
+
+#: .\templates\confidentialite.html:56
+msgid ""
+"Serveur et base de données : Amazon Web Services, en Irlande (eu-west-1)."
+msgstr "Server en database: Amazon Web Services, in Ierland (eu-west-1)."
+
+#: .\templates\confidentialite.html:57
+msgid "Courriels (boîte d'import, envoi des invitations) : Microsoft 365."
+msgstr "E-mails (importmailbox, verzending van uitnodigingen): Microsoft 365."
+
+#: .\templates\confidentialite.html:58
+msgid "Suivi des erreurs : Sentry, en Allemagne, sans données personnelles."
+msgstr "Foutopvolging: Sentry, in Duitsland, zonder persoonsgegevens."
+
+#: .\templates\confidentialite.html:61
+msgid "Vos droits"
+msgstr "Uw rechten"
+
+#: .\templates\confidentialite.html:62
+msgid ""
+"Vous pouvez demander l'accès à vos données, leur rectification ou leur "
+"suppression en écrivant à hello@foxugly.com. Le journal d'un dossier est "
+"conservé tant que le dossier existe."
+msgstr "U kunt inzage in uw gegevens, verbetering of verwijdering ervan vragen door te schrijven naar hello@foxugly.com. Het logboek van een dossier wordt bewaard zolang het dossier bestaat."

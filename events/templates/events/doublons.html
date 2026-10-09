@@ -14,10 +14,11 @@ la description n'est montrée qu'en texte (`resume`).
 
 {% block content %}
     <div class="mx-auto" style="max-width: 1100px;">
-        <p class="mb-2">
-            <a class="text-decoration-none" href="{% url 'timeline' dossier.pk %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{{ dossier.name }}</a>
-        </p>
-        <h1 class="h3"><i class="bi bi-intersect me-2 text-body-secondary" aria-hidden="true"></i>{% translate "Doublons possibles" %}</h1>
+        <div class="page-header">
+            <div class="page-header__left"><a class="btn btn-outline-secondary btn-sm" href="{% url 'timeline' dossier.pk %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Retour au dossier" %}</a></div>
+            <h1 class="page-header__title"><i class="bi bi-intersect" aria-hidden="true"></i>{% translate "Doublons possibles" %}</h1>
+            <div class="page-header__right"></div>
+        </div>
         <p class="text-body-secondary small mb-4">
             {% blocktranslate trimmed %}
                 Deux évènements qui partagent une pièce à un jour d'écart au plus, ou qui tombent le même

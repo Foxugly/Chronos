@@ -21,9 +21,6 @@ reprendre le gabarit d'allauth comme base.
 
 {% block extra_head %}
     <style>
-        .carte-connexion {
-            margin-top: clamp(1rem, 6vh, 4rem);
-        }
         /* Le layout d'allauth stylise les champs bruts de ses autres pages ; ici les
            champs portent les classes Bootstrap, et le mot de passe vit dans un
            input-group : on rend la main à Bootstrap. */
@@ -56,10 +53,9 @@ reprendre le gabarit d'allauth comme base.
 {% endblock extra_head %}
 
 {% block content %}
-    <div class="carte-connexion card border-0 shadow-sm rounded-4">
-        <div class="card-body p-4 p-sm-5">
-            <h1 class="h4 mb-4 d-flex align-items-center justify-content-center gap-2">
-                <i class="bi bi-box-arrow-in-right text-primary" aria-hidden="true"></i>
+    <div class="carte-connexion">
+            <h1 class="auth-card__title">
+                <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
                 {% trans "Sign In" %}
             </h1>
 
@@ -120,7 +116,6 @@ reprendre le gabarit d'allauth comme base.
                 {% translate "Pas encore de compte ?" %}
                 <a class="fw-medium text-decoration-none" href="{% url 'account_signup' %}">{% translate "Créer un compte" %}</a>
             </p>
-        </div>
     </div>
 {% endblock content %}
 

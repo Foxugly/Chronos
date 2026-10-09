@@ -8,6 +8,7 @@ détaillé — seulement « ok » ou « degraded », et la version déployée.
 
 import os
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_not_required
 from django.db import DatabaseError, connection
 from django.http import JsonResponse
@@ -27,7 +28,7 @@ def sante(request):
     return JsonResponse(
         {
             "status": "ok" if base_ok else "degraded",
-            "version": os.environ.get("SENTRY_RELEASE") or "unknown",
+            "version": os.environ.get("SENTRY_RELEASE") or settings.VERSION,
             "checks": {"db": {"ok": base_ok}},
         },
         status=200 if base_ok else 503,
