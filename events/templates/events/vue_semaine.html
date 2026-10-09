@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Semaine, en colonnes de jours.
+
+Sept colonnes à l'écran large, empilées en une colonne sur téléphone : une
+grille de sept colonnes sur 400 px de large ne se lit pas.
+{% endcomment %}
+
+{% block title %}{{ titre_periode }} — {{ dossier.name }}{% endblock %}
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+{% block main_class %}container-xxl{% endblock %}
+
+{% block extra_css %}
+    {% include "events/_detail_evenement_css.html" %}
+{% endblock %}
+
+{% block content %}
+    {% include "events/_entete_dossier.html" %}
+
+    {# La version sans JavaScript du calendrier : on y passe du mois à la semaine. #}
+    <div class="btn-group btn-group-sm mb-3" role="group">
+        <a class="btn btn-outline-secondary{% if vue == "mois" %} active{% endif %}" href="{{ base_vue }}?vue=mois{{ suffixe_filtres }}">{% translate "Mois" %}</a>
+        <a class="btn btn-outline-secondary{% if vue == "semaine" %} active{% endif %}" href="{{ base_vue }}?vue=semaine{{ suffixe_filtres }}">{% translate "Semaine" %}</a>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a class="btn btn-sm btn-outline-secondary"
+           href="{{ base_vue }}?vue=semaine&amp;periode={{ precedent }}{{ suffixe_filtres }}"><i class="bi bi-chevron-left me-1" aria-hidden="true"></i>{% translate "Semaine précédente" %}</a>
+        <h2 class="h5 mb-0">{{ titre_periode }}</h2>
+        <a class="btn btn-sm btn-outline-secondary"
+           href="{{ base_vue }}?vue=semaine&amp;periode={{ suivant }}{{ suffixe_filtres }}">{% translate "Semaine suivante" %}<i class="bi bi-chevron-right ms-1" aria-hidden="true"></i></a>
+    </div>
+
+    <div class="row g-3">
+        {% for jour in jours %}
+            <div class="col-12 col-md">
+                <div class="card h-100 {% if jour.aujourdhui %}border-primary{% endif %}">
+                    <div class="card-header py-2 {% if jour.aujourdhui %}bg-primary-subtle{% endif %}">
+                        <span class="text-capitalize fw-semibold small">{{ jour.nom }}</span>
+                        <span class="text-body-secondary small">{{ jour.date|date:"MONTH_DAY_FORMAT" }}</span>
+                    </div>
+                    <div class="card-body p-2">
+                        {% for evenement in jour.evenements %}
+                            <div class="small mb-2">
+                                {# Texte, jamais `safe` : le titre vient d'un  #}
+                                {# contributeur.                               #}
+                                {% if evenement.couleur_affichee %}<span class="d-inline-block rounded-circle align-middle me-1" style="width: .7em; height: .7em; background-color: {{ evenement.couleur_affichee }};" aria-hidden="true"></span>{% endif %}<a class="fw-semibold text-decoration-none" href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token evenement.pk %}{% else %}{% url 'event_detail' evenement.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>{{ evenement.title }}</a>
+                                {% if evenement.precision != "date" %}
+                                    {# Un intervalle se répète sur chacun de ses  #}
+                                    {# jours : rappeler ses bornes évite de le    #}
+                                    {# lire comme sept faits distincts.           #}
+                                    <span class="d-block text-body-secondary">
+                                        {{ evenement.periode_affichee }}
+                                    </span>
+                                {% endif %}
+                                {% if evenement.documents.count %}
+                                    <span class="badge text-bg-light">
+                                        {% blocktranslate trimmed count n=evenement.documents.count %}
+                                            {{ n }} pièce
+                                        {% plural %}
+                                            {{ n }} pièces
+                                        {% endblocktranslate %}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <p class="small text-body-secondary mb-0">—</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% include "events/_modal_evenement.html" %}
+{% endblock %}
+
+{% block extra_js %}
+    {% include "events/_detail_evenement_js.html" %}
+{% endblock %}

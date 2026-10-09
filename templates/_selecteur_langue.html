@@ -1,0 +1,34 @@
+{% load i18n %}
+{% comment %}
+Sélecteur de langue de la barre de navigation, sur le modèle de celui de
+QuizOnline : un bouton compact au code de la langue courante, un menu des
+langues, la courante cochée.
+
+Chaque langue est un bouton d'un formulaire POST vers `set_language` : pas de
+lien qui changerait d'état sur un GET, et le jeton CSRF protège le choix.
+`next` ramène sur la page en cours — `set_language` refuse toute adresse
+hors du site.
+{% endcomment %}
+{% get_current_language as langue_active %}
+{% get_available_languages as langues_disponibles %}
+<div class="dropdown selecteur-langue">
+    <button class="selecteur-langue__declencheur" type="button"
+            data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="menu"
+            title="{% translate "Langue" %}" aria-label="{% translate "Langue" %}">
+        {{ langue_active|slice:":2"|upper }}
+    </button>
+    <form class="dropdown-menu dropdown-menu-end selecteur-langue__menu" role="menu"
+          action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        {% for code, nom in langues_disponibles %}
+            <button type="submit" name="language" value="{{ code }}" role="menuitem"
+                    lang="{{ code }}" title="{{ nom }}"
+                    class="selecteur-langue__item{% if code == langue_active %} is-active{% endif %}"
+                    {% if code == langue_active %}aria-current="true"{% endif %}>
+                <span>{{ code|slice:":2"|upper }}</span>
+                {% if code == langue_active %}<span class="selecteur-langue__coche" aria-hidden="true">✓</span>{% endif %}
+            </button>
+        {% endfor %}
+    </form>
+</div>

@@ -1,0 +1,56 @@
+{% load i18n %}
+{% comment %}
+La confirmation avant de supprimer un évènement, sans habillage de page.
+
+Rendue par `confirmer_suppression.html` (la page, repli sans JavaScript) et
+injectée dans le modal commun. Elle dit, pièce par pièce, ce qui va partir et
+ce qui reste : une pièce liée à un autre évènement est conservée.
+{% endcomment %}
+<div data-suppression-evenement>
+    <p class="mb-1">
+        {% blocktranslate trimmed with titre=event.title %}
+            Supprimer définitivement l'évènement « {{ titre }} » ?
+        {% endblocktranslate %}
+    </p>
+    <p class="small text-body-secondary mb-3">
+        <i class="bi bi-calendar-event me-1" aria-hidden="true"></i>{{ event.periode_affichee }}
+    </p>
+
+    {% if pieces %}
+        <h4 class="h6 text-body-secondary mb-2">
+            {% translate "Pièces" %} ({{ pieces|length }})
+        </h4>
+        <ul class="list-group mb-3">
+            {% for piece in pieces %}
+                <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+                    <span class="text-break">{{ piece.document.title }}</span>
+                    {% if piece.supprimee %}
+                        <span class="badge text-bg-danger flex-shrink-0">{% translate "supprimée" %}</span>
+                    {% else %}
+                        <span class="badge text-bg-secondary flex-shrink-0"
+                              title="{% translate "Elle illustre aussi un autre évènement." %}">{% translate "conservée" %}</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div class="alert alert-warning small d-flex gap-2">
+        <i class="bi bi-exclamation-triangle-fill flex-shrink-0" aria-hidden="true"></i>
+        <div>
+            {% blocktranslate trimmed %}
+                Cette action est définitive. Le journal du dossier en garde la trace :
+                le titre, les dates et la description de l'évènement, le nom et
+                l'empreinte de chaque pièce supprimée.
+            {% endblocktranslate %}
+        </div>
+    </div>
+
+    <form method="post" action="{{ action }}" data-confirmer-suppression
+          class="d-flex justify-content-end gap-2 flex-wrap">
+        {% csrf_token %}
+        <input type="hidden" name="retour" value="{{ retour }}">
+        <a class="btn btn-secondary" href="{{ retour }}" data-annuler-suppression><i class="bi bi-x-lg me-1" aria-hidden="true"></i>{% translate "Annuler" %}</a>
+        <button type="submit" class="btn btn-danger"><i class="bi bi-trash3 me-1" aria-hidden="true"></i>{% translate "Supprimer" %}</button>
+    </form>
+</div>

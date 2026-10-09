@@ -1,0 +1,7 @@
+Django>=6.1,<6.2
+django-allauth>=65,<66
+nh3>=0.3,<0.4
+reportlab>=5.0,<6
+psycopg[binary]>=3.2,<3.4
+gunicorn==23.0.0
+sentry-sdk[django]==2.66.1

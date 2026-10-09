@@ -1,0 +1,50 @@
+{% load i18n %}
+{% comment %}
+Raccourcis clavier des vues d'un dossier, inclus par `base.html` :
+
+- `/` place le curseur dans la recherche ;
+- `n` ouvre « Nouvel évènement » (pour qui peut écrire) ;
+- dans le détail d'un évènement, ← et → passent au fait voisin
+  (`_detail_evenement_js.html`) ; Échap ferme.
+
+Rien ne se déclenche pendant la saisie, avec une touche de modification, ni
+quand un modal est ouvert. Un élément absent de la page rend le raccourci
+inopérant, sans erreur.
+{% endcomment %}
+<script nonce="{{ csp_nonce }}">
+"use strict";
+(function () {
+    function enTrainDEcrire(cible) {
+        return Boolean(cible && cible.closest &&
+            cible.closest("input, textarea, select, [contenteditable=''], [contenteditable='true']"));
+    }
+    document.querySelectorAll("[data-imprimer]").forEach(function (bouton) {
+        bouton.addEventListener("click", function () {
+            window.print();
+        });
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.ctrlKey || e.metaKey || e.altKey || enTrainDEcrire(e.target)) {
+            return;
+        }
+        if (document.querySelector(".modal.show")) {
+            return;
+        }
+        if (e.key === "/") {
+            const recherche = document.getElementById("filtre-q");
+            if (recherche) {
+                e.preventDefault();
+                recherche.focus();
+                recherche.select();
+            }
+        } else if (e.key === "n" || e.key === "N") {
+            const nouveau = document.querySelector("[data-ouvrir-formulaire]");
+            if (nouveau) {
+                e.preventDefault();
+                nouveau.click();
+            }
+        }
+    });
+})();
+</script>

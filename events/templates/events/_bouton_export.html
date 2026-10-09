@@ -1,0 +1,32 @@
+{% load i18n %}
+{# L'export vise ce qui est affiché : tout le dossier, ou la sélection des #}
+{# filtres, reportée en champs cachés. POST : l'export est inscrit au journal, #}
+{# un préchargement ne doit pas en créer. Les boutons visent le formulaire par #}
+{# `form=` : le principal marche sans JavaScript, le menu (avec le journal) en #}
+{# demande — c'est un supplément.                                              #}
+<form method="post" id="form-export" class="d-none"
+      action="{% if lien_partage %}{% url 'share_dossier_export' lien_partage.token %}{% else %}{% url 'dossier_export' dossier.pk %}{% endif %}">
+    {% csrf_token %}
+    {% for cle, valeur in parametres_filtres %}
+        <input type="hidden" name="{{ cle }}" value="{{ valeur }}">
+    {% endfor %}
+</form>
+<div class="btn-group">
+    <button type="submit" form="form-export" class="btn btn-outline-secondary"
+            title="{% translate "Chronologie en PDF, pièces et empreintes, dans un zip" %}">
+        <i class="bi bi-file-earmark-zip me-1" aria-hidden="true"></i>{% if filtres.actifs %}{% blocktranslate trimmed count n=nb_retenus %}Exporter la sélection ({{ n }}){% plural %}Exporter la sélection ({{ n }}){% endblocktranslate %}{% else %}{% translate "Exporter" %}{% endif %}
+    </button>
+    {% if not lien_partage %}
+        <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split"
+                data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">{% translate "Autres options d'export" %}</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <button type="submit" form="form-export" name="journal" value="1" class="dropdown-item">
+                    <i class="bi bi-journal-text me-2" aria-hidden="true"></i>{% translate "Avec le journal du dossier" %}
+                </button>
+            </li>
+        </ul>
+    {% endif %}
+</div>

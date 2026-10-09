@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+L'accueil : un tableau de bord par dossier. Rôle, volume, derniers faits,
+derniers courriels importés, ce qui demande attention (doublons). Le calcul
+est dans `dossier_list` ; rien ici ne lit les droits.
+{% endcomment %}
+
+{% block title %}{% translate "Mes dossiers" %}{% endblock %}
+
+{% block content %}
+    <h1 class="h3 mb-4">{% translate "Mes dossiers" %}</h1>
+
+    {% if cartes %}
+        <div class="row row-cols-1 row-cols-lg-2 g-4">
+            {% for carte in cartes %}
+                {% with dossier=carte.dossier %}
+                    <div class="col">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                    <h2 class="h5 mb-0 text-break">
+                                        <a class="text-decoration-none" href="{% url 'timeline' dossier.pk %}">
+                                            <i class="bi bi-folder2-open me-2 text-primary" aria-hidden="true"></i>{{ dossier.name }}
+                                        </a>
+                                    </h2>
+                                    <span class="badge text-bg-light border flex-shrink-0">{{ carte.role }}</span>
+                                </div>
+                                <p class="small text-body-secondary mb-3">
+                                    {% blocktranslate trimmed count n=dossier.event_count %}{{ n }} évènement{% plural %}{{ n }} évènements{% endblocktranslate %},
+                                    {% blocktranslate trimmed count n=dossier.piece_count %}{{ n }} pièce{% plural %}{{ n }} pièces{% endblocktranslate %}
+                                </p>
+
+                                {% if carte.nb_doublons %}
+                                    <a class="btn btn-sm btn-outline-warning mb-3" href="{% url 'dossier_doublons' dossier.pk %}">
+                                        <i class="bi bi-intersect me-1" aria-hidden="true"></i>{% blocktranslate trimmed count n=carte.nb_doublons %}{{ n }} doublon possible à examiner{% plural %}{{ n }} doublons possibles à examiner{% endblocktranslate %}
+                                    </a>
+                                {% endif %}
+
+                                {% if carte.derniers_faits %}
+                                    <h3 class="h6 text-body-secondary mb-2">{% translate "Derniers faits" %}</h3>
+                                    <ul class="list-unstyled small mb-3">
+                                        {% for evenement in carte.derniers_faits %}
+                                            <li class="d-flex gap-2 mb-1">
+                                                <span class="text-body-secondary text-nowrap" style="font-variant-numeric: tabular-nums;">{{ evenement.date|date:"SHORT_DATE_FORMAT" }}</span>
+                                                <a class="text-decoration-none text-break" href="{% url 'event_detail' evenement.pk %}?retour={% url 'timeline' dossier.pk %}">{{ evenement.title }}</a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="small text-body-secondary">{% translate "Aucun fait pour l'instant." %}</p>
+                                {% endif %}
+
+                                {% if carte.derniers_imports %}
+                                    <h3 class="h6 text-body-secondary mb-2">{% translate "Derniers courriels importés" %}</h3>
+                                    <ul class="list-unstyled small mb-3">
+                                        {% for courriel in carte.derniers_imports %}
+                                            <li class="d-flex gap-2 mb-1">
+                                                <i class="bi bi-envelope-arrow-down text-body-secondary" aria-hidden="true"></i>
+                                                <span class="text-break">{{ courriel.evenement.title }}</span>
+                                                <span class="text-body-secondary text-nowrap ms-auto">{{ courriel.importe_le|date:"SHORT_DATE_FORMAT" }}</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+
+                                {% if carte.proprietaire %}
+                                    <p class="small mb-0">
+                                        {% if dossier.alias_courriel %}
+                                            <i class="bi bi-envelope-check text-success me-1" aria-hidden="true"></i>{% translate "Import par courriel :" %}
+                                            <code class="user-select-all">{{ dossier.alias_courriel }}</code>
+                                        {% else %}
+                                            <i class="bi bi-envelope-slash text-body-secondary me-1" aria-hidden="true"></i>
+                                            <a class="text-decoration-none" href="{% url 'dossier_parametres' dossier.pk %}">{% translate "Activer l'import par courriel" %}</a>
+                                        {% endif %}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endwith %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-body-secondary">{% translate "Aucun dossier ne vous est accessible pour l'instant. Le propriétaire d'un dossier peut vous y donner accès." %}</p>
+    {% endif %}
+{% endblock %}

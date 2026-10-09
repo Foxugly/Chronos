@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Le dossier dans FullCalendar. Un seul gabarit pour quatre onglets — mois,
+semaine, liste, timeline — : l'onglet choisit la vue (`vue_fullcalendar`),
+la barre d'outils du calendrier ne garde que la navigation.
+
+Thème : `bootstrap5`, le thème Bootstrap officiel de FullCalendar. Boutons,
+tableaux et couleurs suivent le Bootstrap du reste du site ; il demande la
+police Bootstrap Icons pour les flèches, chargée avec le détail
+(`_detail_evenement_css.html`).
+
+**Licence.** Les vues mois, semaine et liste sont sous licence MIT. La vue
+timeline vient du module premium (« Scheduler ») : elle tourne ici sous la
+clé `CC-Attribution-NonCommercial-NoDerivatives`, valable uniquement pour un
+usage non commercial — ce dossier est un litige privé, et c'est le choix du
+propriétaire (2026-10-08). Un usage commercial demanderait une licence
+payante, ou le retrait de l'onglet « Timeline » (vis-timeline reste
+disponible dans l'onglet « Chronologie »).
+
+Les titres viennent des contributeurs : ils arrivent par `json_script`, et
+FullCalendar les pose comme du texte. Un clic ouvre le détail dans le modal
+commun, rendu et échappé par Django.
+{% endcomment %}
+
+{% block title %}{{ dossier.name }}{% endblock %}
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+{% block main_class %}container-xxl{% endblock %}
+
+{% block extra_css %}
+    {% if peut_ecrire %}{% include "events/_formulaire_css.html" %}{% endif %}
+    {% include "events/_detail_evenement_css.html" %}
+    <style>
+        #calendrier .fc-event {
+            cursor: pointer;
+        }
+        /* Bootstrap souligne et colore tous les liens ; les en-têtes de
+           FullCalendar en sont, sans en avoir l'air. */
+        #calendrier a:not(.fc-event) {
+            color: inherit;
+            text-decoration: none;
+        }
+        /* Navigation, titre et choix de la vue : sur un écran étroit, la
+           barre passe à la ligne plutôt que d'élargir la page. */
+        #calendrier .fc-header-toolbar {
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+        @media (max-width: 575.98px) {
+            #calendrier .fc-toolbar-title {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% include "events/_entete_dossier.html" %}
+
+    <div id="calendrier" class="bg-body border rounded p-2"></div>
+    <noscript>
+        <p class="alert alert-warning mt-3">
+            {% translate "Ce calendrier demande JavaScript. Les mêmes faits, sans JavaScript :" %}
+            <a href="{{ base_vue }}?vue=mois{{ suffixe_filtres }}">{% translate "par mois" %}</a>,
+            <a href="{{ base_vue }}?vue=semaine{{ suffixe_filtres }}">{% translate "par semaine" %}</a>,
+            <a href="{{ base_vue }}?vue=liste{{ suffixe_filtres }}">{% translate "en liste" %}</a>.
+        </p>
+    </noscript>
+
+    {% include "events/_modal_evenement.html" %}
+{% endblock %}
+
+{% block extra_js %}
+    {{ calendrier_items|json_script:"calendrier-items" }}
+    {{ calendrier_bornes|json_script:"calendrier-bornes" }}
+    {{ vue_fullcalendar|json_script:"calendrier-vue" }}
+    {{ cles_fullcalendar|json_script:"calendrier-cles" }}
+
+    {# Le bundle premium contient aussi tous les modules standard. FullCalendar 6 #}
+    {# injecte lui-même sa feuille de style.                                       #}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.21/index.global.min.js"
+            integrity="sha384-geAkYITTl+H4K2UmoTeT04F+COYPGRzd26cOUOpquYQ8hSE3YqHeMmpnPf4s+AnL"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/bootstrap5@6.1.21/index.global.min.js"
+            integrity="sha384-ZewornoqBxxWVAySbXdd22ejYBEw+U9ZVlD6xG+m0XCefhY9Op0g18yv9ZqsrjvA"
+            crossorigin="anonymous"></script>
+    {# Toutes les langues de FullCalendar : `locale` choisit, selon la langue courante. #}
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.21/locales-all.global.min.js"
+            integrity="sha384-Fmkj29AQbNAmQbmrlIb+/MJFKUWxrEDAy3P7MxYGOXAnd/6N6eTTSek5+85fWMo3"
+            crossorigin="anonymous"></script>
+    {% include "events/_detail_evenement_js.html" %}
+    {% if peut_ecrire %}{% include "events/_formulaire_modal_js.html" %}{% endif %}
+    <script nonce="{{ csp_nonce }}">
+    "use strict";
+
+    (function () {
+        const EVENT_DETAIL_URL = "{% if lien_partage %}{% url 'share_event_detail' lien_partage.token 999999999 %}{% else %}{% url 'event_detail' 999999999 %}{% endif %}";
+        const EVENT_ID_PLACEHOLDER = "999999999";
+
+        const items = JSON.parse(document.getElementById("calendrier-items").textContent);
+        const bornes = JSON.parse(document.getElementById("calendrier-bornes").textContent);
+        const vue = JSON.parse(document.getElementById("calendrier-vue").textContent);
+        const cles = JSON.parse(document.getElementById("calendrier-cles").textContent);
+        const langue = JSON.parse(document.getElementById("langue-courante").textContent);
+
+        // Timeline et liste couvrent tout le dossier d'un seul tenant : un
+        // litige se lit d'un bout à l'autre, pas mois par mois.
+        const etendue = bornes
+            ? {visibleRange: {start: bornes.debut, end: bornes.fin}}
+            : {duration: {months: 3}};
+
+        // La frise couvre tout le dossier, mais s'ouvre là où il en est :
+        // trois semaines avant le dernier fait.
+        function allerAuDernierFait() {
+            if (!bornes) {
+                return;
+            }
+            const jour = 24 * 3600 * 1000;
+            const ecart = Math.max(
+                0,
+                Math.round((Date.parse(bornes.initiale) - Date.parse(bornes.debut)) / jour) - 21
+            );
+            setTimeout(function () {
+                calendrier.scrollToTime({days: ecart});
+            }, 0);
+        }
+
+        const calendrier = new FullCalendar.Calendar(document.getElementById("calendrier"), {
+            schedulerLicenseKey: "CC-Attribution-NonCommercial-NoDerivatives",
+            themeSystem: "bootstrap5",
+            // La langue donne aussi le premier jour de la semaine et le
+            // format de l'heure.
+            locale: langue.code,
+            height: "auto",
+            nowIndicator: true,
+            // Un fait sans heure de fin dure une heure pour FullCalendar : un
+            // courriel reçu à 23:53 débordait sur le lendemain. Ce qui finit
+            // le lendemain avant 9 h reste sur son jour.
+            nextDayThreshold: "09:00:00",
+            // En barre, et non en simple pastille : un fait daté à l'heure
+            // près (un courriel importé) doit montrer sa couleur comme les
+            // autres. Sans effet sur la liste et la semaine, déjà en barres.
+            eventDisplay: "block",
+            initialView: vue,
+            initialDate: bornes ? bornes.initiale : undefined,
+            // Un seul onglet « Calendrier » : ses quatre vues se choisissent
+            // ici, dans sa barre.
+            headerToolbar: {
+                left: "prev,next today",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,liste,frise"
+            },
+            views: {
+                frise: Object.assign({
+                    type: "timeline",
+                    slotDuration: {days: 1},
+                    slotMinWidth: 34,
+                    // Un fait d'un jour occupe une colonne de 34 px : son
+                    // titre y serait coupé à quatre lettres. La largeur
+                    // minimale laisse lire le titre ; FullCalendar empile
+                    // les faits qui se chevaucheraient.
+                    eventMinWidth: 190,
+                    slotLabelFormat: [
+                        {month: "long", year: "numeric"},
+                        {day: "numeric"}
+                    ],
+                    buttonText: "{{ _("Frise")|escapejs }}"
+                }, etendue),
+                dayGridMonth: {
+                    // Une case de mois chargée renvoie vers « +3 autres »
+                    // plutôt que de pousser toute la grille vers le bas.
+                    dayMaxEvents: true
+                },
+                liste: Object.assign({type: "list", buttonText: "{{ _("Liste")|escapejs }}"}, etendue)
+            },
+            events: items,
+            eventDidMount: function (info) {
+                // Attribut posé en propriété DOM : du texte, jamais du balisage.
+                info.el.title = info.event.title;
+            },
+            eventClick: function (info) {
+                info.jsEvent.preventDefault();
+                DetailEvenement.ouvrir(
+                    EVENT_DETAIL_URL.replace(EVENT_ID_PLACEHOLDER, String(info.event.id))
+                );
+            },
+            datesSet: function (info) {
+                if (info.view.type === "frise") {
+                    allerAuDernierFait();
+                }
+                // L'adresse suit la vue choisie : recharger, ou garder en
+                // favori, ramène au même endroit. Les filtres restent.
+                const cle = cles[info.view.type];
+                if (cle && window.history && history.replaceState) {
+                    const adresse = new URL(window.location.href);
+                    if (adresse.searchParams.get("vue") !== cle) {
+                        adresse.searchParams.set("vue", cle);
+                        history.replaceState(null, "", adresse.toString());
+                    }
+                }
+            }
+        });
+        calendrier.render();
+    })();
+    </script>
+{% endblock %}

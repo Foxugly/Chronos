@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Le dossier en liste, groupé par mois, du plus ancien au plus récent.
+
+C'est la vue qui fonctionne partout : sans JavaScript, à l'impression, dans
+un lecteur d'écran. Sur un dossier destiné à une procédure, c'est aussi la
+seule qui se lit d'un bout à l'autre sans manipuler quoi que ce soit — un
+avocat ou un expert ouvrira celle-ci.
+
+La description porte du HTML assaini par le serveur, à l'enregistrement et à
+la sortie : c'est le seul endroit de ce gabarit où `safe` est employé, et il
+l'est en connaissance de cause.
+{% endcomment %}
+
+{% block title %}{{ dossier.name }}{% endblock %}
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+{# Le même cadre que les autres vues du dossier : en-tête, onglets et #}
+{# filtres ne bougent pas d'un onglet à l'autre. #}
+{% block main_class %}container-xxl{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .description-repliee {
+            max-height: 9rem;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to bottom, #000 65%, transparent);
+            mask-image: linear-gradient(to bottom, #000 65%, transparent);
+        }
+        @media print {
+            .description-repliee { max-height: none; -webkit-mask-image: none; mask-image: none; }
+        }
+    </style>
+    {% include "events/_detail_evenement_css.html" %}
+{% endblock %}
+
+{% block content %}
+    {% include "events/_entete_dossier.html" %}
+
+    <div class="d-none d-print-block small mb-3">
+        {% now "SHORT_DATETIME_FORMAT" as maintenant %}
+        {% blocktranslate trimmed with quand=maintenant %}Imprimé le {{ quand }}.{% endblocktranslate %}
+        {% if filtres.actifs %}
+            {% blocktranslate trimmed with criteres=filtres.description %}Sélection : {{ criteres }}.{% endblocktranslate %}
+        {% endif %}
+    </div>
+    <div class="d-flex justify-content-end mb-2" data-pas-a-l-impression>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-imprimer>
+            <i class="bi bi-printer me-1" aria-hidden="true"></i>{% translate "Imprimer" %}
+        </button>
+    </div>
+
+    {% for groupe in groupes %}
+        <h2 class="h5 text-capitalize text-body-secondary mt-4 mb-2">{{ groupe.titre }}</h2>
+
+        <div class="list-group mb-3">
+            {% for evenement in groupe.evenements %}
+                <div class="list-group-item"{% if evenement.couleur_affichee %} style="border-left: 6px solid {{ evenement.couleur_affichee }};"{% endif %}>
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <span class="badge text-bg-secondary">{{ evenement.periode_affichee }}</span>
+                            <a class="ms-2 fw-semibold text-decoration-none" href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token evenement.pk %}{% else %}{% url 'event_detail' evenement.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>{{ evenement.title }}</a>
+                            {% if evenement.etiquettes.all %}
+                                <div class="mt-1">{% for etiquette in evenement.etiquettes.all %}<span class="badge rounded-pill text-bg-light border me-1"><i class="bi bi-tag me-1" aria-hidden="true"></i>{{ etiquette.nom }}</span>{% endfor %}</div>
+                            {% endif %}
+                            {% if evenement.trouve_dans %}
+                                <div class="small text-body-secondary mt-1 d-print-none">
+                                    <i class="bi bi-search me-1" aria-hidden="true"></i>{% translate "Trouvé dans :" %} {{ evenement.trouve_dans|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% if peut_ecrire %}
+                            <div class="d-flex gap-2 flex-shrink-0">
+                            <a class="btn btn-outline-primary"
+                               href="{% if lien_partage %}{% url 'share_event_edit' lien_partage.token evenement.pk %}{% else %}{% url 'event_edit' evenement.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}"
+                               title="{% translate "Modifier" %}" aria-label="{% translate "Modifier" %}"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16" aria-hidden="true"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"></path></svg></a>
+                            <a class="btn btn-outline-danger"
+                               href="{% if lien_partage %}{% url 'share_event_delete' lien_partage.token evenement.pk %}{% else %}{% url 'event_delete' evenement.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}"
+                               data-supprimer-evenement
+                               title="{% translate "Supprimer" %}" aria-label="{% translate "Supprimer" %}"><i class="bi bi-trash3" aria-hidden="true"></i></a>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if evenement.description %}
+                        <div class="mt-2 small text-break description-repliee">{{ evenement.description|safe }}</div>
+                    {% endif %}
+
+                    {% with pieces=evenement.documents.all %}
+                        {% if pieces %}
+                            <div class="mt-2 d-flex flex-wrap gap-1">
+                                {% for document in pieces %}
+                                    <a class="badge text-bg-light text-decoration-none text-wrap text-break"
+                                       target="_blank" rel="noopener noreferrer"
+                                       href="{% if lien_partage %}{% url 'share_document_download' lien_partage.token document.id %}{% else %}{% url 'document_download' document.id %}{% endif %}">
+                                        <span class="text-body-secondary">{{ document.numero }}</span> · {{ document.title }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            {% endfor %}
+        </div>
+    {% empty %}
+        <p class="text-body-secondary">{% translate "Ce dossier ne contient encore aucun évènement." %}</p>
+    {% endfor %}
+
+    {% include "events/_modal_evenement.html" %}
+{% endblock %}
+
+{% block extra_js %}
+    {% include "events/_detail_evenement_js.html" %}
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Le journal d'un dossier : qui a fait quoi, quand, du plus récent au plus ancien.
+
+Tout ce qui vient d'un utilisateur — titres, valeurs avant et après, noms de
+pièces et de comptes — est rendu comme du texte par Django. La description
+arrive déjà dépouillée de son HTML (`_valeur_lisible`) : un historique se lit
+en texte, et aucune valeur n'y est marquée `safe`.
+{% endcomment %}
+
+{% block title %}{% blocktranslate with nom=dossier.name %}Journal — {{ nom }}{% endblocktranslate %}{% endblock %}
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .valeur-journal {
+            max-height: 12rem;
+            overflow-y: auto;
+            white-space: pre-line;
+        }
+        @media print {
+            .valeur-journal { max-height: none; overflow: visible; }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <p class="mb-2">
+        <a class="text-decoration-none" href="{% url 'timeline' dossier.pk %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{{ dossier.name }}</a>
+    </p>
+    <h1 class="h3"><i class="bi bi-journal-text me-2 text-body-secondary" aria-hidden="true"></i>{% translate "Journal du dossier" %}</h1>
+    <p class="text-body-secondary small">
+        {% blocktranslate trimmed %}
+            Chaque modification du dossier y est inscrite, et rien ne peut en être effacé. Le journal
+            commence le 8 octobre 2026 : ce qui précède n'a pas laissé de trace.
+        {% endblocktranslate %}
+    </p>
+
+    {% if lignes %}
+        <div class="list-group">
+            {% for ligne in lignes %}
+                {% with entree=ligne.entree %}
+                    <div class="list-group-item">
+                        <div class="d-flex flex-wrap justify-content-between gap-2">
+                            <div class="text-break" style="min-width: 0;">
+                                <strong>{{ entree.get_action_display }}</strong>
+                                {% if entree.objet %}— {{ entree.objet }}{% endif %}
+                                {% if ligne.evenement and ligne.evenement != entree.objet %}
+                                    <span class="text-body-secondary small">
+                                        ({% blocktranslate with titre=ligne.evenement %}évènement « {{ titre }} »{% endblocktranslate %})
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="small text-body-secondary text-nowrap">
+                                {{ entree.moment|date:"SHORT_DATETIME_FORMAT" }}
+                            </div>
+                        </div>
+                        <div class="small text-body-secondary">
+                            {% if entree.auteur %}
+                                {% blocktranslate with nom=entree.auteur.get_username %}par {{ nom }}{% endblocktranslate %}
+                            {% elif entree.lien %}
+                                {% if entree.lien.label %}
+                                    {% blocktranslate with nom=entree.lien.label %}par le lien de partage « {{ nom }} »{% endblocktranslate %}
+                                {% else %}
+                                    {% translate "par un lien de partage" %}
+                                {% endif %}
+                            {% elif ligne.par_import %}
+                                <i class="bi bi-envelope-arrow-down me-1" aria-hidden="true"></i>{% translate "par l'import de courriels" %}
+                            {% else %}
+                                {% translate "auteur inconnu" %}
+                            {% endif %}
+                            {% if entree.via_admin %}
+                                <span class="badge text-bg-warning">{% translate "via l'administration" %}</span>
+                            {% endif %}
+                            {% if ligne.role %}· {{ ligne.role }}{% endif %}
+                        </div>
+
+                        {% if ligne.modifications %}
+                            <table class="table table-sm mt-2 mb-0 small">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">{% translate "Champ" %}</th>
+                                        {% if ligne.comparaison %}
+                                            <th scope="col">{% translate "Avant" %}</th>
+                                            <th scope="col">{% translate "Après" %}</th>
+                                        {% else %}
+                                            <th scope="col">{% translate "Valeur" %}</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for m in ligne.modifications %}
+                                        <tr>
+                                            <th scope="row" class="fw-normal text-capitalize">{{ m.champ }}</th>
+                                            {% if ligne.comparaison %}
+                                                <td class="text-break"><div class="valeur-journal">{{ m.avant }}</div></td>
+                                            {% endif %}
+                                            <td class="text-break"><div class="valeur-journal">{{ m.apres }}</div></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% endif %}
+
+                        {% if ligne.empreinte %}
+                            <div class="small text-body-secondary mt-1">
+                                SHA-256 <code class="user-select-all">{{ ligne.empreinte }}</code>
+                                {% if ligne.deja_presente %}
+                                    — {% translate "contenu déjà présent dans le dossier : rattaché, pas stocké deux fois" %}
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endwith %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-body-secondary">{% translate "Rien n'a encore été inscrit au journal." %}</p>
+    {% endif %}
+{% endblock %}

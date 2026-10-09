@@ -1,0 +1,327 @@
+{% load i18n %}
+{% translate "Aperçu de %(nom)s" as texte_apercu %}
+{% comment %}
+Comportement du détail d'un évènement : ouverture dans le modal, aperçu des
+PDF, visionneuse d'images. Inclus par les quatre vues et par la page de
+détail ; sans le modal (page de détail), seul l'équipement du fragment sert.
+
+Le fragment injecté est rendu par Django, qui échappe titres et noms de
+pièces, et dont la description est réassainie à la sortie. C'est la seule
+entrée de HTML dans le DOM : tout ce que ce script construit lui-même
+(messages, aperçu) l'est nœud par nœud, en `textContent`.
+{% endcomment %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.3.1/js/glightbox.min.js"
+        integrity="sha512-XL54SjceXZFzblziNnaFFaXggzqCuZrFS4loWPpvPJ6Kg0kc2HyL89+cPeH0GMq0sKL2SegzUmA8Lx9a0st2ow=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script nonce="{{ csp_nonce }}">
+"use strict";
+
+window.DetailEvenement = (function () {
+    // Échap ferme la visionneuse d'images *et* le modal qui est dessous :
+    // on quittait d'un coup la photo et l'évènement. Tant que la
+    // visionneuse est ouverte, le modal refuse de se fermer.
+    let visionneuseOuverte = false;
+
+    function afficherApercu(zone, url, nom) {
+        zone.replaceChildren();
+
+        const entete = document.createElement("div");
+        entete.className = "d-flex justify-content-between align-items-center mb-2";
+        const titre = document.createElement("strong");
+        titre.textContent = nom;
+        const fermer = document.createElement("button");
+        fermer.type = "button";
+        fermer.className = "btn btn-sm btn-outline-secondary";
+        const croix = document.createElement("i");
+        croix.className = "bi bi-x-lg me-1";
+        croix.setAttribute("aria-hidden", "true");
+        fermer.appendChild(croix);
+        fermer.appendChild(document.createTextNode("{{ _("Fermer l'aperçu")|escapejs }}"));
+        fermer.addEventListener("click", function () {
+            zone.replaceChildren();
+        });
+        entete.appendChild(titre);
+        entete.appendChild(fermer);
+
+        // `url` est l'attribut `href` posé par le serveur via reverse() :
+        // toujours /documents/<entier>/. Rien d'attaquant-contrôlé n'entre ici.
+        const cadre = document.createElement("iframe");
+        cadre.className = "w-100 border rounded";
+        cadre.style.height = "70vh";
+        cadre.src = url;
+        // Remplacement par fonction : avec une chaîne, un « $& » dans un nom
+        // de pièce serait interprété par `replace`.
+        // Traduit par la balise translate (variable texte_apercu) et non par
+        // la forme _() : cette derniere double les signes pour cent, et le
+        // marqueur du nom ne serait jamais remplace.
+        cadre.title = "{{ texte_apercu|escapejs }}".replace("%(nom)s", function () {
+            return nom;
+        });
+
+        zone.appendChild(entete);
+        zone.appendChild(cadre);
+        // Un aperçu PDF veut toute la largeur disponible.
+        if (window.DetailEvenement && window.DetailEvenement.elargir) {
+            window.DetailEvenement.elargir(true);
+        }
+        zone.scrollIntoView({behavior: "smooth", block: "nearest"});
+    }
+
+    function equiperDetail(racine) {
+        const zone = racine.querySelector("[data-zone-apercu]");
+        racine.querySelectorAll("a[data-apercu]").forEach(function (lien) {
+            lien.addEventListener("click", function (e) {
+                if (!zone) {
+                    return;
+                }
+                // Un aperçu dans la page plutôt qu'un onglet de plus : sept
+                // pièces consultées, c'étaient sept onglets ouverts.
+                e.preventDefault();
+                afficherApercu(zone, lien.href, lien.textContent.trim());
+            });
+        });
+        if (window.GLightbox) {
+            const visionneuse = GLightbox({selector: "[data-detail-evenement] .glightbox"});
+            visionneuse.on("open", function () {
+                visionneuseOuverte = true;
+            });
+            visionneuse.on("close", function () {
+                // Différé : Échap atteint aussi le modal pendant le même
+                // évènement clavier, après que la visionneuse s'est fermée.
+                setTimeout(function () {
+                    visionneuseOuverte = false;
+                }, 0);
+            });
+        }
+    }
+
+    // Page de détail : le fragment est déjà là, il suffit de l'équiper.
+    document.querySelectorAll("[data-detail-evenement]").forEach(equiperDetail);
+
+    const element = document.getElementById("modal-evenement");
+    if (!element) {
+        return {equiperDetail: equiperDetail};
+    }
+
+    const modal = bootstrap.Modal.getOrCreateInstance(element);
+    const corpsModal = document.getElementById("corps-modal-evenement");
+    const titreModal = document.getElementById("titre-modal-evenement");
+    let surModifier = null;
+    // Après une suppression : la page se recharge, sauf si elle sait se
+    // mettre à jour sur place (la chronologie retire l'élément de sa frise).
+    let surSuppression = function () {
+        window.location.reload();
+    };
+
+    element.addEventListener("hide.bs.modal", function (e) {
+        if (visionneuseOuverte) {
+            e.preventDefault();
+        }
+    });
+
+    const dialogue = element.querySelector("[data-dialogue-modal]");
+
+    // Large (`modal-xl`) quand le contenu le demande, normal sinon : un
+    // évènement de deux lignes n'a que faire de 1 140 px, une galerie de
+    // photos ou un aperçu PDF étouffent à 800.
+    function elargir(large) {
+        if (!dialogue) {
+            return;
+        }
+        dialogue.classList.toggle("modal-xl", large);
+        dialogue.classList.toggle("modal-lg", !large);
+    }
+
+    function demandeDeLaPlace(detail) {
+        const pieces = detail.querySelectorAll(".card").length;
+        const texte = (detail.textContent || "").trim().length;
+        return pieces > 0 || texte > 600;
+    }
+
+    element.addEventListener("hidden.bs.modal", function () {
+        elargir(false);
+    });
+
+    function message(texte, classe) {
+        const p = document.createElement("p");
+        p.className = classe;
+        p.textContent = texte;
+        corpsModal.replaceChildren(p);
+    }
+
+    function ouvrir(url) {
+        titreModal.textContent = "{{ _("Évènement")|escapejs }}";
+        message("{{ _("Chargement…")|escapejs }}", "text-body-secondary mb-0");
+        modal.show();
+
+        fetch(url, {headers: {"X-Requested-With": "XMLHttpRequest"}})
+            .then(function (reponse) {
+                if (!reponse.ok) {
+                    throw new Error("HTTP " + reponse.status);
+                }
+                return reponse.text();
+            })
+            .then(function (html) {
+                corpsModal.innerHTML = html;
+                const detail = corpsModal.querySelector("[data-detail-evenement]");
+                if (detail) {
+                    equiperDetail(detail);
+                    elargir(demandeDeLaPlace(detail));
+                }
+            })
+            .catch(function () {
+                // Sans ce message, un échec laisserait affiché l'évènement
+                // précédent : un lecteur dont l'accès vient d'être retiré
+                // continuerait de lire des pièces qu'il n'a plus le droit de voir.
+                message(
+                    "{{ _("Impossible de charger cet évènement. Il a peut-être été supprimé, ou votre accès au dossier a été retiré. Rechargez la page.")|escapejs }}",
+                    "text-danger mb-0"
+                );
+            });
+    }
+
+    function enTrainDEcrire(cible) {
+        return Boolean(cible && cible.closest &&
+            cible.closest("input, textarea, select, [contenteditable=''], [contenteditable='true']"));
+    }
+
+    function clicSimple(e) {
+        // Ctrl-clic, clic du milieu : la personne veut un onglet, le lien
+        // mène à une vraie page — on la laisse faire.
+        return e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey;
+    }
+
+    document.addEventListener("click", function (e) {
+        if (!clicSimple(e)) {
+            return;
+        }
+        const voir = e.target.closest("a[data-voir-evenement]");
+        if (voir) {
+            e.preventDefault();
+            ouvrir(voir.href);
+            return;
+        }
+        // « Modifier » mène à la page du formulaire. Là où le formulaire
+        // sait s'ouvrir dans le modal (la chronologie), il s'y ouvre.
+        const modifier = e.target.closest("a[data-modifier-evenement]");
+        if (modifier && surModifier && corpsModal.contains(modifier)) {
+            e.preventDefault();
+            surModifier(modifier.href);
+        }
+    });
+
+    // « Supprimer » : la confirmation s'affiche dans le modal, la
+    // suppression part en POST. Sans JavaScript, le lien mène à la page de
+    // confirmation, qui fait la même chose.
+    function confirmerSuppression(url) {
+        elargir(false);
+        titreModal.textContent = "{{ _("Supprimer l'évènement")|escapejs }}";
+        message("{{ _("Chargement…")|escapejs }}", "text-body-secondary mb-0");
+        modal.show();
+
+        fetch(url, {headers: {"X-Requested-With": "XMLHttpRequest"}})
+            .then(function (reponse) {
+                if (!reponse.ok) {
+                    throw new Error("HTTP " + reponse.status);
+                }
+                return reponse.text();
+            })
+            .then(function (html) {
+                corpsModal.innerHTML = html;
+                equiperSuppression();
+            })
+            .catch(function () {
+                message("{{ _("La confirmation n'a pas pu être chargée.")|escapejs }}", "alert alert-danger mb-0");
+            });
+    }
+
+    function equiperSuppression() {
+        const formulaire = corpsModal.querySelector("form[data-confirmer-suppression]");
+        if (!formulaire) {
+            return;
+        }
+        const annuler = formulaire.querySelector("[data-annuler-suppression]");
+        if (annuler) {
+            annuler.addEventListener("click", function (e) {
+                e.preventDefault();
+                modal.hide();
+            });
+        }
+        formulaire.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const bouton = formulaire.querySelector("button[type=submit]");
+            if (bouton) {
+                bouton.disabled = true;
+            }
+            fetch(formulaire.action, {
+                method: "POST",
+                body: new FormData(formulaire),
+                headers: {"X-Requested-With": "XMLHttpRequest"}
+            })
+                .then(function (reponse) {
+                    if (!reponse.ok) {
+                        throw new Error("HTTP " + reponse.status);
+                    }
+                    return reponse.json();
+                })
+                .then(function (data) {
+                    modal.hide();
+                    surSuppression(data);
+                })
+                .catch(function () {
+                    if (bouton) {
+                        bouton.disabled = false;
+                    }
+                    const erreur = document.createElement("div");
+                    erreur.className = "alert alert-danger mt-3 mb-0";
+                    erreur.textContent = "{{ _("La suppression a échoué. Rien n'a été supprimé.")|escapejs }}";
+                    formulaire.after(erreur);
+                });
+        });
+    }
+
+    document.addEventListener("click", function (e) {
+        if (!clicSimple(e)) {
+            return;
+        }
+        const supprimer = e.target.closest("a[data-supprimer-evenement]");
+        if (supprimer) {
+            e.preventDefault();
+            confirmerSuppression(supprimer.href);
+        }
+    });
+
+    // ← et → passent au fait précédent ou suivant, quand le détail est
+    // ouvert et que l'on n'est pas en train d'écrire.
+    document.addEventListener("keydown", function (e) {
+        if (!element.classList.contains("show") || visionneuseOuverte) {
+            return;
+        }
+        if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || enTrainDEcrire(e.target)) {
+            return;
+        }
+        const cible = e.key === "ArrowLeft" ? "[data-evenement-precedent]"
+            : e.key === "ArrowRight" ? "[data-evenement-suivant]" : null;
+        const lien = cible && corpsModal.querySelector(cible);
+        if (lien) {
+            e.preventDefault();
+            ouvrir(lien.href);
+        }
+    });
+
+    return {
+        equiperDetail: equiperDetail,
+        ouvrir: ouvrir,
+        elargir: elargir,
+        modal: modal,
+        corpsModal: corpsModal,
+        titreModal: titreModal,
+        quandModifier: function (rappel) {
+            surModifier = rappel;
+        },
+        quandSupprime: function (rappel) {
+            surSuppression = rappel;
+        }
+    };
+})();
+</script>

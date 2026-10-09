@@ -1,0 +1,15 @@
+[Unit]
+Description=Chronos — import des courriels transférés (Microsoft Graph)
+After=network-online.target chronos-env-fetch.service postgresql.service
+Requires=chronos-env-fetch.service
+
+[Service]
+Type=oneshot
+User=django
+Group=www-data
+UMask=0027
+WorkingDirectory=/var/www/django_websites/Chronos
+EnvironmentFile=/run/chronos/.env
+ExecStart=/var/www/django_websites/Chronos/.venv/bin/python manage.py importer_courriels
+TimeoutStartSec=900
+NoNewPrivileges=yes

@@ -1,0 +1,55 @@
+# Données réelles du dossier — ne jamais versionner.
+# db.sqlite3 et media/ contiennent l'unique copie des pièces du litige
+# (24 évènements, 49 documents). Les versionner les exposerait à quiconque
+# accède au dépôt, et alourdirait l'historique de 65 Mo de binaires.
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Sauvegardes horodatées créées avant les migrations (~65 Mo chacune).
+*.backup-*
+
+# Sauvegardes automatiques (`manage.py sauvegarder`) : copies des pièces.
+sauvegardes/
+
+# Environnement virtuel — reconstruit localement, jamais partagé :
+# celui d'origine pointait vers le Python d'une autre machine.
+.venv/
+
+# Secrets : le projet lit DJANGO_SECRET_KEY, DJANGO_DEBUG et
+# DJANGO_ALLOWED_HOSTS depuis l'environnement. Aucun .env ne doit
+# atterrir dans le dépôt.
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# IDE
+.idea/
+.vscode/
+
+# Système
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Vrais courriels transférés, déposés pour les tests d'import : jamais versionnés.
+exemples_courriels/
+
+
+# Fichiers statiques collectés (`collectstatic`) : produits au déploiement.
+staticfiles/
+
+# Certificats : jamais dans le dépôt (le certificat Exchange vit dans SSM).
+*.pfx
+*.pem
+*.key
+
+# Outils locaux.
+.playwright-mcp/
+.superdesign/

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Les pièces du dossier, en tableau : nom, évènements qui s'y appuient, taille,
+date de dépôt, empreinte. Recherche et filtres dans la barre commune
+(`_barre_filtres.html`) ; le calcul est `filtres.pieces_filtrees`.
+
+Sans JavaScript, comme la liste : les noms ouvrent la pièce, les évènements
+mènent à leur page. Avec JavaScript, un évènement s'ouvre dans le modal.
+Tout ce qui vient d'un contributeur est échappé par Django.
+{% endcomment %}
+
+{% block title %}{% blocktranslate with nom=dossier.name %}Documents — {{ nom }}{% endblocktranslate %}{% endblock %}
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+{# Le même cadre que les autres vues du dossier : en-tête, onglets et #}
+{# filtres ne bougent pas d'un onglet à l'autre. #}
+{% block main_class %}container-xxl{% endblock %}
+
+{% block extra_css %}
+    {% include "events/_detail_evenement_css.html" %}
+{% endblock %}
+
+{% block content %}
+    {% include "events/_entete_dossier.html" %}
+
+    <div class="d-none d-print-block small mb-3">
+        {% now "SHORT_DATETIME_FORMAT" as maintenant %}
+        {% blocktranslate trimmed with quand=maintenant %}Imprimé le {{ quand }}.{% endblocktranslate %}
+        {% if filtres.actifs %}
+            {% blocktranslate trimmed with criteres=filtres.description %}Sélection : {{ criteres }}.{% endblocktranslate %}
+        {% endif %}
+    </div>
+    <div class="d-flex justify-content-end mb-2" data-pas-a-l-impression>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-imprimer>
+            <i class="bi bi-printer me-1" aria-hidden="true"></i>{% translate "Imprimer" %}
+        </button>
+    </div>
+
+    {% if pieces %}
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="text-end">{% translate "N°" %}</th>
+                            <th scope="col">{% translate "Pièce" %}</th>
+                            <th scope="col">{% translate "Évènements" %}</th>
+                            <th scope="col" class="d-none d-md-table-cell text-end">{% translate "Taille" %}</th>
+                            <th scope="col" class="d-none d-lg-table-cell text-nowrap">{% translate "Déposée le" %}</th>
+                            <th scope="col" class="d-none d-xl-table-cell">SHA-256</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in pieces %}
+                            {% with document=ligne.document %}
+                                <tr data-piece>
+                                    <td class="text-end text-body-secondary fw-semibold" style="font-variant-numeric: tabular-nums;">{{ document.numero }}</td>
+                                    <td class="text-break" style="min-width: 12rem;">
+                                        <i class="{{ ligne.icone }} me-2" aria-hidden="true"></i><a class="text-decoration-none" target="_blank" rel="noopener noreferrer"
+                                           href="{% if lien_partage %}{% url 'share_document_download' lien_partage.token document.id %}{% else %}{% url 'document_download' document.id %}{% endif %}">{{ document.title }}</a>
+                                        {% if ligne.trouve_dans %}
+                                            <div class="text-body-secondary mt-1">
+                                                <i class="bi bi-search me-1" aria-hidden="true"></i>{% translate "Trouvé dans :" %} {{ ligne.trouve_dans|join:", " }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td style="min-width: 12rem;">
+                                        {% for evenement in ligne.evenements %}
+                                            <div class="text-break">
+                                                <span class="text-body-secondary text-nowrap">{{ evenement.date|date:"SHORT_DATE_FORMAT" }}</span>
+                                                <a class="text-decoration-none ms-1" data-voir-evenement
+                                                   href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token evenement.pk %}{% else %}{% url 'event_detail' evenement.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}">{{ evenement.title }}</a>
+                                            </div>
+                                        {% empty %}
+                                            <span class="text-body-secondary fst-italic">{% translate "aucun évènement" %}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td class="d-none d-md-table-cell text-end text-nowrap">{{ ligne.taille|filesizeformat }}</td>
+                                    <td class="d-none d-lg-table-cell text-nowrap">{{ document.uploaded_at|date:"SHORT_DATE_FORMAT" }}</td>
+                                    <td class="d-none d-xl-table-cell"><code class="user-select-all" title="{{ document.content_hash }}">{{ document.content_hash|truncatechars:13 }}</code></td>
+                                </tr>
+                            {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% elif not filtres_pieces_actifs %}
+        <p class="text-body-secondary">{% translate "Ce dossier ne contient encore aucune pièce." %}</p>
+    {% endif %}
+
+    {% include "events/_modal_evenement.html" %}
+{% endblock %}
+
+{% block extra_js %}
+    {% include "events/_detail_evenement_js.html" %}
+{% endblock %}

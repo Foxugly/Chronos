@@ -1,0 +1,72 @@
+{% load i18n %}
+{% comment %}
+En-tête commun aux vues d'un dossier : titre, actions, sélecteur.
+
+Un seul fragment pour toutes : sinon le sélecteur diverge d'une vue à
+l'autre, et l'on se retrouve avec un onglet qui manque là où personne ne
+regarde.
+
+Les liens conservent le jeton de partage le cas échéant : passer d'une vue à
+l'autre ne doit pas éjecter un visiteur anonyme hors de son lien.
+{% endcomment %}
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+    <div>
+        {% if not lien_partage %}
+            <a href="{% url 'dossier_list' %}" class="text-decoration-none small d-print-none"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Mes dossiers" %}</a>
+        {% endif %}
+        <h1 class="h3 mb-0">{{ dossier.name }}</h1>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+        {% if lien_partage %}
+            {% include "events/_bouton_export.html" %}
+        {% endif %}
+        {% if not lien_partage %}
+            <a href="{% url 'dossier_journal' dossier.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-journal-text me-1" aria-hidden="true"></i>{% translate "Journal" %}
+            </a>
+            {% if dossier.expediteurs.exists %}
+                <a href="{% url 'dossier_expediteurs' dossier.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-people me-1" aria-hidden="true"></i>{% translate "Expéditeurs" %}
+                </a>
+            {% endif %}
+            {% include "events/_bouton_export.html" %}
+            {% if dossier.owner_id == user.id %}
+                <a href="{% url 'dossier_share' dossier.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-share me-1" aria-hidden="true"></i>{% translate "Partager" %}
+                </a>
+                <a href="{% url 'dossier_parametres' dossier.pk %}" class="btn btn-outline-secondary"
+                   title="{% translate "Paramètres" %}" aria-label="{% translate "Paramètres" %}">
+                    <i class="bi bi-gear" aria-hidden="true"></i>
+                </a>
+            {% endif %}
+        {% endif %}
+        {% if peut_ecrire and nb_doublons and not lien_partage %}
+            <a href="{% url 'dossier_doublons' dossier.pk %}" class="btn btn-outline-warning">
+                <i class="bi bi-intersect me-1" aria-hidden="true"></i>{% blocktranslate trimmed count n=nb_doublons %}{{ n }} doublon possible{% plural %}{{ n }} doublons possibles{% endblocktranslate %}
+            </a>
+        {% endif %}
+        {% if peut_ecrire %}
+            <a href="{% if lien_partage %}{% url 'share_event_add' lien_partage.token %}{% else %}{% url 'event_add' dossier.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}"
+               class="btn btn-primary" data-ouvrir-formulaire
+               aria-keyshortcuts="n" title="{% translate "Raccourci : N" %}">
+                <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{% translate "Nouvel évènement" %}
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{# Quatre onglets (`onglets` dans `_contexte_de_vue`). Le calendrier choisit #}
+{# ses vues dans sa propre barre ; la liste est aussi le repli sans JavaScript #}
+{# et la version qui s'imprime.                                               #}
+<ul class="nav nav-tabs mb-3">
+    {% for cle, libelle in onglets %}
+        <li class="nav-item">
+            <a class="nav-link {% if onglet_actif == cle %}active{% endif %}"
+               {% if onglet_actif == cle %}aria-current="page"{% endif %}
+               href="{{ base_vue }}?vue={{ cle }}{{ suffixe_filtres }}">{{ libelle }}</a>
+        </li>
+    {% endfor %}
+</ul>
+
+{% include "events/_barre_filtres.html" %}

@@ -1,0 +1,623 @@
+{% load i18n %}
+{% comment %}
+Comportements du formulaire d'évènement : sélection des pièces (dépôt,
+retrait une à une, contrôle avant envoi), dates (flatpickr), éditeur riche,
+précision temporelle, retrait d'une pièce déjà jointe.
+
+Partagé par la page complète et le modal de la chronologie, pour la même
+raison que le fragment HTML : deux copies divergeraient, et c'est celle qu'on
+regarde le moins qui garderait le défaut.
+{% endcomment %}
+<script nonce="{{ csp_nonce }}">
+    // Textes affichés par ce script, traduits côté serveur. `escapejs` est
+    // indispensable : une traduction peut contenir un guillemet ou une balise
+    // fermante qui terminerait ce bloc.
+    // Les `%(nom)s` sont remplis par `formater`, jamais par concaténation :
+    // l'ordre des mots appartient à la traduction. `var` et non `const` : ce
+    // fragment peut être inclus deux fois dans un même document.
+    // Les modèles à `%(…)s` passent par la balise `translate` (forme « as »)
+    // et non par `_()` : `_()` double les `%` du msgid et ne les rétablit
+    // jamais, si bien que `formater` ne trouverait plus rien à remplir.
+    {% translate "Retirer %(nom)s" as texte_retirer_nomme %}
+    {% translate "« %(nom)s » : type non accepté. Types acceptés : %(types)s." as texte_type_refuse %}
+    {% translate "« %(nom)s » : trop lourd (%(taille)s, maximum %(maximum)s)." as texte_trop_lourd %}
+    {% translate "« %(nom)s » : déjà dans la liste, ignoré." as texte_doublon %}
+    {% translate "Date et heure reprises de la photo « %(nom)s » (prise de vue). Vérifiez-les." as texte_date_photo %}
+    var TEXTES_FORMULAIRE = {
+        mo: "{{ _("Mo")|escapejs }}",
+        ko: "{{ _("Ko")|escapejs }}",
+        retirer: "{{ _("Retirer")|escapejs }}",
+        retirerNomme: "{{ texte_retirer_nomme|escapejs }}",
+        typeRefuse: "{{ texte_type_refuse|escapejs }}",
+        tropLourd: "{{ texte_trop_lourd|escapejs }}",
+        doublon: "{{ texte_doublon|escapejs }}",
+        datePhoto: "{{ texte_date_photo|escapejs }}",
+        retireSupprime: "{{ _("Pièce retirée et supprimée : plus aucun évènement ne s'y appuyait.")|escapejs }}",
+        retireGarde: "{{ _("Pièce retirée de cet évènement ; elle reste liée ailleurs.")|escapejs }}",
+        retraitEchoue: "{{ _("Le retrait a échoué. La pièce est toujours là.")|escapejs }}",
+        placeholderDescription: "{{ _("Décrivez l'évènement…")|escapejs }}"
+    };
+
+    // Remplit les `%(cle)s` d'un modèle en une seule passe : une valeur qui
+    // contiendrait elle-même `%(…)s` ou `$&` (un nom de fichier) reste telle
+    // quelle. Le résultat est du texte, posé avec `textContent`.
+    function formater(modele, valeurs) {
+        return modele.replace(/%\((\w+)\)s/g, function (tout, cle) {
+            return Object.prototype.hasOwnProperty.call(valeurs, cle) ? String(valeurs[cle]) : tout;
+        });
+    }
+
+    // La langue courante, posée par `base.html` (`langue-courante`) : chaque
+    // bibliothèque en tire son code de langue, rien n'est écrit en dur ici.
+    function langueCourante() {
+        var noeud = document.getElementById("langue-courante");
+        try {
+            return (noeud && JSON.parse(noeud.textContent)) || {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function jetonCsrf(formulaire) {
+        const champ = formulaire.querySelector("[name=csrfmiddlewaretoken]");
+        return champ ? champ.value : "";
+    }
+
+    // Deux sélections successives du même fichier donneraient deux pièces
+    // identiques. On les reconnaît par nom, taille et date de modification :
+    // lire le contenu demanderait une lecture asynchrone, disproportionnée.
+    // Le serveur déduplique de son côté sur l'empreinte réelle ; ceci n'est
+    // qu'un confort, et ne fait pas autorité.
+    function signatureFichier(file) {
+        return [file.name, file.size, file.lastModified].join("|");
+    }
+
+    function tailleLisible(octets) {
+        var format = new Intl.NumberFormat(document.documentElement.lang || undefined, {
+            maximumFractionDigits: 1
+        });
+        var mo = octets / (1024 * 1024);
+        return mo >= 1
+            ? format.format(mo) + " " + TEXTES_FORMULAIRE.mo
+            : format.format(Math.max(1, Math.round(octets / 1024))) + " " + TEXTES_FORMULAIRE.ko;
+    }
+
+    // L'icône « trash3 » de Bootstrap Icons, construite nœud par nœud.
+    function iconePoubelle() {
+        var ns = "http://www.w3.org/2000/svg";
+        var svg = document.createElementNS(ns, "svg");
+        svg.setAttribute("width", "16");
+        svg.setAttribute("height", "16");
+        svg.setAttribute("fill", "currentColor");
+        svg.setAttribute("viewBox", "0 0 16 16");
+        svg.setAttribute("class", "bi bi-trash3");
+        svg.setAttribute("aria-hidden", "true");
+        var trace = document.createElementNS(ns, "path");
+        trace.setAttribute("d", "M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5");
+        svg.appendChild(trace);
+        return svg;
+    }
+
+    function extensionDe(nom) {
+        var point = nom.lastIndexOf(".");
+        return point === -1 ? "" : nom.slice(point + 1).toLowerCase();
+    }
+
+    /*
+     * Les pièces à joindre : **une seule sélection**, et c'est celle qui part.
+     *
+     * Le champ natif `documents` reste dans le formulaire — c'est lui que le
+     * navigateur envoie — et `selection` (un DataTransfer) est recopiée dedans
+     * à chaque changement. La liste affichée est construite depuis cette même
+     * sélection : ce qu'on voit est exactement ce qui sera envoyé.
+     *
+     * bootstrap-fileinput, qui tenait ce rôle, gérait sa propre liste à côté de
+     * celle du champ. Les deux divergeaient : son bouton « vider » et le refus
+     * d'un `.exe` vidaient le champ — **aucune** pièce ne partait, pas même les
+     * valides — pendant que la liste continuait d'afficher les fichiers.
+     *
+     * Sans JavaScript, ou sans `DataTransfer`, le champ natif multiple reste
+     * seul, filtré par son attribut `accept`.
+     */
+    /*
+     * Date de prise de vue d'une photo JPEG (EXIF `DateTimeOriginal`, à défaut
+     * `DateTimeDigitized` puis `DateTime`). Lu dans le navigateur, sur les
+     * 256 premiers Kio du fichier : rien n'est envoyé pour cela. Rend
+     * `{date: "AAAA-MM-JJ", heure: "HH:MM"}` ou `null` — un fichier tronqué
+     * ou bizarre donne `null`, jamais une erreur.
+     */
+    function lireDateExif(file) {
+        if (!/\.(jpe?g)$/i.test(file.name) || !file.slice || !window.DataView) {
+            return Promise.resolve(null);
+        }
+        return file.slice(0, 256 * 1024).arrayBuffer().then(function (tampon) {
+            var vue = new DataView(tampon);
+            if (vue.getUint16(0) !== 0xFFD8) {
+                return null;
+            }
+            var pos = 2;
+            while (pos + 10 < vue.byteLength) {
+                var marqueur = vue.getUint16(pos);
+                if ((marqueur & 0xFF00) !== 0xFF00) {
+                    return null;
+                }
+                if (marqueur === 0xFFE1 && vue.getUint32(pos + 4) === 0x45786966) {
+                    return dateDansTiff(vue, pos + 10);
+                }
+                pos += 2 + vue.getUint16(pos + 2);
+            }
+            return null;
+        }).catch(function () {
+            return null;
+        });
+    }
+
+    function dateDansTiff(vue, debut) {
+        var petit = vue.getUint16(debut) === 0x4949;
+        function u16(o) { return vue.getUint16(debut + o, petit); }
+        function u32(o) { return vue.getUint32(debut + o, petit); }
+        function entree(ifd, etiquette) {
+            var n = u16(ifd);
+            for (var i = 0; i < n; i++) {
+                var e = ifd + 2 + i * 12;
+                if (u16(e) === etiquette) {
+                    return e;
+                }
+            }
+            return null;
+        }
+        function texte(e) {
+            var longueur = u32(e + 4);
+            var position = longueur > 4 ? u32(e + 8) : e + 8;
+            var resultat = "";
+            for (var i = 0; i < longueur - 1 && i < 32; i++) {
+                resultat += String.fromCharCode(vue.getUint8(debut + position + i));
+            }
+            return resultat;
+        }
+        var ifd0 = u32(4);
+        var valeur = null;
+        var pointeur = entree(ifd0, 0x8769);
+        if (pointeur !== null) {
+            var exif = u32(pointeur + 8);
+            var e = entree(exif, 0x9003) || entree(exif, 0x9004);
+            if (e !== null) {
+                valeur = texte(e);
+            }
+        }
+        if (!valeur) {
+            var e0 = entree(ifd0, 0x0132);
+            if (e0 !== null) {
+                valeur = texte(e0);
+            }
+        }
+        var m = /^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2})/.exec(valeur || "");
+        if (!m || m[1] === "0000") {
+            return null;
+        }
+        return {date: m[1] + "-" + m[2] + "-" + m[3], heure: m[4] + ":" + m[5]};
+    }
+
+    /*
+     * Un nouvel évènement sans date, et une photo qui en porte une : la date
+     * et l'heure de prise de vue sont proposées (mode « une date et une
+     * heure »), et une note le dit. Jamais sur un champ déjà rempli : une
+     * date saisie, ou celle d'un évènement existant, n'est pas écrasée.
+     */
+    function proposerDateDePhoto(formulaire, file) {
+        var champDate = formulaire.querySelector('input[name="date"]');
+        if (!champDate || champDate.value || formulaire.dataset.dateDePhoto) {
+            return;
+        }
+        lireDateExif(file).then(function (trouvee) {
+            if (!trouvee || champDate.value || formulaire.dataset.dateDePhoto) {
+                return;
+            }
+            formulaire.dataset.dateDePhoto = "1";
+            var champHeure = formulaire.querySelector('input[name="heure"]');
+            [[champDate, trouvee.date], [champHeure, trouvee.heure]].forEach(function (paire) {
+                var champ = paire[0];
+                if (!champ) {
+                    return;
+                }
+                if (champ._flatpickr) {
+                    champ._flatpickr.setDate(paire[1], true);
+                } else {
+                    champ.value = paire[1];
+                }
+            });
+            var instant = formulaire.querySelector('[data-selecteur-precision] input[value="instant"]');
+            if (instant) {
+                instant.checked = true;
+                instant.dispatchEvent(new Event("change", {bubbles: true}));
+            }
+            var note = document.createElement("div");
+            note.className = "form-text text-success mb-2";
+            note.setAttribute("data-note-date-photo", "");
+            note.textContent = formater(TEXTES_FORMULAIRE.datePhoto, {nom: file.name});
+            var bloc = champDate.closest(".row") || champDate.parentNode;
+            bloc.parentNode.insertBefore(note, bloc.nextSibling);
+        });
+    }
+
+    function equiperChampFichiers(formulaire) {
+        var bloc = formulaire.querySelector("[data-pieces]");
+        var champ = formulaire.querySelector("[data-file-input]");
+        if (!bloc || !champ || typeof DataTransfer === "undefined") {
+            return;
+        }
+        var zone = bloc.querySelector("[data-zone-depot]");
+        var liste = bloc.querySelector("[data-pending-files]");
+        var note = bloc.querySelector("[data-pending-note]");
+        var extensions = (bloc.dataset.extensions || "").split(",").filter(Boolean);
+        var tailleMax = (Number(bloc.dataset.tailleMaxKo) || 0) * 1024;
+        var selection = new DataTransfer();
+
+        champ.classList.add("visually-hidden");
+        zone.classList.remove("d-none");
+
+        function annoncer(messages) {
+            note.replaceChildren();
+            messages.forEach(function (texte) {
+                var ligne = document.createElement("div");
+                ligne.textContent = texte;
+                note.appendChild(ligne);
+            });
+        }
+
+        function ligneDe(file, index) {
+            var li = document.createElement("li");
+            li.className = "list-group-item d-flex align-items-center gap-2";
+
+            if (["jpg", "jpeg", "png"].indexOf(extensionDe(file.name)) !== -1) {
+                // Une URL `blob:` locale, jamais le contenu injecté dans la page.
+                var vignette = document.createElement("img");
+                vignette.src = URL.createObjectURL(file);
+                vignette.alt = "";
+                vignette.width = 48;
+                vignette.height = 48;
+                vignette.style.objectFit = "cover";
+                vignette.className = "rounded flex-shrink-0";
+                vignette.addEventListener("load", function () {
+                    URL.revokeObjectURL(vignette.src);
+                });
+                // Une image illisible : pas de vignette plutôt qu'une icône
+                // cassée. Le fichier, lui, reste dans la sélection.
+                vignette.addEventListener("error", function () {
+                    URL.revokeObjectURL(vignette.src);
+                    vignette.remove();
+                });
+                li.appendChild(vignette);
+            }
+
+            // Le nom est choisi par la personne qui téléverse : du texte,
+            // jamais du balisage.
+            var nom = document.createElement("span");
+            nom.className = "text-break";
+            nom.textContent = file.name;
+            var taille = document.createElement("small");
+            taille.className = "text-body-secondary text-nowrap";
+            taille.textContent = tailleLisible(file.size);
+
+            var retirer = document.createElement("button");
+            retirer.type = "button";
+            retirer.className = "btn btn-sm btn-outline-danger ms-auto";
+            retirer.title = TEXTES_FORMULAIRE.retirer;
+            retirer.appendChild(iconePoubelle());
+            retirer.setAttribute("aria-label", formater(TEXTES_FORMULAIRE.retirerNomme, {nom: file.name}));
+            retirer.addEventListener("click", function () {
+                retirerFichier(index);
+            });
+
+            li.appendChild(nom);
+            li.appendChild(taille);
+            li.appendChild(retirer);
+            return li;
+        }
+
+        function synchroniser() {
+            champ.files = selection.files;
+            liste.replaceChildren();
+            Array.from(selection.files).forEach(function (file, index) {
+                liste.appendChild(ligneDe(file, index));
+            });
+        }
+
+        function retirerFichier(index) {
+            var restants = Array.from(selection.files).filter(function (_, i) {
+                return i !== index;
+            });
+            selection.items.clear();
+            restants.forEach(function (file) {
+                selection.items.add(file);
+            });
+            annoncer([]);
+            synchroniser();
+        }
+
+        // Chaque fichier est jugé seul : un fichier refusé n'emporte pas les
+        // autres, et chaque refus est dit — écarter une pièce en silence,
+        // c'est laisser croire qu'elle est jointe.
+        function ajouter(fichiers) {
+            var dejaLa = new Set(Array.from(selection.files).map(signatureFichier));
+            var messages = [];
+            Array.from(fichiers).forEach(function (file) {
+                if (extensions.length && extensions.indexOf(extensionDe(file.name)) === -1) {
+                    messages.push(formater(TEXTES_FORMULAIRE.typeRefuse, {
+                        nom: file.name,
+                        types: extensions.join(", ")
+                    }));
+                    return;
+                }
+                if (tailleMax && file.size > tailleMax) {
+                    messages.push(formater(TEXTES_FORMULAIRE.tropLourd, {
+                        nom: file.name,
+                        taille: tailleLisible(file.size),
+                        maximum: tailleLisible(tailleMax)
+                    }));
+                    return;
+                }
+                if (dejaLa.has(signatureFichier(file))) {
+                    messages.push(formater(TEXTES_FORMULAIRE.doublon, {nom: file.name}));
+                    return;
+                }
+                dejaLa.add(signatureFichier(file));
+                selection.items.add(file);
+                proposerDateDePhoto(formulaire, file);
+            });
+            annoncer(messages);
+            synchroniser();
+        }
+
+        // Le sélecteur ne rend que les fichiers qu'on vient de choisir :
+        // ils s'ajoutent à la sélection au lieu de la remplacer.
+        champ.addEventListener("change", function () {
+            ajouter(champ.files);
+        });
+
+        bloc.querySelector("[data-parcourir]").addEventListener("click", function () {
+            champ.click();
+        });
+
+        ["dragenter", "dragover"].forEach(function (type) {
+            zone.addEventListener(type, function (e) {
+                e.preventDefault();
+                zone.classList.add("border-primary", "bg-primary-subtle");
+            });
+        });
+        ["dragleave", "drop"].forEach(function (type) {
+            zone.addEventListener(type, function () {
+                zone.classList.remove("border-primary", "bg-primary-subtle");
+            });
+        });
+        zone.addEventListener("drop", function (e) {
+            e.preventDefault();
+            if (e.dataTransfer && e.dataTransfer.files.length) {
+                ajouter(e.dataTransfer.files);
+            }
+        });
+
+        // Un fichier lâché à côté de la zone ferait ouvrir le PDF par le
+        // navigateur à la place de la page : le formulaire en cours serait
+        // perdu. Dans le formulaire, un dépôt hors zone ne fait rien.
+        ["dragover", "drop"].forEach(function (type) {
+            formulaire.addEventListener(type, function (e) {
+                if (!zone.contains(e.target)) {
+                    e.preventDefault();
+                }
+            });
+        });
+    }
+
+    function equiperRetraitDesPieces(formulaire) {
+        formulaire.querySelectorAll("[data-document-detach]").forEach(function (bouton) {
+            bouton.addEventListener("click", function () {
+                const ligne = bouton.closest("li");
+                bouton.disabled = true;
+
+                fetch(bouton.dataset.documentDetach, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": jetonCsrf(formulaire),
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                    .then(function (reponse) {
+                        if (!reponse.ok) {
+                            throw new Error("HTTP " + reponse.status);
+                        }
+                        return reponse.json();
+                    })
+                    .then(function (data) {
+                        if (ligne) {
+                            ligne.remove();
+                        }
+                        const note = formulaire.querySelector("[data-pending-note]");
+                        if (note) {
+                            // Dire laquelle des deux choses s'est produite :
+                            // « retiré » et « supprimé » n'engagent pas la
+                            // même chose sur un dossier de preuves.
+                            note.textContent = data.supprime
+                                ? TEXTES_FORMULAIRE.retireSupprime
+                                : TEXTES_FORMULAIRE.retireGarde;
+                        }
+                    })
+                    .catch(function () {
+                        bouton.disabled = false;
+                        const note = formulaire.querySelector("[data-pending-note]");
+                        if (note) {
+                            note.textContent = TEXTES_FORMULAIRE.retraitEchoue;
+                        }
+                    });
+            });
+        });
+    }
+
+    function equiperEditeurRiche(formulaire) {
+        const champ = formulaire.querySelector("[data-editeur-riche]");
+        if (!champ || typeof Quill === "undefined") {
+            // Sans Quill, la zone de texte reste utilisable telle quelle :
+            // on y saisit du HTML simple ou du texte, que le serveur
+            // assainit de toute façon.
+            return;
+        }
+
+        // Le champ est masqué plutôt que retiré : c'est lui que le
+        // formulaire envoie, et c'est dans lui qu'on recopie le contenu
+        // avant chaque soumission.
+        champ.classList.add("d-none");
+
+        const hote = document.createElement("div");
+        hote.className = "bg-body";
+        hote.style.minHeight = "10rem";
+        champ.parentNode.insertBefore(hote, champ);
+
+        const editeur = new Quill(hote, {
+            theme: "snow",
+            placeholder: TEXTES_FORMULAIRE.placeholderDescription,
+            modules: {
+                toolbar: [
+                    ["bold", "italic", "underline", "strike"],
+                    [{list: "ordered"}, {list: "bullet"}],
+                    ["blockquote", "code-block"],
+                    ["link"],
+                    ["clean"]
+                ]
+            }
+        });
+
+        // Le contenu existant est du HTML assaini par le serveur : on le
+        // remet dans l'éditeur tel quel.
+        editeur.clipboard.dangerouslyPasteHTML(champ.value || "");
+
+        function normaliser(racine) {
+            // Quill 2 n'émet pas du HTML sémantique : il met les puces dans
+            // `<ol><li data-list="bullet">` et sème des `<span class="ql-ui">`
+            // qui ne sont que de l'échafaudage d'éditeur.
+            //
+            // On range cela avant l'envoi. Ce qui est enregistré doit rester
+            // du HTML valide le jour où cet éditeur sera remplacé : une
+            // description de dossier survit à un choix de bibliothèque.
+            //
+            // Ceci est une question de fidélité, pas de sécurité : le rempart
+            // reste l'assainissement du serveur, qui s'applique quoi qu'il
+            // arrive ici.
+            const copie = racine.cloneNode(true);
+
+            copie.querySelectorAll(".ql-ui").forEach(function (n) {
+                n.remove();
+            });
+
+            copie.querySelectorAll("ol").forEach(function (ol) {
+                const groupes = [];
+                let courant = null;
+                Array.from(ol.children).forEach(function (li) {
+                    const puce = li.getAttribute("data-list") === "bullet";
+                    if (!courant || courant.puce !== puce) {
+                        courant = {puce: puce, items: []};
+                        groupes.push(courant);
+                    }
+                    courant.items.push(li);
+                });
+
+                groupes.forEach(function (groupe) {
+                    const liste = document.createElement(groupe.puce ? "ul" : "ol");
+                    groupe.items.forEach(function (li) {
+                        li.removeAttribute("data-list");
+                        liste.appendChild(li);
+                    });
+                    ol.parentNode.insertBefore(liste, ol);
+                });
+                ol.remove();
+            });
+
+            return copie.innerHTML;
+        }
+
+        function recopier() {
+            champ.value = normaliser(editeur.root);
+        }
+
+        editeur.on("text-change", recopier);
+        formulaire.addEventListener("submit", recopier);
+        recopier();
+    }
+
+    /* Ne montrer que les champs du mode choisi.
+     *
+     * Masquer, jamais désactiver : un champ `disabled` n'est pas envoyé, et
+     * c'est `clean()` qui doit décider ce qu'on garde. Si ce code ne tourne
+     * pas, le formulaire reste complet et juste — seulement plus bavard.
+     */
+    function equiperPrecision(formulaire) {
+        var selecteur = formulaire.querySelector("[data-selecteur-precision]");
+        if (!selecteur) {
+            return;
+        }
+        var zones = formulaire.querySelectorAll("[data-precision]");
+
+        function appliquer() {
+            var choisi = formulaire.querySelector(
+                "[data-selecteur-precision] input:checked"
+            );
+            var mode = choisi ? choisi.value : "date";
+            zones.forEach(function (zone) {
+                var modes = zone.getAttribute("data-precision").split(" ");
+                zone.hidden = modes.indexOf(mode) === -1;
+            });
+        }
+
+        selecteur.addEventListener("change", appliquer);
+        appliquer();
+    }
+
+    /*
+     * Dates et heures affichées au format de la langue courante (flatpickr).
+     *
+     * Le champ de Django reste celui qu'on envoie, au format ISO qu'exigent
+     * le serveur et la norme HTML ; flatpickr le masque et pose à côté un
+     * champ d'affichage au format court de la langue (`altInput`) — « 05/08/2026 »
+     * en français, « 5-8-2026 » en néerlandais. Sans flatpickr (CDN
+     * indisponible), le champ natif du navigateur reste : toujours juste,
+     * mais au format du navigateur et non à celui du site.
+     *
+     * `disableMobile` : sans lui, flatpickr rend la main au sélecteur natif
+     * sur téléphone, qui suit la langue de l'appareil et non celle du site.
+     */
+    function equiperDates(formulaire) {
+        if (!window.flatpickr) {
+            return;
+        }
+        var langue = langueCourante();
+        var locale = (flatpickr.l10ns && flatpickr.l10ns[langue.base]) || flatpickr.l10ns.default;
+        var vingtQuatreHeures = locale.time_24hr === true;
+        var commun = {locale: locale, altInput: true, allowInput: true, disableMobile: true};
+
+        formulaire.querySelectorAll('input[type="date"]').forEach(function (champ) {
+            flatpickr(champ, Object.assign({
+                dateFormat: "Y-m-d",
+                altFormat: langue.format_date || "Y-m-d"
+            }, commun));
+        });
+        formulaire.querySelectorAll('input[type="time"]').forEach(function (champ) {
+            flatpickr(champ, Object.assign({
+                enableTime: true,
+                noCalendar: true,
+                time_24hr: vingtQuatreHeures,
+                dateFormat: "H:i",
+                altFormat: vingtQuatreHeures ? "H:i" : "h:i K"
+            }, commun));
+        });
+    }
+
+    function equiperFormulaire(formulaire) {
+        if (!formulaire) {
+            return;
+        }
+        equiperDates(formulaire);
+        equiperPrecision(formulaire);
+        equiperEditeurRiche(formulaire);
+        equiperChampFichiers(formulaire);
+        equiperRetraitDesPieces(formulaire);
+    }
+</script>

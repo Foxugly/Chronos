@@ -1,0 +1,2285 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-09 12:30+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\events\admin.py:30
+msgid "pièce liée"
+msgstr "linked document"
+
+#: .\events\admin.py:31
+msgid "pièces liées"
+msgstr "linked documents"
+
+#: .\events\admin.py:238 .\events\models.py:472 .\events\models.py:905
+msgid "évènements"
+msgstr "events"
+
+#: .\events\couleurs.py:34
+msgid "Couleur invalide : attendu #rrggbb."
+msgstr "Invalid colour: #rrggbb expected."
+
+#: .\events\doublons.py:94
+#, python-format
+msgid "%(n)s pièce(s) en commun"
+msgstr "%(n)s document(s) in common"
+
+#: .\events\doublons.py:96
+msgid "même jour"
+msgstr "same day"
+
+#: .\events\doublons.py:98
+msgid "un jour d'écart"
+msgstr "one day apart"
+
+#: .\events\doublons.py:100
+msgid "titres proches"
+msgstr "similar titles"
+
+#: .\events\doublons.py:156
+#, python-format
+msgid "Fusionné depuis « %(titre)s » (%(periode)s) :"
+msgstr "Merged from “%(titre)s” (%(periode)s):"
+
+#: .\events\etiquettes.py:21
+msgid "Devis"
+msgstr "Quote"
+
+#: .\events\etiquettes.py:21
+msgid "Facture"
+msgstr "Invoice"
+
+#: .\events\etiquettes.py:21
+msgid "Paiement"
+msgstr "Payment"
+
+#: .\events\etiquettes.py:21
+msgid "Photo du chantier"
+msgstr "Site photo"
+
+#: .\events\etiquettes.py:21
+msgid "Courrier"
+msgstr "Letter"
+
+#: .\events\etiquettes.py:22
+msgid "Mise en demeure"
+msgstr "Formal notice"
+
+#: .\events\etiquettes.py:22
+msgid "Avis d'expert"
+msgstr "Expert opinion"
+
+#: .\events\export.py:178
+#, python-format
+msgid ""
+"Dossier : %(dossier)s\n"
+"Exporté le %(date)s par %(auteur)s.\n"
+"\n"
+"Contenu :\n"
+"- chronologie.pdf : les faits dans l'ordre, avec leurs pièces ;\n"
+"- pieces/ : chaque pièce une seule fois, numérotée comme dans la chronologie ;\n"
+"- empreintes.sha256 : l'empreinte SHA-256 de chaque pièce.\n"
+"\n"
+"Vérifier qu'une pièce n'a pas été modifiée :\n"
+"- Linux, macOS : sha256sum -c empreintes.sha256\n"
+"- Windows : certutil -hashfile pieces\\NOM_DU_FICHIER SHA256\n"
+"  puis comparer avec la ligne correspondante de empreintes.sha256.\n"
+"\n"
+"L'empreinte enregistrée lors du dépôt de chaque pièce a été comparée, au\n"
+"moment de l'export, à celle du fichier exporté : le résultat figure dans\n"
+"chronologie.pdf, section « Contrôle d'intégrité ».\n"
+msgstr ""
+"Case file: %(dossier)s\n"
+"Exported on %(date)s by %(auteur)s.\n"
+"\n"
+"Contents:\n"
+"- chronologie.pdf: the facts in order, with their documents;\n"
+"- pieces/: each document once, numbered as in the chronology;\n"
+"- empreintes.sha256: the SHA-256 hash of each document.\n"
+"\n"
+"Checking that a document has not been altered:\n"
+"- Linux, macOS: sha256sum -c empreintes.sha256\n"
+"- Windows: certutil -hashfile pieces\\FILE_NAME SHA256\n"
+"  then compare with the matching line in empreintes.sha256.\n"
+"\n"
+"The hash recorded when each document was uploaded was compared, at export\n"
+"time, with the hash of the exported file: the result is in chronologie.pdf,\n"
+"section “Integrity check”.\n"
+
+#: .\events\export.py:197
+#, python-format
+msgid ""
+"Export partiel : seuls les évènements retenus par cette sélection, et leurs\n"
+"pièces, figurent dans l'archive — %(selection)s.\n"
+msgstr ""
+"Partial export: only the events in this selection, and their\n"
+"documents, are in the archive — %(selection)s.\n"
+
+#: .\events\export.py:201
+msgid "journal.pdf : le journal des modifications du dossier.\n"
+msgstr "journal.pdf: the log of changes to the case file.\n"
+
+#: .\events\export.py:227
+#, python-format
+msgid "page %(n)s"
+msgstr "page %(n)s"
+
+#: .\events\export.py:247 .\events\templates\events\journal.html:13
+#, python-format
+msgid "Journal — %(nom)s"
+msgstr "Log — %(nom)s"
+
+#: .\events\export.py:248
+#, python-format
+msgid "Exporté le %(date)s par %(auteur)s."
+msgstr "Exported on %(date)s by %(auteur)s."
+
+#: .\events\export.py:261
+#, python-format
+msgid "lien de partage « %(nom)s »"
+msgstr "share link “%(nom)s”"
+
+#: .\events\export.py:263
+msgid "import de courriels"
+msgstr "email import"
+
+#: .\events\export.py:265 .\events\templates\events\journal.html:72
+msgid "auteur inconnu"
+msgstr "unknown author"
+
+#: .\events\export.py:267 .\events\models.py:798
+#: .\events\templates\events\journal.html:75
+msgid "via l'administration"
+msgstr "via the administration"
+
+#: .\events\export.py:282 .\events\templates\events\journal.html:120
+msgid "Rien n'a encore été inscrit au journal."
+msgstr "Nothing has been recorded in the log yet."
+
+#: .\events\export.py:303
+#, python-format
+msgid "Chronologie exportée le %(date)s par %(auteur)s."
+msgstr "Chronology exported on %(date)s by %(auteur)s."
+
+#: .\events\export.py:305
+#, python-format
+msgid "%(n)s évènements, %(p)s pièces."
+msgstr "%(n)s events, %(p)s documents."
+
+#: .\events\export.py:311
+#, python-format
+msgid ""
+"Export partiel — sélection : %(selection)s. %(n)s évènement sur %(total)s."
+msgid_plural ""
+"Export partiel — sélection : %(selection)s. %(n)s évènements sur %(total)s."
+msgstr[0] ""
+"Partial export — selection: %(selection)s. %(n)s event out of %(total)s."
+msgstr[1] ""
+"Partial export — selection: %(selection)s. %(n)s events out of %(total)s."
+
+#: .\events\export.py:320
+#, python-format
+msgid ""
+"Attention : %(n)s pièce(s) ne correspondent plus à l'empreinte enregistrée "
+"lors de leur dépôt. Voir « Contrôle d'intégrité »."
+msgstr ""
+"Warning: %(n)s document(s) no longer match the hash recorded when they were "
+"uploaded. See “Integrity check”."
+
+#: .\events\export.py:325 .\events\views.py:156
+msgid "Chronologie"
+msgstr "Chronology"
+
+#: .\events\export.py:333
+#, python-format
+msgid "Étiquettes : %(noms)s"
+msgstr "Tags: %(noms)s"
+
+#: .\events\export.py:339
+#, python-format
+msgid "Pièce %(numero)s : %(nom)s"
+msgstr "Document %(numero)s: %(nom)s"
+
+#: .\events\export.py:346
+msgid "Contrôle d'intégrité"
+msgstr "Integrity check"
+
+#: .\events\export.py:348
+msgid ""
+"Pour chaque pièce, l'empreinte SHA-256 du fichier exporté a été recalculée "
+"et comparée à celle enregistrée lors de son dépôt."
+msgstr ""
+"For each document, the SHA-256 hash of the exported file was recomputed and "
+"compared with the one recorded when it was uploaded."
+
+#: .\events\export.py:352 .\events\templates\events\vue_documents.html:46
+msgid "N°"
+msgstr "No."
+
+#: .\events\export.py:352 .\events\templates\events\vue_documents.html:47
+msgid "Pièce"
+msgstr "Document"
+
+#: .\events\export.py:352
+msgid "SHA-256"
+msgstr "SHA-256"
+
+#: .\events\export.py:352
+msgid "Contrôle"
+msgstr "Check"
+
+#: .\events\export.py:358
+msgid "conforme"
+msgstr "matches"
+
+#: .\events\export.py:358
+msgid "DIFFÉRENTE"
+msgstr "DIFFERENT"
+
+#: .\events\filtres.py:97
+#, python-format
+msgid "recherche « %(q)s »"
+msgstr "search “%(q)s”"
+
+#: .\events\filtres.py:99
+#, python-format
+msgid "expéditeur : %(nom)s"
+msgstr "sender: %(nom)s"
+
+#: .\events\filtres.py:101
+#, python-format
+msgid "étiquette : %(nom)s"
+msgstr "tag: %(nom)s"
+
+#: .\events\filtres.py:103
+#, python-format
+msgid "de %(du)s à %(au)s"
+msgstr "from %(du)s to %(au)s"
+
+#: .\events\filtres.py:107
+#, python-format
+msgid "à partir de %(du)s"
+msgstr "from %(du)s"
+
+#: .\events\filtres.py:109
+#, python-format
+msgid "jusqu'à %(au)s"
+msgstr "until %(au)s"
+
+#: .\events\filtres.py:121
+msgid "saisis à la main"
+msgstr "entered by hand"
+
+#: .\events\filtres.py:163 .\events\models.py:203 .\events\models.py:477
+msgid "titre"
+msgstr "title"
+
+#: .\events\filtres.py:164 .\events\models.py:220
+msgid "description"
+msgstr "description"
+
+#: .\events\filtres.py:166
+#, python-format
+msgid "pièce « %(nom)s »"
+msgstr "document “%(nom)s”"
+
+#: .\events\filtres.py:170
+#, python-format
+msgid "texte de « %(nom)s »"
+msgstr "text of “%(nom)s”"
+
+#: .\events\filtres.py:230
+msgid "PDF"
+msgstr "PDF"
+
+#: .\events\filtres.py:231
+msgid "Images"
+msgstr "Images"
+
+#: .\events\filtres.py:232
+msgid "Courriels"
+msgstr "Emails"
+
+#: .\events\filtres.py:233
+msgid "Bureautique"
+msgstr "Office documents"
+
+#: .\events\filtres.py:288 .\events\models.py:49 .\events\models.py:164
+#: .\events\models.py:903
+msgid "nom"
+msgstr "name"
+
+#: .\events\filtres.py:290
+msgid "texte"
+msgstr "text"
+
+#: .\events\forms.py:35
+msgid "Une date"
+msgstr "A date"
+
+#: .\events\forms.py:36
+msgid "Une date et une heure"
+msgstr "A date and a time"
+
+#: .\events\forms.py:37
+msgid "Une période"
+msgstr "A period"
+
+#: .\events\forms.py:48 .\events\templates\events\_event_form.html:46
+msgid "Quand ?"
+msgstr "When?"
+
+#: .\events\forms.py:61
+msgid ""
+"Cet évènement a été modifié entre-temps par quelqu'un d'autre. Vos "
+"changements n'ont pas été enregistrés : copiez ce que vous voulez garder, "
+"puis rechargez la page pour repartir de la version actuelle."
+msgstr ""
+"Someone else changed this event in the meantime. Your changes were not "
+"saved: copy what you want to keep, then reload the page to start again from "
+"the current version."
+
+#: .\events\forms.py:116
+msgid "Par défaut"
+msgstr "Default"
+
+#: .\events\forms.py:121 .\events\templates\events\_event_form.html:105
+#: .\events\templates\events\_event_form.html:116
+msgid "Couleur"
+msgstr "Colour"
+
+#: .\events\forms.py:160
+msgid "Indiquez l'heure, ou choisissez « une date »."
+msgstr "Enter the time, or choose “a date”."
+
+#: .\events\forms.py:164
+msgid "Indiquez la date de fin, ou choisissez un autre mode."
+msgstr "Enter the end date, or choose another mode."
+
+#: .\events\forms.py:167 .\events\forms.py:174 .\events\models.py:424
+#: .\events\models.py:434
+msgid "La fin ne peut pas précéder le début."
+msgstr "The end cannot come before the start."
+
+#: .\events\forms.py:234
+msgid "Compte"
+msgstr "Account"
+
+#: .\events\forms.py:235 .\events\forms.py:271 .\events\forms.py:343
+msgid "Droit accordé"
+msgstr "Access granted"
+
+#: .\events\forms.py:250
+msgid "Choisir un compte…"
+msgstr "Choose an account…"
+
+#: .\events\forms.py:265
+msgid "adresse@exemple.be"
+msgstr "address@example.com"
+
+#: .\events\forms.py:270
+msgid "Adresse électronique"
+msgstr "Email address"
+
+#: .\events\forms.py:285
+msgid "Cette adresse est la vôtre : vous êtes déjà propriétaire du dossier."
+msgstr "This is your own address: you already own this case file."
+
+#: .\events\forms.py:291
+msgid "Un compte portant cette adresse a déjà accès à ce dossier."
+msgstr "An account with this address already has access to this case file."
+
+#: .\events\forms.py:301
+msgid "Une invitation est déjà en attente pour cette adresse."
+msgstr "An invitation is already pending for this address."
+
+#: .\events\forms.py:315
+msgid "7 jours"
+msgstr "7 days"
+
+#: .\events\forms.py:316
+msgid "30 jours"
+msgstr "30 days"
+
+#: .\events\forms.py:317
+msgid "90 jours"
+msgstr "90 days"
+
+#: .\events\forms.py:318
+msgid "Sans expiration"
+msgstr "No expiry"
+
+#: .\events\forms.py:325
+msgid "Validité"
+msgstr "Validity"
+
+#: .\events\forms.py:336
+msgid "Maître Dupont, expert, TestAchats…"
+msgstr "Mr Dupont, expert, consumer body…"
+
+#: .\events\forms.py:342
+msgid "Destinataire"
+msgstr "Recipient"
+
+#: .\events\forms.py:375
+msgid ""
+"C'est l'adresse de la boîte d'import elle-même : choisissez un alias propre "
+"à ce dossier."
+msgstr ""
+"This is the import mailbox's own address: choose an alias specific to this "
+"case file."
+
+#: .\events\forms.py:378
+msgid "Cet alias est déjà utilisé par un autre dossier."
+msgstr "This alias is already used by another case file."
+
+#: .\events\forms.py:393
+msgid "Le nom du dossier ne peut pas être vide."
+msgstr "The case file's name cannot be empty."
+
+#: .\events\models.py:52
+msgid "propriétaire"
+msgstr "owner"
+
+#: .\events\models.py:56 .\events\models.py:687
+msgid "créé le"
+msgstr "created on"
+
+#: .\events\models.py:63
+msgid "alias de courriel"
+msgstr "email alias"
+
+#: .\events\models.py:68
+msgid ""
+"Les courriels transférés à cette adresse deviennent des évènements du "
+"dossier."
+msgstr "Emails forwarded to this address become events of the case file."
+
+#: .\events\models.py:81 .\events\models.py:160 .\events\models.py:201
+#: .\events\models.py:466 .\events\models.py:563 .\events\models.py:662
+#: .\events\models.py:785 .\events\models.py:836 .\events\models.py:867
+#: .\events\models.py:900
+msgid "dossier"
+msgstr "case file"
+
+#: .\events\models.py:82
+msgid "dossiers"
+msgstr "case files"
+
+#: .\events\models.py:90 .\events\views.py:305
+msgid "Lecture"
+msgstr "Read"
+
+#: .\events\models.py:91 .\events\templates\events\dossier_share.html:45
+#: .\events\templates\events\dossier_share.html:300
+#: .\events\templates\events\invitation_accept.html:36
+msgid "Lecture et écriture"
+msgstr "Read and write"
+
+#: .\events\models.py:94
+msgid "Compte choisi"
+msgstr "Chosen account"
+
+#: .\events\models.py:95
+msgid "Invitation par e-mail"
+msgstr "Email invitation"
+
+#: .\events\models.py:96
+msgid "Lien de partage"
+msgstr "Share link"
+
+#: .\events\models.py:103
+msgid "utilisateur"
+msgstr "user"
+
+#: .\events\models.py:107 .\events\models.py:569
+msgid "rôle"
+msgstr "role"
+
+#: .\events\models.py:109
+msgid "origine"
+msgstr "origin"
+
+#: .\events\models.py:111
+msgid "accordé le"
+msgstr "granted on"
+
+#: .\events\models.py:114
+msgid "accordé par"
+msgstr "granted by"
+
+#: .\events\models.py:128 .\events\models.py:129
+msgid "accès"
+msgstr "access"
+
+#: .\events\models.py:163
+msgid "adresse"
+msgstr "address"
+
+#: .\events\models.py:166 .\events\models.py:238
+msgid "couleur"
+msgstr "colour"
+
+#: .\events\models.py:171 .\events\models.py:234 .\events\models.py:844
+msgid "expéditeur"
+msgstr "sender"
+
+#: .\events\models.py:172
+msgid "expéditeurs"
+msgstr "senders"
+
+#: .\events\models.py:205
+msgid "date"
+msgstr "date"
+
+#: .\events\models.py:207
+msgid "heure"
+msgstr "time"
+
+#: .\events\models.py:210
+msgid "Laissez vide si l'heure n'a pas d'importance."
+msgstr "Leave empty if the time does not matter."
+
+#: .\events\models.py:213
+msgid "date de fin"
+msgstr "end date"
+
+#: .\events\models.py:216
+msgid "Pour un fait qui s'étend sur plusieurs jours."
+msgstr "For a fact that spans several days."
+
+#: .\events\models.py:218
+msgid "heure de fin"
+msgstr "end time"
+
+#: .\events\models.py:228
+msgid "version"
+msgstr "version"
+
+#: .\events\models.py:307
+#, python-format
+msgid "%(date)s à %(heure)s"
+msgstr "%(date)s at %(heure)s"
+
+#: .\events\models.py:313
+#, python-format
+msgid "le %(date)s de %(debut)s à %(fin)s"
+msgstr "on %(date)s from %(debut)s to %(fin)s"
+
+#: .\events\models.py:319
+#, python-format
+msgid "du %(debut)s à %(heure_debut)s au %(fin)s à %(heure_fin)s"
+msgstr "from %(debut)s at %(heure_debut)s to %(fin)s at %(heure_fin)s"
+
+#: .\events\models.py:325
+#, python-format
+msgid "du %(debut)s au %(fin)s"
+msgstr "from %(debut)s to %(fin)s"
+
+#: .\events\models.py:439
+msgid "Renseignez l'heure de début, ou une date de fin."
+msgstr "Enter a start time, or an end date."
+
+#: .\events\models.py:478
+msgid "fichier"
+msgstr "file"
+
+#: .\events\models.py:480
+msgid "empreinte du contenu"
+msgstr "content hash"
+
+#: .\events\models.py:489
+msgid "numéro"
+msgstr "number"
+
+#: .\events\models.py:502
+msgid "document"
+msgstr "document"
+
+#: .\events\models.py:503
+msgid "documents"
+msgstr "documents"
+
+#: .\events\models.py:557 .\events\templates\events\dossier_share.html:223
+msgid "En attente"
+msgstr "Pending"
+
+#: .\events\models.py:558 .\events\templates\events\dossier_share.html:217
+msgid "Acceptée"
+msgstr "Accepted"
+
+#: .\events\models.py:559
+msgid "Révoquée"
+msgstr "Revoked"
+
+#: .\events\models.py:567
+msgid "adresse invitée"
+msgstr "invited address"
+
+#: .\events\models.py:571 .\events\models.py:679
+msgid "jeton"
+msgstr "token"
+
+#: .\events\models.py:575
+msgid "émise par"
+msgstr "sent by"
+
+#: .\events\models.py:579
+msgid "émise le"
+msgstr "sent on"
+
+#: .\events\models.py:580 .\events\models.py:688
+msgid "expire le"
+msgstr "expires on"
+
+#: .\events\models.py:582
+msgid "acceptée le"
+msgstr "accepted on"
+
+#: .\events\models.py:585
+msgid "acceptée par"
+msgstr "accepted by"
+
+#: .\events\models.py:591
+msgid "révoquée le"
+msgstr "revoked on"
+
+#: .\events\models.py:595
+msgid "invitation"
+msgstr "invitation"
+
+#: .\events\models.py:596
+msgid "invitations"
+msgstr "invitations"
+
+#: .\events\models.py:668
+msgid "droit accordé"
+msgstr "access granted"
+
+#: .\events\models.py:674
+msgid "destinataire"
+msgstr "recipient"
+
+#: .\events\models.py:677
+msgid "Pour vous souvenir à qui ce lien a été transmis."
+msgstr "To remember who this link was given to."
+
+#: .\events\models.py:683
+msgid "créé par"
+msgstr "created by"
+
+#: .\events\models.py:689
+msgid "révoqué le"
+msgstr "revoked on"
+
+#: .\events\models.py:691
+msgid "dernier accès"
+msgstr "last accessed"
+
+#: .\events\models.py:692
+msgid "consultations"
+msgstr "views"
+
+#: .\events\models.py:696 .\events\models.py:794
+msgid "lien de partage"
+msgstr "share link"
+
+#: .\events\models.py:697
+msgid "liens de partage"
+msgstr "share links"
+
+#: .\events\models.py:700
+#, python-format
+msgid "Lien vers %(dossier)s"
+msgstr "Link to %(dossier)s"
+
+#: .\events\models.py:754
+msgid "Évènement créé"
+msgstr "Event created"
+
+#: .\events\models.py:755
+msgid "Évènement modifié"
+msgstr "Event edited"
+
+#: .\events\models.py:756
+msgid "Évènement supprimé"
+msgstr "Event deleted"
+
+#: .\events\models.py:757
+msgid "Pièce ajoutée"
+msgstr "Document added"
+
+#: .\events\models.py:758
+msgid "Pièce retirée d'un évènement"
+msgstr "Document removed from an event"
+
+#: .\events\models.py:759
+msgid "Pièce supprimée"
+msgstr "Document deleted"
+
+#: .\events\models.py:760
+msgid "Pièce modifiée"
+msgstr "Document edited"
+
+#: .\events\models.py:761
+msgid "Accès accordé"
+msgstr "Access granted"
+
+#: .\events\models.py:762
+msgid "Accès retiré"
+msgstr "Access removed"
+
+#: .\events\models.py:763
+msgid "Accès modifié"
+msgstr "Access changed"
+
+#: .\events\models.py:764
+msgid "Invitation envoyée"
+msgstr "Invitation sent"
+
+#: .\events\models.py:765
+msgid "Invitation annulée"
+msgstr "Invitation cancelled"
+
+#: .\events\models.py:766
+msgid "Invitation acceptée"
+msgstr "Invitation accepted"
+
+#: .\events\models.py:767
+msgid "Lien de partage créé"
+msgstr "Share link created"
+
+#: .\events\models.py:768
+msgid "Lien de partage révoqué"
+msgstr "Share link revoked"
+
+#: .\events\models.py:769
+msgid "Dossier exporté"
+msgstr "Case file exported"
+
+#: .\events\models.py:770
+msgid "Évènement importé par courriel"
+msgstr "Event imported by email"
+
+#: .\events\models.py:771
+msgid "Dossier créé"
+msgstr "Case file created"
+
+#: .\events\models.py:772
+msgid "Dossier modifié"
+msgstr "Case file edited"
+
+#: .\events\models.py:773
+msgid "Évènements fusionnés"
+msgstr "Events merged"
+
+#: .\events\models.py:774
+msgid "Doublon possible écarté"
+msgstr "Possible duplicate dismissed"
+
+#: .\events\models.py:788
+msgid "moment"
+msgstr "time"
+
+#: .\events\models.py:790
+msgid "auteur"
+msgstr "author"
+
+#: .\events\models.py:799
+msgid "action"
+msgstr "action"
+
+#: .\events\models.py:801 .\events\models.py:841
+msgid "évènement"
+msgstr "event"
+
+#: .\events\models.py:804
+msgid "objet"
+msgstr "subject"
+
+#: .\events\models.py:805
+msgid "détails"
+msgstr "details"
+
+#: .\events\models.py:811
+msgid "entrée du journal"
+msgstr "log entry"
+
+#: .\events\models.py:812
+msgid "journal"
+msgstr "log"
+
+#: .\events\models.py:839
+msgid "identifiant du courriel"
+msgstr "email ID"
+
+#: .\events\models.py:845
+msgid "importé le"
+msgstr "imported on"
+
+#: .\events\models.py:848
+msgid "courriel importé"
+msgstr "imported email"
+
+#: .\events\models.py:849
+msgid "courriels importés"
+msgstr "imported emails"
+
+#: .\events\models.py:879
+msgid "paire de doublons écartée"
+msgstr "dismissed duplicate pair"
+
+#: .\events\models.py:880
+msgid "paires de doublons écartées"
+msgstr "dismissed duplicate pairs"
+
+#: .\events\models.py:910
+msgid "étiquette"
+msgstr "tag"
+
+#: .\events\models.py:911 .\events\views.py:1016
+msgid "étiquettes"
+msgstr "tags"
+
+#: .\events\share_views.py:293
+#, python-format
+msgid "le lien de partage « %(nom)s »"
+msgstr "the share link “%(nom)s”"
+
+#: .\events\share_views.py:295
+msgid "un lien de partage"
+msgstr "a share link"
+
+#: .\events\templates\events\_barre_filtres.html:15
+msgid "Rechercher"
+msgstr "Search"
+
+#: .\events\templates\events\_barre_filtres.html:19
+msgid "Raccourci : /"
+msgstr "Shortcut: /"
+
+#: .\events\templates\events\_barre_filtres.html:20
+msgid "Nom ou texte de la pièce…"
+msgstr "Document name or text…"
+
+#: .\events\templates\events\_barre_filtres.html:20
+msgid "Titre, description, pièce, texte d'un courriel…"
+msgstr "Title, description, document, email text…"
+
+#: .\events\templates\events\_barre_filtres.html:26
+msgid "Type"
+msgstr "Type"
+
+#: .\events\templates\events\_barre_filtres.html:28
+#: .\events\templates\events\_barre_filtres.html:38
+msgid "Tous"
+msgstr "All"
+
+#: .\events\templates\events\_barre_filtres.html:36
+msgid "Expéditeur"
+msgstr "Sender"
+
+#: .\events\templates\events\_barre_filtres.html:42
+#: .\events\templates\events\timeline.html:56
+msgid "Saisis à la main"
+msgstr "Entered by hand"
+
+#: .\events\templates\events\_barre_filtres.html:47
+msgid "Étiquette"
+msgstr "Tag"
+
+#: .\events\templates\events\_barre_filtres.html:49
+msgid "Toutes"
+msgstr "All"
+
+#: .\events\templates\events\_barre_filtres.html:57
+msgid "Depuis"
+msgstr "From"
+
+#: .\events\templates\events\_barre_filtres.html:66
+msgid "Jusqu'à"
+msgstr "Until"
+
+#: .\events\templates\events\_barre_filtres.html:75
+#: .\events\templates\events\_barre_filtres.html:76
+msgid "Filtrer"
+msgstr "Filter"
+
+#: .\events\templates\events\_barre_filtres.html:83
+#, python-format
+msgid "%(n)s pièce sur %(total)s"
+msgid_plural "%(n)s pièces sur %(total)s"
+msgstr[0] "%(n)s document out of %(total)s"
+msgstr[1] "%(n)s documents out of %(total)s"
+
+#: .\events\templates\events\_barre_filtres.html:91
+#: .\events\templates\events\_barre_filtres.html:108
+msgid "Effacer les filtres"
+msgstr "Clear filters"
+
+#: .\events\templates\events\_barre_filtres.html:95
+msgid "Aucune pièce ne correspond à ces critères."
+msgstr "No document matches these criteria."
+
+#: .\events\templates\events\_barre_filtres.html:100
+#, python-format
+msgid "%(n)s évènement sur %(total)s"
+msgid_plural "%(n)s évènements sur %(total)s"
+msgstr[0] "%(n)s event out of %(total)s"
+msgstr[1] "%(n)s events out of %(total)s"
+
+#: .\events\templates\events\_barre_filtres.html:112
+msgid "Aucun évènement ne correspond à ces critères."
+msgstr "No event matches these criteria."
+
+#: .\events\templates\events\_bouton_export.html:16
+msgid "Chronologie en PDF, pièces et empreintes, dans un zip"
+msgstr "Chronology as PDF, documents and hashes, in a zip"
+
+#: .\events\templates\events\_bouton_export.html:17
+#, python-format
+msgid "Exporter la sélection (%(n)s)"
+msgid_plural "Exporter la sélection (%(n)s)"
+msgstr[0] "Export selection (%(n)s)"
+msgstr[1] "Export selection (%(n)s)"
+
+#: .\events\templates\events\_bouton_export.html:17
+msgid "Exporter"
+msgstr "Export"
+
+#: .\events\templates\events\_bouton_export.html:22
+msgid "Autres options d'export"
+msgstr "Other export options"
+
+#: .\events\templates\events\_bouton_export.html:27
+msgid "Avec le journal du dossier"
+msgstr "With the case file's log"
+
+#: .\events\templates\events\_confirmer_suppression.html:11
+#, python-format
+msgid "Supprimer définitivement l'évènement « %(titre)s » ?"
+msgstr "Permanently delete the event “%(titre)s”?"
+
+#: .\events\templates\events\_confirmer_suppression.html:21
+#: .\events\templates\events\_detail_evenement.html:48
+msgid "Pièces"
+msgstr "Documents"
+
+#: .\events\templates\events\_confirmer_suppression.html:28
+msgid "supprimée"
+msgstr "deleted"
+
+#: .\events\templates\events\_confirmer_suppression.html:31
+msgid "Elle illustre aussi un autre évènement."
+msgstr "It also illustrates another event."
+
+#: .\events\templates\events\_confirmer_suppression.html:31
+msgid "conservée"
+msgstr "kept"
+
+#: .\events\templates\events\_confirmer_suppression.html:41
+msgid ""
+"Cette action est définitive. Le journal du dossier en garde la trace : le "
+"titre, les dates et la description de l'évènement, le nom et l'empreinte de "
+"chaque pièce supprimée."
+msgstr ""
+"This cannot be undone. The case file's log keeps a record of it: the event's"
+" title, dates and description, and the name and fingerprint of each deleted "
+"document."
+
+#: .\events\templates\events\_confirmer_suppression.html:53
+#: .\events\templates\events\_event_form.html:230
+#: .\events\templates\events\dossier_share.html:243
+msgid "Annuler"
+msgstr "Cancel"
+
+#: .\events\templates\events\_confirmer_suppression.html:54
+#: .\events\templates\events\_detail_evenement.html:38
+#: .\events\templates\events\parametres.html:69
+#: .\events\templates\events\vue_liste.html:81
+msgid "Supprimer"
+msgstr "Delete"
+
+#: .\events\templates\events\_detail_evenement.html:26
+#, python-format
+msgid "Importé par courriel — de %(nom)s (%(adresse)s)"
+msgstr "Imported by email — from %(nom)s (%(adresse)s)"
+
+#: .\events\templates\events\_detail_evenement.html:36
+#: .\events\templates\events\vue_liste.html:77
+msgid "Modifier"
+msgstr "Edit"
+
+#: .\events\templates\events\_detail_evenement.html:65
+#: .\events\templates\events\_detail_evenement.html:75
+#, python-format
+msgid "Pièce %(n)s"
+msgstr "Document %(n)s"
+
+#: .\events\templates\events\_detail_evenement.html:81
+msgid "Ouvrir dans un onglet"
+msgstr "Open in a tab"
+
+#: .\events\templates\events\_detail_evenement.html:90
+msgid "Aucune pièce jointe."
+msgstr "No attached documents."
+
+#: .\events\templates\events\_detail_evenement.html:97
+msgid "Faits voisins"
+msgstr "Adjacent facts"
+
+#: .\events\templates\events\_detail_evenement.html:101
+msgid "Fait précédent (flèche gauche)"
+msgstr "Previous fact (left arrow)"
+
+#: .\events\templates\events\_detail_evenement.html:109
+msgid "Fait suivant (flèche droite)"
+msgstr "Next fact (right arrow)"
+
+#: .\events\templates\events\_detail_evenement_js.html:2
+#, python-format
+msgid "Aperçu de %%(nom)s"
+msgstr "Preview of %%(nom)s"
+
+#: .\events\templates\events\_detail_evenement_js.html:39
+msgid "Fermer l'aperçu"
+msgstr "Close preview"
+
+#: .\events\templates\events\_detail_evenement_js.html:153
+#: .\events\templates\events\_modal_evenement.html:23
+msgid "Évènement"
+msgstr "Event"
+
+#: .\events\templates\events\_detail_evenement_js.html:154
+#: .\events\templates\events\_detail_evenement_js.html:219
+#: .\events\templates\events\_formulaire_modal_js.html:37
+msgid "Chargement…"
+msgstr "Loading…"
+
+#: .\events\templates\events\_detail_evenement_js.html:177
+msgid ""
+"Impossible de charger cet évènement. Il a peut-être été supprimé, ou votre "
+"accès au dossier a été retiré. Rechargez la page."
+msgstr ""
+"This event could not be loaded. It may have been deleted, or your access to "
+"the case file may have been withdrawn. Reload the page."
+
+#: .\events\templates\events\_detail_evenement_js.html:218
+#: .\events\templates\events\confirmer_suppression.html:10
+#: .\events\templates\events\confirmer_suppression.html:18
+msgid "Supprimer l'évènement"
+msgstr "Delete event"
+
+#: .\events\templates\events\_detail_evenement_js.html:234
+msgid "La confirmation n'a pas pu être chargée."
+msgstr "The confirmation could not be loaded."
+
+#: .\events\templates\events\_detail_evenement_js.html:277
+msgid "La suppression a échoué. Rien n'a été supprimé."
+msgstr "Deletion failed. Nothing was deleted."
+
+#: .\events\templates\events\_doublon_cote.html:9
+msgid "Garder celui-ci"
+msgstr "Keep this one"
+
+#: .\events\templates\events\_doublon_cote.html:17
+#, python-format
+msgid "Importé par courriel — de %(nom)s"
+msgstr "Imported by email — from %(nom)s"
+
+#: .\events\templates\events\_doublon_cote.html:20
+msgid "Saisi à la main"
+msgstr "Entered by hand"
+
+#: .\events\templates\events\_doublon_cote.html:26
+#: .\events\templates\events\dossier_list.html:32
+#: .\events\templates\events\vue_semaine.html:60
+#, python-format
+msgid "%(n)s pièce"
+msgid_plural "%(n)s pièces"
+msgstr[0] "%(n)s document"
+msgstr[1] "%(n)s documents"
+
+#: .\events\templates\events\_entete_dossier.html:15
+#: .\events\templates\events\dossier_list.html:10
+#: .\events\templates\events\dossier_list.html:13
+msgid "Mes dossiers"
+msgstr "My case files"
+
+#: .\events\templates\events\_entete_dossier.html:26
+msgid "Journal"
+msgstr "Log"
+
+#: .\events\templates\events\_entete_dossier.html:30
+#: .\events\templates\events\expediteurs.html:19
+msgid "Expéditeurs"
+msgstr "Senders"
+
+#: .\events\templates\events\_entete_dossier.html:36
+msgid "Partager"
+msgstr "Share"
+
+#: .\events\templates\events\_entete_dossier.html:39
+msgid "Paramètres"
+msgstr "Settings"
+
+#: .\events\templates\events\_entete_dossier.html:46
+#, python-format
+msgid "%(n)s doublon possible"
+msgid_plural "%(n)s doublons possibles"
+msgstr[0] "%(n)s possible duplicate"
+msgstr[1] "%(n)s possible duplicates"
+
+#: .\events\templates\events\_entete_dossier.html:52
+msgid "Raccourci : N"
+msgstr "Shortcut: N"
+
+#: .\events\templates\events\_entete_dossier.html:53
+#: .\events\templates\events\_formulaire_modal_js.html:125
+#: .\events\templates\events\event_form.html:13
+#: .\events\templates\events\event_form.html:30
+msgid "Nouvel évènement"
+msgstr "New event"
+
+#: .\events\templates\events\_event_form.html:31
+msgid "Titre"
+msgstr "Title"
+
+#: .\events\templates\events\_event_form.html:67
+msgid "Date"
+msgstr "Date"
+
+#: .\events\templates\events\_event_form.html:67
+msgid "Date de début"
+msgstr "Start date"
+
+#: .\events\templates\events\_event_form.html:75
+msgid "Heure"
+msgstr "Time"
+
+#: .\events\templates\events\_event_form.html:75
+msgid "Heure de début"
+msgstr "Start time"
+
+#: .\events\templates\events\_event_form.html:82
+msgid "Date de fin"
+msgstr "End date"
+
+#: .\events\templates\events\_event_form.html:88
+msgid "Heure de fin"
+msgstr "End time"
+
+#: .\events\templates\events\_event_form.html:96
+msgid "Description"
+msgstr "Description"
+
+#: .\events\templates\events\_event_form.html:107
+#, python-format
+msgid "celle de l'expéditeur %(nom)s"
+msgstr "that of the sender %(nom)s"
+
+#: .\events\templates\events\_event_form.html:111
+msgid "la changer"
+msgstr "change it"
+
+#: .\events\templates\events\_event_form.html:136
+msgid "Documents existants"
+msgstr "Existing documents"
+
+#: .\events\templates\events\_event_form.html:142
+#: .\events\templates\events\parametres.html:46
+msgid "Étiquettes"
+msgstr "Tags"
+
+#: .\events\templates\events\_event_form.html:158
+msgid "Ajouter des étiquettes, séparées par des virgules"
+msgstr "Add tags, separated by commas"
+
+#: .\events\templates\events\_event_form.html:159
+msgid "Nouvelles étiquettes"
+msgstr "New tags"
+
+#: .\events\templates\events\_event_form.html:164
+msgid "Par exemple :"
+msgstr "For example:"
+
+#: .\events\templates\events\_event_form.html:178
+#: .\events\templates\events\_event_form_js.html:29
+msgid "Retirer"
+msgstr "Remove"
+
+#: .\events\templates\events\_event_form.html:184
+msgid "Aucun document."
+msgstr "No documents."
+
+#: .\events\templates\events\_event_form.html:198
+msgid "Ajouter des documents"
+msgstr "Add documents"
+
+#: .\events\templates\events\_event_form.html:215
+#, python-format
+msgid "Glissez les fichiers ici, ou %(debut)sparcourez%(fin)s."
+msgstr "Drag files here, or %(debut)sbrowse%(fin)s."
+
+#: .\events\templates\events\_event_form.html:219
+#, python-format
+msgid "%(extensions)s — %(taille)s Mo maximum par fichier."
+msgstr "%(extensions)s — %(taille)s MB maximum per file."
+
+#: .\events\templates\events\_event_form.html:231
+#: .\events\templates\events\expediteurs.html:52
+#: .\events\templates\events\parametres.html:37
+msgid "Enregistrer"
+msgstr "Save"
+
+#: .\events\templates\events\_event_form_js.html:21
+#, python-format
+msgid "Retirer %%(nom)s"
+msgstr "Remove %%(nom)s"
+
+#: .\events\templates\events\_event_form_js.html:22
+#, python-format
+msgid "« %%(nom)s » : type non accepté. Types acceptés : %%(types)s."
+msgstr "“%%(nom)s”: file type not accepted. Accepted types: %%(types)s."
+
+#: .\events\templates\events\_event_form_js.html:23
+#, python-format
+msgid "« %%(nom)s » : trop lourd (%%(taille)s, maximum %%(maximum)s)."
+msgstr "“%%(nom)s”: too large (%%(taille)s, maximum %%(maximum)s)."
+
+#: .\events\templates\events\_event_form_js.html:24
+#, python-format
+msgid "« %%(nom)s » : déjà dans la liste, ignoré."
+msgstr "“%%(nom)s”: already in the list, ignored."
+
+#: .\events\templates\events\_event_form_js.html:25
+#, python-format
+msgid ""
+"Date et heure reprises de la photo « %%(nom)s » (prise de vue). Vérifiez-"
+"les."
+msgstr ""
+"Date and time taken from the photo “%%(nom)s” (when it was shot). Please "
+"check them."
+
+#: .\events\templates\events\_event_form_js.html:27
+msgid "Mo"
+msgstr "MB"
+
+#: .\events\templates\events\_event_form_js.html:28
+msgid "Ko"
+msgstr "KB"
+
+#: .\events\templates\events\_event_form_js.html:35
+msgid "Pièce retirée et supprimée : plus aucun évènement ne s'y appuyait."
+msgstr "Document removed and deleted: no event relied on it any more."
+
+#: .\events\templates\events\_event_form_js.html:36
+msgid "Pièce retirée de cet évènement ; elle reste liée ailleurs."
+msgstr "Document removed from this event; it remains linked elsewhere."
+
+#: .\events\templates\events\_event_form_js.html:37
+msgid "Le retrait a échoué. La pièce est toujours là."
+msgstr "Removal failed. The document is still there."
+
+#: .\events\templates\events\_event_form_js.html:38
+msgid "Décrivez l'évènement…"
+msgstr "Describe the event…"
+
+#: .\events\templates\events\_formulaire_modal_js.html:56
+msgid "Le formulaire n'a pas pu être chargé."
+msgstr "The form could not be loaded."
+
+#: .\events\templates\events\_formulaire_modal_js.html:116
+msgid "L'enregistrement a échoué. Rien n'a été modifié."
+msgstr "Saving failed. Nothing was changed."
+
+#: .\events\templates\events\_formulaire_modal_js.html:131
+#: .\events\templates\events\event_form.html:13
+#: .\events\templates\events\event_form.html:30
+msgid "Modifier l'évènement"
+msgstr "Edit event"
+
+#: .\events\templates\events\_modal_evenement.html:25
+#: .\templates\base.html:134
+msgid "Fermer"
+msgstr "Close"
+
+#: .\events\templates\events\calendrier.html:64
+msgid "Ce calendrier demande JavaScript. Les mêmes faits, sans JavaScript :"
+msgstr "This calendar needs JavaScript. The same facts, without JavaScript:"
+
+#: .\events\templates\events\calendrier.html:65
+msgid "par mois"
+msgstr "by month"
+
+#: .\events\templates\events\calendrier.html:66
+msgid "par semaine"
+msgstr "by week"
+
+#: .\events\templates\events\calendrier.html:67
+msgid "en liste"
+msgstr "as a list"
+
+#: .\events\templates\events\calendrier.html:168
+msgid "Frise"
+msgstr "Timeline"
+
+#: .\events\templates\events\calendrier.html:175 .\events\views.py:158
+msgid "Liste"
+msgstr "List"
+
+#: .\events\templates\events\dossier_list.html:31
+#: .\events\templates\events\expediteurs.html:46
+#: .\events\templates\events\parametres.html:61
+#, python-format
+msgid "%(n)s évènement"
+msgid_plural "%(n)s évènements"
+msgstr[0] "%(n)s event"
+msgstr[1] "%(n)s events"
+
+#: .\events\templates\events\dossier_list.html:37
+#, python-format
+msgid "%(n)s doublon possible à examiner"
+msgid_plural "%(n)s doublons possibles à examiner"
+msgstr[0] "%(n)s possible duplicate to review"
+msgstr[1] "%(n)s possible duplicates to review"
+
+#: .\events\templates\events\dossier_list.html:42
+msgid "Derniers faits"
+msgstr "Latest facts"
+
+#: .\events\templates\events\dossier_list.html:52
+msgid "Aucun fait pour l'instant."
+msgstr "No facts yet."
+
+#: .\events\templates\events\dossier_list.html:56
+msgid "Derniers courriels importés"
+msgstr "Latest imported emails"
+
+#: .\events\templates\events\dossier_list.html:71
+msgid "Import par courriel :"
+msgstr "Email import:"
+
+#: .\events\templates\events\dossier_list.html:75
+msgid "Activer l'import par courriel"
+msgstr "Enable email import"
+
+#: .\events\templates\events\dossier_list.html:86
+msgid ""
+"Aucun dossier ne vous est accessible pour l'instant. Le propriétaire d'un "
+"dossier peut vous y donner accès."
+msgstr ""
+"You don't have access to any case file yet. A case file's owner can give you"
+" access."
+
+#: .\events\templates\events\dossier_share.html:14
+#, python-format
+msgid "Partage — %(nom)s"
+msgstr "Sharing — %(nom)s"
+
+#: .\events\templates\events\dossier_share.html:23
+msgid "Partage du dossier"
+msgstr "Case file sharing"
+
+#: .\events\templates\events\dossier_share.html:27
+msgid "Personnes ayant accès"
+msgstr "People with access"
+
+#: .\events\templates\events\dossier_share.html:33 .\events\views.py:304
+msgid "Propriétaire"
+msgstr "Owner"
+
+#: .\events\templates\events\dossier_share.html:36
+msgid "Ne peut pas être retiré"
+msgstr "Cannot be removed"
+
+#: .\events\templates\events\dossier_share.html:47
+#: .\events\templates\events\dossier_share.html:292
+#: .\events\templates\events\invitation_accept.html:45
+msgid "Lecture seule"
+msgstr "Read only"
+
+#: .\events\templates\events\dossier_share.html:50
+#, python-format
+msgid "Accordé le %(quand)s"
+msgstr "Granted on %(quand)s"
+
+#: .\events\templates\events\dossier_share.html:51
+#: .\events\templates\events\dossier_share.html:228
+#: .\events\templates\events\journal.html:62
+#, python-format
+msgid "par %(nom)s"
+msgstr "by %(nom)s"
+
+#: .\events\templates\events\dossier_share.html:59
+msgid "Retirer l'accès"
+msgstr "Remove access"
+
+#: .\events\templates\events\dossier_share.html:64
+msgid "Personne d'autre n'a accès à ce dossier."
+msgstr "No one else has access to this case file."
+
+#: .\events\templates\events\dossier_share.html:73
+msgid "Lien de consultation, sans compte"
+msgstr "View link, without an account"
+
+#: .\events\templates\events\dossier_share.html:76
+msgid "C'est le seul accès anonyme de l'application."
+msgstr "This is the only anonymous access in the application."
+
+#: .\events\templates\events\dossier_share.html:77
+msgid ""
+"Toute personne qui détient le lien consulte le dossier, sans compte et sans "
+"que vous sachiez qui elle est. Un lien se retransfère, se copie, se retrouve"
+" dans un historique de navigation. Il donne un accès en <strong>lecture "
+"seule</strong> et vous pouvez le couper à tout moment — mais vous ne pouvez "
+"pas reprendre ce qui a déjà été lu."
+msgstr ""
+"Anyone who holds the link can view the case file, without an account and "
+"without you knowing who they are. A link gets forwarded, copied, ends up in "
+"a browser history. It gives <strong>read-only</strong> access and you can "
+"cut it off at any time — but you cannot take back what has already been "
+"read."
+
+#: .\events\templates\events\dossier_share.html:105
+msgid "Créer un lien"
+msgstr "Create a link"
+
+#: .\events\templates\events\dossier_share.html:113
+msgid "Liens existants"
+msgstr "Existing links"
+
+#: .\events\templates\events\dossier_share.html:120
+msgid "Sans destinataire noté"
+msgstr "No recipient noted"
+
+#: .\events\templates\events\dossier_share.html:123
+msgid "Révoqué"
+msgstr "Revoked"
+
+#: .\events\templates\events\dossier_share.html:125
+msgid "Expiré"
+msgstr "Expired"
+
+#: .\events\templates\events\dossier_share.html:127
+msgid "Actif"
+msgstr "Active"
+
+#: .\events\templates\events\dossier_share.html:136
+#, python-format
+msgid "Créé le %(quand)s"
+msgstr "Created on %(quand)s"
+
+#: .\events\templates\events\dossier_share.html:138
+#, python-format
+msgid "expire le %(quand)s"
+msgstr "expires on %(quand)s"
+
+#: .\events\templates\events\dossier_share.html:140
+msgid "sans expiration"
+msgstr "no expiry"
+
+#: .\events\templates\events\dossier_share.html:142
+#, python-format
+msgid "consulté %(n)s fois"
+msgid_plural "consulté %(n)s fois"
+msgstr[0] "viewed %(n)s time"
+msgstr[1] "viewed %(n)s times"
+
+#: .\events\templates\events\dossier_share.html:144
+#, python-format
+msgid "dernier accès le %(quand)s"
+msgstr "last accessed on %(quand)s"
+
+#: .\events\templates\events\dossier_share.html:154
+msgid "Révoquer"
+msgstr "Revoke"
+
+#: .\events\templates\events\dossier_share.html:168
+msgid "Inviter par courriel"
+msgstr "Invite by email"
+
+#: .\events\templates\events\dossier_share.html:171
+msgid ""
+"L'invitation part par courriel et contient un lien. <strong>Qui détient ce "
+"lien peut s'en servir</strong>, avec le compte sous lequel il est connecté :"
+" un courriel se retransfère. Pour une personne dont vous connaissez déjà le "
+"compte, l'attribution directe ci-dessous est plus sûre."
+msgstr ""
+"The invitation is sent by email and contains a link. <strong>Whoever holds "
+"the link can use it</strong>, with whatever account they are signed in with:"
+" emails get forwarded. For someone whose account you already know, the "
+"direct grant below is safer."
+
+#: .\events\templates\events\dossier_share.html:203
+msgid "Inviter"
+msgstr "Invite"
+
+#: .\events\templates\events\dossier_share.html:210
+msgid "Invitations émises"
+msgstr "Invitations sent"
+
+#: .\events\templates\events\dossier_share.html:219
+msgid "Annulée"
+msgstr "Cancelled"
+
+#: .\events\templates\events\dossier_share.html:221
+msgid "Expirée"
+msgstr "Expired"
+
+#: .\events\templates\events\dossier_share.html:227
+#, python-format
+msgid "Acceptée le %(quand)s"
+msgstr "Accepted on %(quand)s"
+
+#: .\events\templates\events\dossier_share.html:230
+#, python-format
+msgid "Émise le %(emise)s, expire le %(expire)s"
+msgstr "Sent on %(emise)s, expires on %(expire)s"
+
+#: .\events\templates\events\dossier_share.html:256
+msgid "Donner accès à un compte existant"
+msgstr "Give access to an existing account"
+
+#: .\events\templates\events\dossier_share.html:282
+msgid "Accorder"
+msgstr "Grant"
+
+#: .\events\templates\events\dossier_share.html:289
+msgid "Ce que chaque droit permet"
+msgstr "What each right allows"
+
+#: .\events\templates\events\dossier_share.html:293
+msgid ""
+"consulter la chronologie, les évènements et les pièces. Aucune modification,"
+" aucun retrait, aucun ajout."
+msgstr ""
+"view the chronology, the events and the documents. No changes, no removals, "
+"no additions."
+
+#: .\events\templates\events\dossier_share.html:301
+msgid ""
+"tout ce qui précède, plus créer et modifier des évènements, ajouter des "
+"pièces et en retirer. Ne permet pas de partager le dossier : vous seul "
+"décidez qui y a accès."
+msgstr ""
+"everything above, plus creating and editing events, adding and removing "
+"documents. Does not allow sharing the case file: only you decide who has "
+"access."
+
+#: .\events\templates\events\dossier_share.html:311
+msgid ""
+"Tous les comptes existants ont déjà accès à ce dossier. Les comptes se "
+"créent dans l'administration."
+msgstr ""
+"Every existing account already has access to this case file. Accounts are "
+"created in the administration."
+
+#: .\events\templates\events\doublons.html:12
+#, python-format
+msgid "Doublons — %(nom)s"
+msgstr "Duplicates — %(nom)s"
+
+#: .\events\templates\events\doublons.html:20
+msgid "Doublons possibles"
+msgstr "Possible duplicates"
+
+#: .\events\templates\events\doublons.html:22
+msgid ""
+"Deux évènements qui partagent une pièce à un jour d'écart au plus, ou qui "
+"tombent le même jour avec des titres proches. Fusionner garde l'un des deux "
+"et y verse l'autre : ses pièces, sa description (ajoutée à la suite, avec "
+"son titre et sa date d'origine), son expéditeur. Le journal garde "
+"l'évènement absorbé en entier."
+msgstr ""
+"Two events that share a document at most one day apart, or that fall on the "
+"same day with similar titles. Merging keeps one and pours the other into it:"
+" its documents, its description (appended, with its original title and "
+"date), its sender. The log keeps the absorbed event in full."
+
+#: .\events\templates\events\doublons.html:50
+msgid "En commun :"
+msgstr "In common:"
+
+#: .\events\templates\events\doublons.html:58
+msgid "Ce ne sont pas des doublons"
+msgstr "These are not duplicates"
+
+#: .\events\templates\events\doublons.html:61
+msgid "Fusionner dans l'évènement choisi"
+msgstr "Merge into the chosen event"
+
+#: .\events\templates\events\doublons.html:69
+msgid "Aucun doublon possible dans ce dossier."
+msgstr "No possible duplicates in this case file."
+
+#: .\events\templates\events\expediteurs.html:12
+#, python-format
+msgid "Expéditeurs — %(nom)s"
+msgstr "Senders — %(nom)s"
+
+#: .\events\templates\events\expediteurs.html:21
+msgid ""
+"Chaque personne dont un courriel a été importé a sa couleur. Ses évènements "
+"la prennent, partout : la changer ici les recolore tous."
+msgstr ""
+"Each person whose email has been imported has a colour. Their events take it"
+" everywhere: changing it here recolours them all."
+
+#: .\events\templates\events\expediteurs.html:36
+#, python-format
+msgid "Couleur de %(nom)s"
+msgstr "Colour of %(nom)s"
+
+#: .\events\templates\events\expediteurs.html:56
+msgid "Aucun courriel n'a encore été importé dans ce dossier."
+msgstr "No email has been imported into this case file yet."
+
+#: .\events\templates\events\invitation_accept.html:17
+#, python-format
+msgid "Invitation — %(nom)s"
+msgstr "Invitation — %(nom)s"
+
+#: .\events\templates\events\invitation_accept.html:24
+msgid "Invitation à un dossier"
+msgstr "Invitation to a case file"
+
+#: .\events\templates\events\invitation_accept.html:27
+msgid "Dossier"
+msgstr "Case file"
+
+#: .\events\templates\events\invitation_accept.html:30
+msgid "Invité par"
+msgstr "Invited by"
+
+#: .\events\templates\events\invitation_accept.html:33
+msgid "Droit proposé"
+msgstr "Access offered"
+
+#: .\events\templates\events\invitation_accept.html:38
+msgid ""
+"Consulter, créer et modifier des évènements, ajouter et retirer des pièces. "
+"Ne permet pas de partager le dossier."
+msgstr ""
+"View, create and edit events, add and remove documents. Does not allow "
+"sharing the case file."
+
+#: .\events\templates\events\invitation_accept.html:47
+msgid ""
+"Consulter la chronologie, les évènements et les pièces. Aucune modification "
+"possible."
+msgstr ""
+"View the chronology, the events and the documents. No changes possible."
+
+#: .\events\templates\events\invitation_accept.html:58
+msgid ""
+"Vous avez déjà accès à ce dossier. Cette invitation n'a rien à vous ajouter."
+msgstr ""
+"You already have access to this case file. This invitation adds nothing."
+
+#: .\events\templates\events\invitation_accept.html:65
+msgid "Ouvrir le dossier"
+msgstr "Open the case file"
+
+#: .\events\templates\events\invitation_accept.html:70
+#, python-format
+msgid ""
+"Cette invitation a déjà été acceptée le %(quand)s. Une invitation ne sert "
+"qu'une fois. Demandez-en une nouvelle à %(auteur)s."
+msgstr ""
+"This invitation was already accepted on %(quand)s. An invitation can only be"
+" used once. Ask %(auteur)s for a new one."
+
+#: .\events\templates\events\invitation_accept.html:80
+msgid "Cette invitation a été annulée par son auteur."
+msgstr "This invitation was cancelled by its sender."
+
+#: .\events\templates\events\invitation_accept.html:85
+#, python-format
+msgid ""
+"Cette invitation a expiré le %(quand)s. Demandez-en une nouvelle à "
+"%(auteur)s."
+msgstr "This invitation expired on %(quand)s. Ask %(auteur)s for a new one."
+
+#: .\events\templates\events\invitation_accept.html:94
+#, python-format
+msgid ""
+"Vous êtes connecté en tant que <strong>%(nom)s</strong>. C'est ce compte qui"
+" recevra l'accès."
+msgstr ""
+"You are signed in as <strong>%(nom)s</strong>. This account will receive the"
+" access."
+
+#: .\events\templates\events\invitation_accept.html:103
+msgid "Accepter l'invitation"
+msgstr "Accept the invitation"
+
+#: .\events\templates\events\journal.html:33
+msgid "Journal du dossier"
+msgstr "Case file log"
+
+#: .\events\templates\events\journal.html:35
+msgid ""
+"Chaque modification du dossier y est inscrite, et rien ne peut en être "
+"effacé. Le journal commence le 8 octobre 2026 : ce qui précède n'a pas "
+"laissé de trace."
+msgstr ""
+"Every change to the case file is recorded here, and nothing can be erased "
+"from it. The log starts on 8 October 2026: what happened before left no "
+"trace."
+
+#: .\events\templates\events\journal.html:52
+#, python-format
+msgid "évènement « %(titre)s »"
+msgstr "event “%(titre)s”"
+
+#: .\events\templates\events\journal.html:65
+#, python-format
+msgid "par le lien de partage « %(nom)s »"
+msgstr "via the share link “%(nom)s”"
+
+#: .\events\templates\events\journal.html:67
+msgid "par un lien de partage"
+msgstr "via a share link"
+
+#: .\events\templates\events\journal.html:70
+msgid "par l'import de courriels"
+msgstr "by the email import"
+
+#: .\events\templates\events\journal.html:84
+msgid "Champ"
+msgstr "Field"
+
+#: .\events\templates\events\journal.html:86
+msgid "Avant"
+msgstr "Before"
+
+#: .\events\templates\events\journal.html:87
+msgid "Après"
+msgstr "After"
+
+#: .\events\templates\events\journal.html:89
+msgid "Valeur"
+msgstr "Value"
+
+#: .\events\templates\events\journal.html:111
+msgid "contenu déjà présent dans le dossier : rattaché, pas stocké deux fois"
+msgstr "content already in the case file: linked, not stored twice"
+
+#: .\events\templates\events\parametres.html:13
+#, python-format
+msgid "Paramètres — %(nom)s"
+msgstr "Settings — %(nom)s"
+
+#: .\events\templates\events\parametres.html:21
+msgid "Paramètres du dossier"
+msgstr "Case file settings"
+
+#: .\events\templates\events\parametres.html:25
+msgid "Général"
+msgstr "General"
+
+#: .\events\templates\events\parametres.html:28
+msgid "Nom du dossier"
+msgstr "Case file name"
+
+#: .\events\templates\events\parametres.html:49
+msgid ""
+"Elles se créent depuis le formulaire d'un évènement. Supprimer une étiquette"
+" la retire des évènements, qui restent."
+msgstr ""
+"They are created from an event's form. Deleting a tag removes it from the "
+"events, which remain."
+
+#: .\events\templates\events\parametres.html:59
+msgid "Nom de l'étiquette"
+msgstr "Tag name"
+
+#: .\events\templates\events\parametres.html:65
+msgid "Renommer"
+msgstr "Rename"
+
+#: .\events\templates\events\parametres.html:79
+msgid ""
+"Aucune étiquette pour l'instant. Elles se créent depuis le formulaire d'un "
+"évènement."
+msgstr "No tags yet. They are created from an event's form."
+
+#: .\events\templates\events\parametres.html:88
+msgid "Import par courriel"
+msgstr "Import by email"
+
+#: .\events\templates\events\parametres.html:90
+msgid "Activé"
+msgstr "Enabled"
+
+#: .\events\templates\events\parametres.html:92
+msgid "Désactivé"
+msgstr "Disabled"
+
+#: .\events\templates\events\parametres.html:97
+msgid ""
+"Un courriel transféré à cette adresse devient un évènement du dossier : sa "
+"date de réception, son objet, son texte, ses pièces jointes, et le courriel "
+"complet joint comme pièce. L'adresse doit exister comme alias de la boîte "
+"d'import dans Exchange."
+msgstr ""
+"An email forwarded to this address becomes an event of the case file: its "
+"date of receipt, its subject, its text, its attachments, and the full email "
+"attached as a document. The address must exist in Exchange as an alias of "
+"the import mailbox."
+
+#: .\events\templates\events\parametres.html:106
+msgid ""
+"Toute personne qui connaît cette adresse peut ajouter un évènement. "
+"Choisissez-la difficile à deviner ; changez-la si elle a circulé."
+msgstr ""
+"Anyone who knows this address can add an event. Choose one that is hard to "
+"guess; change it if it has been passed around."
+
+#: .\events\templates\events\parametres.html:114
+msgid "Adresse actuelle :"
+msgstr "Current address:"
+
+#: .\events\templates\events\parametres.html:122
+msgid "Nouvel alias"
+msgstr "New alias"
+
+#: .\events\templates\events\parametres.html:122
+msgid "Alias de courriel"
+msgstr "Email alias"
+
+#: .\events\templates\events\parametres.html:131
+msgid "Modifier l'alias"
+msgstr "Change alias"
+
+#: .\events\templates\events\parametres.html:133
+msgid "Ajouter l'alias"
+msgstr "Add alias"
+
+#: .\events\templates\events\parametres.html:139
+msgid "Proposition :"
+msgstr "Suggestion:"
+
+#: .\events\templates\events\parametres.html:142
+msgid "utiliser"
+msgstr "use"
+
+#: .\events\templates\events\parametres.html:152
+msgid "Désactiver l'import par courriel"
+msgstr "Disable email import"
+
+#: .\events\templates\events\parametres.html:160
+msgid ""
+"Chronos crée, change et retire l'alias dans Exchange lui-même. Comptez une "
+"dizaine de secondes par opération."
+msgstr ""
+"Chronos creates, changes and removes the alias in Exchange itself. Allow "
+"about ten seconds per operation."
+
+#: .\events\templates\events\parametres.html:166
+#| msgid "Créer l'alias dans Exchange"
+msgid "Vérifier dans Exchange"
+msgstr "Check in Exchange"
+
+#: .\events\templates\events\parametres.html:172
+msgid "Créer l'alias dans Exchange"
+msgstr "Create the alias in Exchange"
+
+#: .\events\templates\events\parametres.html:174
+msgid ""
+"L'application ne crée pas l'alias : ajoutez-le à la boîte d'import, puis "
+"enregistrez-le ici. En PowerShell, module ExchangeOnlineManagement :"
+msgstr ""
+"The application does not create the alias: add it to the import mailbox, "
+"then save it here. In PowerShell, ExchangeOnlineManagement module:"
+
+#: .\events\templates\events\parametres.html:200
+msgid "Échange avec Exchange en cours…"
+msgstr "Talking to Exchange…"
+
+#: .\events\templates\events\timeline.html:34
+msgid "Zoom"
+msgstr "Zoom"
+
+#: .\events\templates\events\timeline.html:36
+msgid "Rapprocher (+)"
+msgstr "Zoom in (+)"
+
+#: .\events\templates\events\timeline.html:36
+msgid "Rapprocher"
+msgstr "Zoom in"
+
+#: .\events\templates\events\timeline.html:38
+msgid "Éloigner (−)"
+msgstr "Zoom out (−)"
+
+#: .\events\templates\events\timeline.html:38
+msgid "Éloigner"
+msgstr "Zoom out"
+
+#: .\events\templates\events\timeline.html:41
+msgid "Tout voir"
+msgstr "Show all"
+
+#: .\events\templates\events\timeline.html:44
+msgid "Aujourd'hui"
+msgstr "Today"
+
+#: .\events\templates\events\timeline.html:47
+msgid "Légende des couleurs"
+msgstr "Colour legend"
+
+#: .\events\templates\events\vue_documents.html:14
+#, python-format
+msgid "Documents — %(nom)s"
+msgstr "Documents — %(nom)s"
+
+#: .\events\templates\events\vue_documents.html:29
+#: .\events\templates\events\vue_liste.html:43
+#, python-format
+msgid "Imprimé le %(quand)s."
+msgstr "Printed on %(quand)s."
+
+#: .\events\templates\events\vue_documents.html:31
+#: .\events\templates\events\vue_liste.html:45
+#, python-format
+msgid "Sélection : %(criteres)s."
+msgstr "Selection: %(criteres)s."
+
+#: .\events\templates\events\vue_documents.html:36
+#: .\events\templates\events\vue_liste.html:50
+msgid "Imprimer"
+msgstr "Print"
+
+#: .\events\templates\events\vue_documents.html:48
+msgid "Évènements"
+msgstr "Events"
+
+#: .\events\templates\events\vue_documents.html:49
+msgid "Taille"
+msgstr "Size"
+
+#: .\events\templates\events\vue_documents.html:50
+msgid "Déposée le"
+msgstr "Added on"
+
+#: .\events\templates\events\vue_documents.html:64
+#: .\events\templates\events\vue_liste.html:69
+msgid "Trouvé dans :"
+msgstr "Found in:"
+
+#: .\events\templates\events\vue_documents.html:76
+msgid "aucun évènement"
+msgstr "no event"
+
+#: .\events\templates\events\vue_documents.html:90
+msgid "Ce dossier ne contient encore aucune pièce."
+msgstr "This case file contains no documents yet."
+
+#: .\events\templates\events\vue_liste.html:107
+msgid "Ce dossier ne contient encore aucun évènement."
+msgstr "This case file has no events yet."
+
+#: .\events\templates\events\vue_mois.html:27
+#: .\events\templates\events\vue_semaine.html:24
+msgid "Mois"
+msgstr "Month"
+
+#: .\events\templates\events\vue_mois.html:28
+#: .\events\templates\events\vue_semaine.html:25
+msgid "Semaine"
+msgstr "Week"
+
+#: .\events\templates\events\vue_mois.html:33
+msgid "Mois précédent"
+msgstr "Previous month"
+
+#: .\events\templates\events\vue_mois.html:36
+msgid "Mois suivant"
+msgstr "Next month"
+
+#: .\events\templates\events\vue_semaine.html:30
+msgid "Semaine précédente"
+msgstr "Previous week"
+
+#: .\events\templates\events\vue_semaine.html:33
+msgid "Semaine suivante"
+msgstr "Next week"
+
+#: .\events\views.py:157
+msgid "Calendrier"
+msgstr "Calendar"
+
+#: .\events\views.py:159
+msgid "Documents"
+msgstr "Documents"
+
+#: .\events\views.py:184
+#, python-format
+msgid "Semaine du %(date)s"
+msgstr "Week of %(date)s"
+
+#: .\events\views.py:305
+msgid "Écriture"
+msgstr "Write"
+
+#: .\events\views.py:388
+#, python-format
+msgid "« %(absorbe)s » a été fusionné dans « %(garde)s »."
+msgstr "“%(absorbe)s” was merged into “%(garde)s”."
+
+#: .\events\views.py:399
+msgid "Ces deux évènements ne seront plus proposés comme doublons."
+msgstr "These two events will no longer be suggested as duplicates."
+
+#: .\events\views.py:547
+#, python-format
+msgid ""
+"Le fichier « %(name)s » n'est pas d'un type accepté. Types acceptés : "
+"%(allowed)s."
+msgstr ""
+"The file “%(name)s” is not an accepted type. Accepted types: %(allowed)s."
+
+#: .\events\views.py:559
+#, python-format
+msgid ""
+"Le fichier « %(name)s » est trop lourd (%(taille)s Mo). Taille maximale : "
+"%(max)s Mo."
+msgstr ""
+"The file “%(name)s” is too large (%(taille)s MB). Maximum size: %(max)s MB."
+
+#: .\events\views.py:974
+#, python-format
+msgid "Évènement « %(titre)s » supprimé."
+msgstr "Event “%(titre)s” deleted."
+
+#: .\events\views.py:1178
+#, python-format
+msgid ""
+"Exchange a refusé l'alias %(alias)s : rien n'a été enregistré. Détail : "
+"%(detail)s"
+msgstr ""
+"Exchange refused the alias %(alias)s: nothing was saved. Detail: %(detail)s"
+
+#: .\events\views.py:1195
+#, python-format
+msgid ""
+"L'ancien alias %(alias)s n'a pas pu être retiré d'Exchange : retirez-le à la"
+" main. Ses courriels ne créent plus d'évènement. Détail : %(detail)s"
+msgstr ""
+"The old alias %(alias)s could not be removed from Exchange: remove it by "
+"hand. Its emails no longer create events. Detail: %(detail)s"
+
+#: .\events\views.py:1200
+#, python-format
+msgid ""
+"Les courriels transférés à %(alias)s deviendront des évènements de ce "
+"dossier."
+msgstr "Emails forwarded to %(alias)s will become events of this case file."
+
+#: .\events\views.py:1202
+msgid "Import par courriel désactivé pour ce dossier."
+msgstr "Import by email disabled for this case file."
+
+#: .\events\views.py:1217
+#, python-format
+msgid "Exchange n'a pas pu être interrogé : %(detail)s"
+msgstr "Exchange could not be queried: %(detail)s"
+
+#: .\events\views.py:1220
+#, python-format
+msgid "L'alias %(alias)s est actif dans Exchange."
+msgstr "The alias %(alias)s is active in Exchange."
+
+#: .\events\views.py:1224
+#, python-format
+msgid ""
+"L'alias %(alias)s n'existe pas dans Exchange : les courriels transférés "
+"seront refusés. Enregistrez-le à nouveau pour le recréer."
+msgstr ""
+"The alias %(alias)s does not exist in Exchange: forwarded emails will be "
+"refused. Save it again to recreate it."
+
+#: .\events\views.py:1264
+msgid "Dossier renommé."
+msgstr "Case file renamed."
+
+#: .\events\views.py:1293
+#, python-format
+msgid "Étiquette « %(nom)s » supprimée."
+msgstr "Tag “%(nom)s” deleted."
+
+#: .\events\views.py:1297
+msgid "Le nom d'une étiquette ne peut pas être vide."
+msgstr "A tag name cannot be empty."
+
+#: .\events\views.py:1299
+#, python-format
+msgid "Une étiquette « %(nom)s » existe déjà dans ce dossier."
+msgstr "A tag “%(nom)s” already exists in this case file."
+
+#: .\events\views.py:1306
+msgid "Étiquette renommée."
+msgstr "Tag renamed."
+
+#: .\events\views.py:1329
+#, python-format
+msgid "Couleur invalide pour %(nom)s."
+msgstr "Invalid colour for %(nom)s."
+
+#: .\events\views.py:1368
+#, python-format
+msgid "Accès accordé à %(compte)s (%(droit)s)."
+msgstr "Access granted to %(compte)s (%(droit)s)."
+
+#: .\events\views.py:1410
+#, python-format
+msgid "Accès retiré à %(compte)s."
+msgstr "Access removed for %(compte)s."
+
+#: .\events\views.py:1434
+#, python-format
+msgid "Accès au dossier « %(dossier)s »"
+msgstr "Access to the case file “%(dossier)s”"
+
+#: .\events\views.py:1438
+#, python-format
+msgid ""
+"%(auteur)s vous donne accès au dossier « %(dossier)s ».\n"
+"\n"
+"Droit accordé : %(droit)s\n"
+"\n"
+"Pour l'accepter, ouvrez ce lien :\n"
+"%(lien)s\n"
+"\n"
+"Ce lien expire le %(date)s. Il ne sert qu'une fois.\n"
+msgstr ""
+"%(auteur)s is giving you access to the case file “%(dossier)s”.\n"
+"\n"
+"Access granted: %(droit)s\n"
+"\n"
+"To accept, open this link:\n"
+"%(lien)s\n"
+"\n"
+"This link expires on %(date)s. It can only be used once.\n"
+
+#: .\events\views.py:1478
+#, python-format
+msgid "Invitation envoyée à %(email)s. Elle expire le %(date)s."
+msgstr "Invitation sent to %(email)s. It expires on %(date)s."
+
+#: .\events\views.py:1518
+#, python-format
+msgid "Invitation annulée pour %(email)s."
+msgstr "Invitation cancelled for %(email)s."
+
+#: .\events\views.py:1558
+#, python-format
+msgid "Vous avez désormais accès au dossier « %(dossier)s »."
+msgstr "You now have access to the case file “%(dossier)s”."
+
+#: .\events\views.py:1595
+msgid ""
+"Lien créé. Toute personne qui le détient pourra consulter ce dossier, sans "
+"compte et sans trace nominative."
+msgstr ""
+"Link created. Anyone who holds it can view this case file, without an "
+"account and without being identified by name."
+
+#: .\events\views.py:1616
+msgid "Lien révoqué. Il ne donne plus accès à rien."
+msgstr "Link revoked. It no longer gives access to anything."
+
+#: .\templates\404.html:16
+msgid "Page introuvable"
+msgstr "Page not found"
+
+#: .\templates\404.html:21
+msgid "Cette page n'est pas disponible"
+msgstr "This page is not available"
+
+#: .\templates\404.html:23
+msgid "L'adresse demandée n'existe pas, ou elle ne vous est pas accessible."
+msgstr ""
+"The requested address does not exist, or you do not have access to it."
+
+#: .\templates\404.html:25
+msgid "Revenir à mes dossiers"
+msgstr "Back to my case files"
+
+#: .\templates\500.html:8
+msgid "Erreur du serveur"
+msgstr "Server error"
+
+#: .\templates\500.html:65
+msgid "Le serveur a rencontré une erreur"
+msgstr "The server encountered an error"
+
+#: .\templates\500.html:67
+msgid ""
+"Votre dossier et ses pièces n'ont pas été modifiés. Réessayez dans un "
+"instant ; si le problème persiste, notez l'heure et ce que vous faisiez."
+msgstr ""
+"Your case file and its documents were not changed. Try again in a moment; if"
+" the problem persists, note the time and what you were doing."
+
+#: .\templates\500.html:72
+msgid "Revenir à l'accueil"
+msgstr "Back to the home page"
+
+#: .\templates\_selecteur_langue.html:17
+msgid "Langue"
+msgstr "Language"
+
+#: .\templates\account\login.html:18 .\templates\account\login.html:23
+#: .\templates\account\login.html:43
+msgid "Sign In"
+msgstr "Sign In"
+
+#: .\templates\account\login.html:26
+msgid "Pas encore de compte ?"
+msgstr "No account yet?"
+
+#: .\templates\account\login.html:27
+msgid "Créez-en un"
+msgstr "Create one"
+
+#: .\templates\account\login.html:28
+msgid ""
+"Un compte seul ne donne accès à aucun dossier : c'est le propriétaire d'un "
+"dossier qui vous y autorise, ou vous y invite."
+msgstr ""
+"An account alone gives access to no case file: the owner of a case file "
+"grants you access, or invites you."
+
+#: .\templates\base.html:94
+msgid "Afficher le menu"
+msgstr "Show menu"
+
+#: .\templates\base.html:103
+msgid "Dossiers"
+msgstr "Case files"
+
+#: .\templates\base.html:110
+msgid "Tous mes dossiers"
+msgstr "All my case files"
+
+#: .\templates\base.html:120
+msgid "Se déconnecter"
+msgstr "Sign out"

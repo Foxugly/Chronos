@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load i18n %}
+{# Pas de sélecteur de langue ici : son champ `next` recopie l'adresse      #}
+{# demandée, et la page de refus d'un dossier interdit doit rester         #}
+{# identique, octet pour octet, à celle d'un identifiant qui n'existe pas. #}
+{% block selecteur_langue %}{% endblock %}
+{% comment %}
+Page de refus du projet.
+
+Elle est vue plus souvent qu'un 404 ordinaire : la règle du projet veut qu'un
+dossier, un évènement ou une pièce auxquels on n'a pas droit répondent 404 et
+non 403, pour ne pas confirmer leur existence. Le texte doit donc rester
+volontairement neutre — il ne dit pas si la chose existe.
+{% endcomment %}
+
+{% block title %}{% translate "Page introuvable" %}{% endblock %}
+
+{% block content %}
+    <div class="text-center py-5">
+        <p class="display-6 text-body-secondary mb-3">404</p>
+        <h1 class="h4 mb-3">{% translate "Cette page n'est pas disponible" %}</h1>
+        <p class="text-body-secondary mb-4">
+            {% translate "L'adresse demandée n'existe pas, ou elle ne vous est pas accessible." %}
+        </p>
+        <a class="btn btn-primary" href="{% url 'dossier_list' %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Revenir à mes dossiers" %}</a>
+    </div>
+{% endblock %}

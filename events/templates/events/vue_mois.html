@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Grille mensuelle, calculée côté serveur.
+
+Six lignes de sept jours, lundi en premier. Les jours des mois voisins sont
+affichés en grisé plutôt qu'omis : une grille qui s'arrête au 31 laisse des
+trous et se lit mal.
+
+Aucun JavaScript n'est nécessaire — ni ici ni dans les vues semaine et liste.
+{% endcomment %}
+
+{% block title %}{{ titre_periode }} — {{ dossier.name }}{% endblock %}
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+{% block main_class %}container-xxl{% endblock %}
+
+{% block extra_css %}
+    {% include "events/_detail_evenement_css.html" %}
+{% endblock %}
+
+{% block content %}
+    {% include "events/_entete_dossier.html" %}
+
+    {# La version sans JavaScript du calendrier : on y passe du mois à la semaine. #}
+    <div class="btn-group btn-group-sm mb-3" role="group">
+        <a class="btn btn-outline-secondary{% if vue == "mois" %} active{% endif %}" href="{{ base_vue }}?vue=mois{{ suffixe_filtres }}">{% translate "Mois" %}</a>
+        <a class="btn btn-outline-secondary{% if vue == "semaine" %} active{% endif %}" href="{{ base_vue }}?vue=semaine{{ suffixe_filtres }}">{% translate "Semaine" %}</a>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a class="btn btn-sm btn-outline-secondary"
+           href="{{ base_vue }}?vue=mois&amp;periode={{ precedent }}{{ suffixe_filtres }}"><i class="bi bi-chevron-left me-1" aria-hidden="true"></i>{% translate "Mois précédent" %}</a>
+        <h2 class="h5 mb-0 text-capitalize">{{ titre_periode }}</h2>
+        <a class="btn btn-sm btn-outline-secondary"
+           href="{{ base_vue }}?vue=mois&amp;periode={{ suivant }}{{ suffixe_filtres }}">{% translate "Mois suivant" %}<i class="bi bi-chevron-right ms-1" aria-hidden="true"></i></a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered align-top mb-0 bg-body">
+            <thead>
+                <tr>
+                    {% for nom in noms_de_jours %}
+                        <th class="text-capitalize small text-body-secondary" style="width:14.28%">
+                            {{ nom }}
+                        </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for semaine in semaines %}
+                    <tr>
+                        {% for jour in semaine %}
+                            <td class="{% if jour.hors_mois %}bg-body-tertiary{% endif %}"
+                                style="height:7rem">
+                                <div class="small {% if jour.hors_mois %}text-body-secondary{% endif %}">
+                                    {% if jour.aujourdhui %}
+                                        <span class="badge text-bg-primary">{{ jour.date.day }}</span>
+                                    {% else %}
+                                        {{ jour.date.day }}
+                                    {% endif %}
+                                </div>
+                                {% for evenement in jour.evenements %}
+                                    {# Le titre est saisi par un contributeur : rendu   #}
+                                    {# comme texte, Django l'échappe. Jamais `safe`.    #}
+                                    <a class="d-block small text-decoration-none text-truncate"
+                                       title="{{ evenement.title }} — {{ evenement.periode_affichee }}"
+                                       href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token evenement.pk %}{% else %}{% url 'event_detail' evenement.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>
+                                        {% if evenement.couleur_affichee %}<span class="d-inline-block rounded-circle align-middle" style="width: .6em; height: .6em; background-color: {{ evenement.couleur_affichee }};" aria-hidden="true"></span>{% endif %}
+                                        {% if evenement.precision == "instant" %}
+                                            {{ evenement.heure|time:"TIME_FORMAT" }}
+                                        {% elif evenement.precision == "intervalle" %}
+                                            ↔
+                                        {% else %}
+                                            •
+                                        {% endif %}
+                                        {{ evenement.title }}
+                                    </a>
+                                {% endfor %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "events/_modal_evenement.html" %}
+{% endblock %}
+
+{% block extra_js %}
+    {% include "events/_detail_evenement_js.html" %}
+{% endblock %}

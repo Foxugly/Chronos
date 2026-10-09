@@ -1,0 +1,141 @@
+{% load i18n %}
+{% comment %}
+Le formulaire d'évènement dans le modal commun : « Nouvel évènement » dans
+l'en-tête, « Modifier » dans le détail. À inclure après
+`_detail_evenement_js.html`, dont il réutilise le modal.
+
+Après un enregistrement réussi, `FormulaireModal.quandEnregistre(rappel)`
+laisse la page se mettre à jour sur place (la chronologie ajoute l'élément à
+sa frise) ; à défaut, la page est rechargée.
+
+Le fragment injecté est rendu par Django, qui échappe ses valeurs : ce n'est
+pas du texte d'utilisateur concaténé en JavaScript.
+{% endcomment %}
+{% include "events/_formulaire_js.html" %}
+<script nonce="{{ csp_nonce }}">
+"use strict";
+
+window.FormulaireModal = (function () {
+    if (!window.DetailEvenement || !DetailEvenement.modal) {
+        return null;
+    }
+    const modal = DetailEvenement.modal;
+    const corpsModal = DetailEvenement.corpsModal;
+    const titreModal = DetailEvenement.titreModal;
+    let surEnregistrement = function () {
+        window.location.reload();
+    };
+
+    function chargerFormulaire(url, titre) {
+        // Éditeur riche, palette, zone de dépôt et liste des pièces : le
+        // formulaire prend toujours la grande largeur.
+        DetailEvenement.elargir(true);
+        titreModal.textContent = titre;
+        corpsModal.replaceChildren();
+        const attente = document.createElement("p");
+        attente.className = "text-body-secondary";
+        attente.textContent = "{{ _("Chargement…")|escapejs }}";
+        corpsModal.appendChild(attente);
+        modal.show();
+
+        fetch(url, {headers: {"X-Requested-With": "XMLHttpRequest"}})
+            .then(function (reponse) {
+                if (!reponse.ok) {
+                    throw new Error("HTTP " + reponse.status);
+                }
+                return reponse.text();
+            })
+            .then(function (html) {
+                corpsModal.innerHTML = html;
+                equiperModal();
+            })
+            .catch(function () {
+                corpsModal.replaceChildren();
+                const erreur = document.createElement("div");
+                erreur.className = "alert alert-danger mb-0";
+                erreur.textContent = "{{ _("Le formulaire n'a pas pu être chargé.")|escapejs }}";
+                corpsModal.appendChild(erreur);
+            });
+    }
+
+    function equiperModal() {
+        const formulaire = corpsModal.querySelector("[data-event-form]");
+        if (!formulaire) {
+            return;
+        }
+        equiperFormulaire(formulaire);
+
+        const annuler = formulaire.querySelector("[data-form-cancel]");
+        if (annuler) {
+            annuler.addEventListener("click", function (e) {
+                e.preventDefault();
+                modal.hide();
+            });
+        }
+
+        formulaire.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const bouton = formulaire.querySelector("button[type=submit]");
+            if (bouton) {
+                bouton.disabled = true;
+            }
+
+            fetch(formulaire.action, {
+                method: "POST",
+                body: new FormData(formulaire),
+                headers: {"X-Requested-With": "XMLHttpRequest"}
+            })
+                .then(function (reponse) {
+                    if (reponse.status === 400) {
+                        // Formulaire refusé : le serveur renvoie le
+                        // fragment avec ses erreurs, on le remet en place.
+                        return reponse.text().then(function (html) {
+                            corpsModal.innerHTML = html;
+                            equiperModal();
+                            return null;
+                        });
+                    }
+                    if (!reponse.ok) {
+                        throw new Error("HTTP " + reponse.status);
+                    }
+                    return reponse.json();
+                })
+                .then(function (data) {
+                    if (!data) {
+                        return;
+                    }
+                    modal.hide();
+                    surEnregistrement(data);
+                })
+                .catch(function () {
+                    if (bouton) {
+                        bouton.disabled = false;
+                    }
+                    const note = formulaire.querySelector("[data-pending-note]");
+                    if (note) {
+                        note.textContent = "{{ _("L'enregistrement a échoué. Rien n'a été modifié.")|escapejs }}";
+                    }
+                });
+        });
+    }
+
+    document.querySelectorAll("[data-ouvrir-formulaire]").forEach(function (lien) {
+        lien.addEventListener("click", function (e) {
+            e.preventDefault();
+            chargerFormulaire(lien.href, "{{ _("Nouvel évènement")|escapejs }}");
+        });
+    });
+
+    // « Modifier », dans le détail, bascule le même modal sur le formulaire.
+    DetailEvenement.quandModifier(function (url) {
+        chargerFormulaire(url, "{{ _("Modifier l'évènement")|escapejs }}");
+    });
+
+    return {
+        charger: chargerFormulaire,
+        quandEnregistre: function (rappel) {
+            surEnregistrement = rappel;
+        }
+    };
+})();
+</script>

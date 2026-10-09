@@ -1,0 +1,232 @@
+{% load i18n %}
+{% comment %}
+Le formulaire d'évènement, sans habillage de page.
+
+Rendu à deux endroits : par `event_form.html` pour la page complète, qui reste
+le repli quand JavaScript échoue, et injecté dans le modal de la chronologie.
+Un seul fragment pour les deux : sinon les deux copies divergent, et c'est
+celle qu'on regarde le moins qui garde le défaut.
+
+`action` est explicite plutôt que vide. Dans le modal, un `action` vide
+pointerait vers l'URL de la chronologie et non vers celle du formulaire.
+{% endcomment %}
+<form method="post"
+      enctype="multipart/form-data"
+      data-event-form
+      action="{% if lien_partage %}{% if event %}{% url 'share_event_edit' lien_partage.token event.pk %}{% else %}{% url 'share_event_add' lien_partage.token %}{% endif %}{% else %}{% if event %}{% url 'event_edit' event.pk %}{% else %}{% url 'event_add' dossier.pk %}{% endif %}{% endif %}">
+
+    {% csrf_token %}
+    {# La version chargée : refusée à l'enregistrement si quelqu'un est passé entre-temps. #}
+    {{ form.version }}
+    {# La vue d'où l'on vient : l'enregistrement y ramène (`adresse_de_retour`). #}
+    <input type="hidden" name="retour" value="{{ retour }}">
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <div class="mb-3">
+        <label class="form-label" for="{{ form.title.id_for_label }}">{% translate "Titre" %}</label>
+        {{ form.title }}
+        {{ form.title.errors }}
+    </div>
+
+    {% comment %}
+    Situer le fait dans le temps : une date, un instant, une période.
+
+    Les trois modes et leurs champs sont tous présents dans le document. Le
+    JavaScript ne fait que masquer ceux qui ne servent pas au mode choisi :
+    sans lui, le formulaire reste entièrement utilisable — c'est `clean()`
+    qui efface les champs étrangers au mode, pas le navigateur.
+    {% endcomment %}
+    <fieldset class="mb-3">
+        <legend class="form-label fs-6">{% translate "Quand ?" %}</legend>
+        <div class="d-flex flex-wrap gap-3" data-selecteur-precision>
+            {% for choix in form.precision %}
+                <div class="form-check">
+                    {{ choix.tag }}
+                    <label class="form-check-label" for="{{ choix.id_for_label }}">
+                        {{ choix.choice_label }}
+                    </label>
+                </div>
+            {% endfor %}
+        </div>
+        {{ form.precision.errors }}
+    </fieldset>
+
+    {# Un libellé complet par mode, et non « Date » + « de début » : un        #}
+    {# traducteur doit pouvoir écrire « Begindatum » ou « Start date ». Le      #}
+    {# serveur affiche celui du mode courant ; `equiperPrecision` bascule.      #}
+    {% with mode=form.precision.value|default:"date" %}
+    <div class="row g-3 mb-3">
+        <div class="col-sm-6" data-precision="date instant intervalle">
+            <label class="form-label" for="{{ form.date.id_for_label }}">
+                <span data-precision="date instant"{% if mode == "intervalle" %} hidden{% endif %}>{% translate "Date" %}</span><span data-precision="intervalle"{% if mode != "intervalle" %} hidden{% endif %}>{% translate "Date de début" %}</span>
+            </label>
+            {{ form.date }}
+            {{ form.date.errors }}
+        </div>
+
+        <div class="col-sm-6" data-precision="instant intervalle">
+            <label class="form-label" for="{{ form.heure.id_for_label }}">
+                <span data-precision="date instant"{% if mode == "intervalle" %} hidden{% endif %}>{% translate "Heure" %}</span><span data-precision="intervalle"{% if mode != "intervalle" %} hidden{% endif %}>{% translate "Heure de début" %}</span>
+            </label>
+            {{ form.heure }}
+            {{ form.heure.errors }}
+        </div>
+
+        <div class="col-sm-6" data-precision="intervalle">
+            <label class="form-label" for="{{ form.date_fin.id_for_label }}">{% translate "Date de fin" %}</label>
+            {{ form.date_fin }}
+            {{ form.date_fin.errors }}
+        </div>
+
+        <div class="col-sm-6" data-precision="intervalle">
+            <label class="form-label" for="{{ form.heure_fin.id_for_label }}">{% translate "Heure de fin" %}</label>
+            {{ form.heure_fin }}
+            {{ form.heure_fin.errors }}
+        </div>
+    </div>
+    {% endwith %}
+
+    <div class="mb-3">
+        <label class="form-label" for="{{ form.description.id_for_label }}">{% translate "Description" %}</label>
+        {{ form.description }}
+        {{ form.description.errors }}
+    </div>
+
+    {# La couleur. Un évènement importé prend celle de son expéditeur — la    #}
+    {# changer se fait pour tous ses évènements, sur la page Expéditeurs.     #}
+    {% if event.expediteur %}
+        <p class="small mb-3">
+            {% translate "Couleur" %} :
+            <span class="d-inline-block rounded-circle align-middle me-1" style="width: .7em; height: .7em; background-color: {{ event.expediteur.couleur }};" aria-hidden="true"></span>
+            {% blocktranslate trimmed with nom=event.expediteur %}
+                celle de l'expéditeur {{ nom }}
+            {% endblocktranslate %}
+            {% if not lien_partage %}
+                — <a href="{% url 'dossier_expediteurs' dossier.pk %}">{% translate "la changer" %}</a>
+            {% endif %}
+        </p>
+    {% else %}
+        <fieldset class="mb-3">
+            <legend class="form-label fs-6 mb-1">{% translate "Couleur" %}</legend>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                {% for choix in form.couleur %}
+                    <label class="d-inline-flex align-items-center gap-1 small" title="{{ choix.choice_label }}">
+                        {{ choix.tag }}
+                        {% if choix.data.value %}
+                            <span class="d-inline-block rounded border" style="width: 1.4em; height: 1.4em; background-color: {{ choix.data.value }};"></span>
+                            <span class="visually-hidden">{{ choix.choice_label }}</span>
+                        {% else %}
+                            {{ choix.choice_label }}
+                        {% endif %}
+                    </label>
+                {% endfor %}
+            </div>
+            {{ form.couleur.errors }}
+        </fieldset>
+    {% endif %}
+
+    <hr>
+
+    <h2 class="h5">{% translate "Documents existants" %}</h2>
+
+    {# Étiquettes : celles du dossier à cocher, de nouvelles à saisir. Le marqueur #}
+    {# dit au serveur que la section a été montrée (sinon il n'y touche pas).     #}
+    <div class="mb-3">
+        <input type="hidden" name="etiquettes_presentes" value="1">
+        <span class="form-label d-block">{% translate "Étiquettes" %}</span>
+        {% if etiquettes_du_dossier %}
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                {% for etiquette in etiquettes_du_dossier %}
+                    <input type="checkbox" class="btn-check" name="etiquettes" value="{{ etiquette.pk }}"
+                           id="etiquette-{{ champ_documents }}-{{ etiquette.pk }}" autocomplete="off"
+                           {% if etiquette.pk in etiquettes_cochees %}checked{% endif %}>
+                    <label class="btn btn-sm btn-outline-secondary rounded-pill" for="etiquette-{{ champ_documents }}-{{ etiquette.pk }}">
+                        <i class="bi bi-tag me-1" aria-hidden="true"></i>{{ etiquette.nom }}
+                    </label>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <input type="text" class="form-control" name="nouvelles_etiquettes" maxlength="300"
+               id="nouvelles-etiquettes-{{ champ_documents }}" list="suggestions-etiquettes-{{ champ_documents }}"
+               value="{{ nouvelles_etiquettes }}"
+               placeholder="{% translate "Ajouter des étiquettes, séparées par des virgules" %}"
+               aria-label="{% translate "Nouvelles étiquettes" %}">
+        <datalist id="suggestions-etiquettes-{{ champ_documents }}">
+            {% for suggestion in suggestions_etiquettes %}<option value="{{ suggestion }}">{% endfor %}
+        </datalist>
+        {% if suggestions_etiquettes %}
+            <div class="form-text">{% translate "Par exemple :" %} {{ suggestions_etiquettes|join:", " }}</div>
+        {% endif %}
+    </div>
+
+    {% if event and event.documents.all %}
+        <ul class="list-group mb-4" data-document-list>
+            {% for document in event.documents.all %}
+                <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+                    <a class="text-break" href="{% if lien_partage %}{% url 'share_document_download' lien_partage.token document.id %}{% else %}{% url 'document_download' document.id %}{% endif %}" target="_blank"
+                       rel="noopener noreferrer"><span class="text-body-secondary me-1">{{ document.numero }}</span>{{ document.title }}</a>
+                    {# « Retirer » et non « Supprimer » : une pièce peut      #}
+                    {# illustrer plusieurs évènements. La retirer d'ici ne    #}
+                    {# la détruit que si plus aucun autre ne s'y appuie.      #}
+                    <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0"
+                            title="{% translate "Retirer" %}" aria-label="{% translate "Retirer" %}"
+                            data-document-detach="{% if lien_partage %}{% url 'share_document_detach' lien_partage.token event.id document.id %}{% else %}{% url 'document_detach' event.id document.id %}{% endif %}"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"></path></svg></button>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-muted" data-document-list>{% translate "Aucun document." %}</p>
+    {% endif %}
+
+    {# Pièces à joindre. Sans JavaScript : le champ natif, multiple, filtré par    #}
+    {# `accept`. Avec : `_event_form_js.html` le masque et affiche une zone de     #}
+    {# dépôt et une liste où chaque pièce se retire une à une. La liste affichée   #}
+    {# est exactement ce qui part : il n'existe qu'une sélection, celle du champ.  #}
+    {#                                                                             #}
+    {# Extensions et taille viennent du serveur (`ALLOWED_DOCUMENT_EXTENSIONS`,    #}
+    {# `DOCUMENT_TAILLE_MAX`) : le contrôle du navigateur n'est qu'un confort,     #}
+    {# c'est `_save_documents` qui fait autorité.                                  #}
+    <div class="mb-4" data-pieces
+         data-extensions="{{ extensions_acceptees|join:',' }}"
+         data-taille-max-ko="{{ document_taille_max_ko }}">
+        <label class="form-label" for="{{ champ_documents }}">{% translate "Ajouter des documents" %}</label>
+
+        {# `name="documents"` et non `documents[]` : les vues lisent       #}
+        {# `request.FILES.getlist("documents")`, et sous l'autre nom chaque #}
+        {# pièce jointe était reçue puis abandonnée sans un mot.            #}
+        {#                                                                  #}
+        {# L'identifiant est paramétrable : la page et le modal peuvent     #}
+        {# coexister dans le même document, et deux `id` identiques         #}
+        {# feraient pointer le second ailleurs.                             #}
+        <input type="file" name="documents" id="{{ champ_documents }}" multiple
+               class="form-control" data-file-input
+               accept="{% for extension in extensions_acceptees %}.{{ extension }}{% if not forloop.last %},{% endif %}{% endfor %}">
+
+        <div class="rounded border border-2 border-secondary-subtle p-4 text-center text-body-secondary d-none"
+             style="border-style: dashed !important;" data-zone-depot>
+            {# Une seule phrase à traduire : le bouton y est un repère, que la      #}
+            {# traduction place où sa grammaire le veut.                          #}
+            {% blocktranslate trimmed with debut='<button type="button" class="btn btn-link p-0 align-baseline" data-parcourir>'|safe fin="</button>"|safe %}
+                Glissez les fichiers ici, ou {{ debut }}parcourez{{ fin }}.
+            {% endblocktranslate %}
+            <div class="small mt-1">
+                {% blocktranslate trimmed with extensions=extensions_acceptees|join:", "|upper taille=document_taille_max_mo %}
+                    {{ extensions }} — {{ taille }} Mo maximum par fichier.
+                {% endblocktranslate %}
+            </div>
+        </div>
+        <ul class="list-group mt-2" data-pending-files></ul>
+        <div class="small text-warning-emphasis mt-2" data-pending-note aria-live="polite"></div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+        <a class="btn btn-secondary" href="{{ retour }}"
+           data-form-cancel><i class="bi bi-x-lg me-1" aria-hidden="true"></i>{% translate "Annuler" %}</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{% translate "Enregistrer" %}</button>
+    </div>
+</form>

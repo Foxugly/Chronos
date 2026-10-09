@@ -1,0 +1,408 @@
+"""Import de courriels : un courriel transféré à l'alias d'un dossier en devient un évènement."""
+
+import datetime
+import shutil
+import tempfile
+from email.message import EmailMessage
+from email.utils import parsedate_to_datetime
+from io import StringIO
+from pathlib import Path
+from unittest import mock
+from zoneinfo import ZoneInfo
+
+from django.core.management import call_command
+from django.test import TestCase, override_settings
+from django.urls import reverse
+
+from events.courriels import analyser
+from events.import_courriels import dossier_destinataire, importer
+from events.models import CourrielImporte, DossierAccess, Event, Journal
+from events.tests.factories import grant, make_dossier, make_user
+
+BRUXELLES = ZoneInfo("Europe/Brussels")
+ALIAS = "dossier-sdb-k7f3@exemple.be"
+
+
+def courriel(sujet, texte, *, de="a@exemple.be", a=ALIAS, recu="Wed, 9 Sep 2026 10:00:00 +0000",
+             html=None, pieces=(), joint=None, message_id="<transfert@exemple.be>"):
+    m = EmailMessage()
+    m["Received"] = "from mx.exemple.be by boite.exemple.be; %s" % recu
+    m["From"], m["To"], m["Subject"], m["Message-ID"] = de, a, sujet, message_id
+    m["Date"] = recu
+    m.set_content(texte)
+    if html:
+        m.add_alternative(html, subtype="html")
+    for nom, contenu, maintype, soustype in pieces:
+        m.add_attachment(contenu, maintype=maintype, subtype=soustype, filename=nom)
+    if joint is not None:
+        m.add_attachment(joint)
+    return m
+
+
+def original():
+    o = EmailMessage()
+    o["Received"] = "from smtp.entreprise.be by mx.exemple.be; Tue, 25 Aug 2026 12:32:10 +0000"
+    o["Received"] = "from poste by smtp.entreprise.be; Tue, 25 Aug 2026 12:32:05 +0000"
+    o["From"], o["To"] = "ACME Bat <contact@acme-bat.example>", "jdupont@exemple.be"
+    o["Subject"], o["Message-ID"] = "Réponse 2e acompte", "<original-42@acme-bat.example>"
+    o["Date"] = "Tue, 25 Aug 2026 14:31:00 +0200"
+    o.set_content("Bonjour,\n\nNous contestons.\n\nCordialement")
+    o.add_attachment(b"%PDF facture", maintype="application", subtype="pdf", filename="facture.pdf")
+    return o
+
+
+class AnalyseTests(TestCase):
+    def test_transfert_en_piece_jointe(self):
+        a = analyser(courriel("TR: Réponse 2e acompte", "Pour le dossier", joint=original()).as_bytes())
+        self.assertEqual(a.forme, "joint")
+        self.assertEqual(a.titre, "Réponse 2e acompte")
+        # Le Received le plus récent de l'original : 12:32:10 UTC = 14:32:10 à Bruxelles.
+        self.assertEqual(a.moment, datetime.datetime(2026, 8, 25, 14, 32, 10, tzinfo=BRUXELLES))
+        self.assertEqual(a.expediteur, "ACME Bat <contact@acme-bat.example>")
+        self.assertIn("Nous contestons.", a.texte)
+        self.assertEqual(a.commentaire, "Pour le dossier")
+        self.assertEqual([p.nom for p in a.pieces], ["facture.pdf"])
+        self.assertEqual(a.message_id, "<original-42@acme-bat.example>")
+        self.assertIn(b"original-42@acme-bat.example", a.eml)
+
+    def test_transfert_dans_le_texte_par_outlook(self):
+        blocs = {
+            "fr": "De : ACME Bat <contact@acme-bat.example>\nEnvoyé : mardi 25 août 2026 14:31\nÀ : Jean\nObjet : Réponse 2e acompte",
+            "en": "From: ACME Bat <contact@acme-bat.example>\nSent: Tuesday, August 25, 2026 2:31 PM\nTo: Jean\nSubject: Réponse 2e acompte",
+            "nl": "Van: ACME Bat <contact@acme-bat.example>\nVerzonden: dinsdag 25 augustus 2026 14:31\nAan: Jean\nOnderwerp: Réponse 2e acompte",
+            "gmail": "---------- Forwarded message ---------\nDe : ACME Bat <contact@acme-bat.example>\nDate: mar. 25 août 2026 à 14:31\nSubject: Réponse 2e acompte\nTo: Jean",
+        }
+        for langue, bloc in blocs.items():
+            with self.subTest(langue=langue):
+                texte = "À verser au dossier.\n\n" + bloc + "\n\nBonjour,\nNous contestons."
+                a = analyser(courriel("TR: Réponse 2e acompte", texte).as_bytes())
+                self.assertEqual(a.forme, "texte")
+                self.assertEqual(a.titre, "Réponse 2e acompte")
+                self.assertEqual(a.moment, datetime.datetime(2026, 8, 25, 14, 31, tzinfo=BRUXELLES))
+                self.assertFalse(a.date_approchee)
+                self.assertIn("contact@acme-bat.example", a.expediteur)
+                self.assertEqual(a.texte, "Bonjour,\nNous contestons.")
+                self.assertEqual(a.commentaire, "À verser au dossier.")
+
+    def test_un_courriel_direct_garde_sa_date_de_reception(self):
+        a = analyser(courriel("Devis", "Voici le devis.").as_bytes())
+        self.assertEqual(a.forme, "direct")
+        self.assertEqual(a.moment, datetime.datetime(2026, 9, 9, 12, 0, tzinfo=BRUXELLES))
+
+    def test_un_transfert_sans_date_lisible_est_signale(self):
+        texte = "De : X\nEnvoyé : un jour\nObjet : Devis\n\nTexte"
+        a = analyser(courriel("TR: Devis", texte).as_bytes())
+        self.assertTrue(a.date_approchee)
+        self.assertEqual(a.moment, datetime.datetime(2026, 9, 9, 12, 0, tzinfo=BRUXELLES))
+
+    def test_le_html_seul_devient_du_texte(self):
+        m = EmailMessage()
+        m["Received"] = "from a by b; Wed, 9 Sep 2026 10:00:00 +0000"
+        m["From"], m["To"], m["Subject"] = "a@exemple.be", ALIAS, "HTML"
+        m.set_content("<p>Premier&nbsp;paragraphe</p><p>J&#x27;ai <b>dit</b></p><script>x()</script>", subtype="html")
+        a = analyser(m.as_bytes())
+        self.assertEqual(a.texte, "Premier paragraphe\nJ'ai dit")
+
+    def test_les_images_de_signature_sont_ignorees(self):
+        m = courriel("Devis", "Voici.", pieces=[("devis.pdf", b"%PDF", "application", "pdf")])
+        logo = EmailMessage()
+        m.add_attachment(b"\x89PNG logo", maintype="image", subtype="png", disposition="inline", cid="<logo@x>")
+        a = analyser(m.as_bytes())
+        self.assertEqual([p.nom for p in a.pieces], ["devis.pdf"])
+
+
+class MediaMixin:
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.media_root = tempfile.mkdtemp()
+        cls.enterClassContext(override_settings(MEDIA_ROOT=cls.media_root))
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(cls.media_root, ignore_errors=True)
+
+
+class ImportTests(MediaMixin, TestCase):
+    def setUp(self):
+        self.owner = make_user("owner")
+        self.dossier = make_dossier(self.owner)
+        self.dossier.alias_courriel = ALIAS
+        self.dossier.save()
+
+    def test_l_import_cree_l_evenement_ses_pieces_et_le_journal(self):
+        m = courriel("TR: Réponse 2e acompte", "Pour le dossier", joint=original(),
+                     pieces=[("virus.exe", b"MZ", "application", "octet-stream")])
+        evenement = importer(self.dossier, analyser(m.as_bytes()))
+
+        self.assertEqual(evenement.title, "Réponse 2e acompte")
+        self.assertEqual((evenement.date, evenement.heure), (datetime.date(2026, 8, 25), datetime.time(14, 32, 10)))
+        self.assertIn("Nous contestons.", evenement.description)
+        noms = sorted(d.title for d in evenement.documents.all())
+        self.assertEqual(noms, ["courriel-20260825-1432.eml", "courriel-20260825-1432.md", "facture.pdf"])
+        md = evenement.documents.get(title__endswith=".md").file.read().decode()
+        self.assertIn("contact@acme-bat.example", md)
+        self.assertIn("virus.exe", md)  # pièce refusée, mais nommée
+        entree = Journal.objects.get(action=Journal.Action.COURRIEL_IMPORTE)
+        self.assertEqual(entree.details["refusees"][0][0], "virus.exe")
+        self.assertEqual(Journal.objects.filter(action=Journal.Action.PIECE_AJOUTEE).count(), 3)
+
+    def test_le_meme_courriel_n_est_importe_qu_une_fois(self):
+        octets = courriel("TR: x", "y", joint=original()).as_bytes()
+        self.assertIsNotNone(importer(self.dossier, analyser(octets)))
+        self.assertIsNone(importer(self.dossier, analyser(octets)))
+        self.assertEqual(Event.objects.count(), 1)
+        self.assertEqual(CourrielImporte.objects.count(), 1)
+
+    def test_le_texte_d_un_courriel_ne_devient_jamais_du_balisage(self):
+        m = courriel("Devis", "<script>window.pwned=1</script>\n<img src=x onerror=alert(1)>")
+        evenement = importer(self.dossier, analyser(m.as_bytes()))
+        self.assertNotIn("<script", evenement.description)
+        self.assertNotIn("<img", evenement.description)
+
+    def test_le_dossier_se_trouve_par_son_alias(self):
+        self.assertEqual(dossier_destinataire(["autre@x.be", ALIAS.upper()]), self.dossier)
+        self.assertIsNone(dossier_destinataire(["autre@x.be"]))
+
+
+class FausseBoite:
+    def __init__(self, messages):
+        self.messages = messages  # {id: octets}
+        self.ranges = {}
+
+    def messages_recus(self):
+        return [{"id": i, "subject": "x"} for i in list(self.messages)]
+
+    def mime(self, identifiant):
+        return self.messages[identifiant]
+
+    def dossier(self, nom):
+        return nom
+
+    def deplacer(self, identifiant, dossier):
+        self.ranges[identifiant] = dossier
+
+
+class CommandeTests(MediaMixin, TestCase):
+    def setUp(self):
+        self.dossier = make_dossier(make_user("owner"))
+        self.dossier.alias_courriel = ALIAS
+        self.dossier.save()
+
+    def lancer(self, boite, *args):
+        sortie = StringIO()
+        with mock.patch("events.management.commands.importer_courriels.ClientGraph", return_value=boite):
+            call_command("importer_courriels", *args, stdout=sortie, stderr=StringIO())
+        return sortie.getvalue()
+
+    def test_importe_et_range(self):
+        boite = FausseBoite({
+            "1": courriel("TR: x", "y", joint=original()).as_bytes(),
+            "2": courriel("Pub", "rien", a="inconnu@exemple.be", message_id="<pub@x>").as_bytes(),
+        })
+        sortie = self.lancer(boite)
+        self.assertEqual(boite.ranges, {"1": "Importés", "2": "Non importés"})
+        self.assertEqual(Event.objects.count(), 1)
+        self.assertIn("1 importé(s), 1 sans alias, 0 en échec", sortie)
+
+    def test_l_essai_ne_cree_ni_ne_range_rien(self):
+        boite = FausseBoite({"1": courriel("TR: x", "y", joint=original()).as_bytes()})
+        self.lancer(boite, "--essai")
+        self.assertEqual(boite.ranges, {})
+        self.assertFalse(Event.objects.exists())
+
+    def test_un_courriel_deja_importe_est_range_sans_doublon(self):
+        octets = courriel("TR: x", "y", joint=original()).as_bytes()
+        importer(self.dossier, analyser(octets))
+        boite = FausseBoite({"1": octets})
+        self.lancer(boite)
+        self.assertEqual(boite.ranges, {"1": "Importés"})
+        self.assertEqual(Event.objects.count(), 1)
+
+    def test_depuis_un_fichier_eml(self):
+        chemin = Path(self.media_root) / "exemple.eml"
+        chemin.write_bytes(courriel("TR: x", "y", joint=original()).as_bytes())
+        sortie = StringIO()
+        call_command("importer_courriels", "--fichier", str(chemin), "--dossier", str(self.dossier.pk),
+                     stdout=sortie)
+        self.assertEqual(Event.objects.get().title, "Réponse 2e acompte")
+
+    def test_sans_configuration_la_commande_refuse(self):
+        from django.core.management.base import CommandError
+
+        with override_settings(GRAPH_TENANT_ID="", GRAPH_CLIENT_ID="", GRAPH_CLIENT_SECRET="", COURRIEL_BOITE=""):
+            with self.assertRaisesMessage(CommandError, "Configuration incomplète"):
+                call_command("importer_courriels", stdout=StringIO())
+
+
+class AliasTests(TestCase):
+    def setUp(self):
+        self.owner = make_user("owner")
+        self.dossier = make_dossier(self.owner)
+        self.url = reverse("dossier_alias", args=[self.dossier.pk])
+
+    def test_le_proprietaire_regle_l_alias_et_c_est_journalise(self):
+        self.client.force_login(self.owner)
+        self.client.post(self.url, {"alias_courriel": " Dossier-SDB@Exemple.be "})
+        self.dossier.refresh_from_db()
+        self.assertEqual(self.dossier.alias_courriel, "dossier-sdb@exemple.be")
+        entree = Journal.objects.get()
+        self.assertEqual(entree.details["changements"]["alias_courriel"], ["", "dossier-sdb@exemple.be"])
+
+    def test_un_alias_deja_pris_est_refuse(self):
+        autre = make_dossier(self.owner, name="Autre")
+        autre.alias_courriel = "pris@exemple.be"
+        autre.save()
+        self.client.force_login(self.owner)
+        self.client.post(self.url, {"alias_courriel": "pris@exemple.be"})
+        self.dossier.refresh_from_db()
+        self.assertIsNone(self.dossier.alias_courriel)
+
+    def test_seul_le_proprietaire(self):
+        ecrivain = make_user("ecrivain")
+        grant(self.dossier, ecrivain, DossierAccess.Role.WRITE)
+        self.client.force_login(ecrivain)
+        self.assertEqual(self.client.post(self.url, {"alias_courriel": "x@exemple.be"}).status_code, 404)
+
+
+class ReponseTests(TestCase):
+    def test_une_reponse_qui_cite_le_message_precedent_n_est_pas_un_transfert(self):
+        """Une réponse cite le message précédent sous le même bloc « De : …
+        Envoyé : … » qu'un transfert. La prendre pour un transfert donnait à
+        l'évènement la date, l'auteur et le texte du message *cité*."""
+        texte = ("Voici ma réponse.\n\nDe : ACME Bat <contact@acme-bat.example>\n"
+                 "Envoyé : mardi 25 août 2026 14:31\nÀ : Jean\nObjet : Devis\n\nMessage cité.")
+        a = analyser(courriel("RE: Devis", texte, de="Jean <jdupont@exemple.be>").as_bytes())
+        self.assertEqual(a.forme, "direct")
+        self.assertEqual(a.titre, "RE: Devis")
+        self.assertEqual(a.expediteur, "Jean <jdupont@exemple.be>")
+        self.assertTrue(a.texte.startswith("Voici ma réponse."))
+
+    def test_un_transfert_annonce_dans_le_texte_reste_un_transfert(self):
+        texte = ("---------- Forwarded message ---------\nDe : X <x@x.be>\n"
+                 "Date: mar. 25 août 2026 à 14:31\nSubject: Devis\nTo: Y\n\nTexte d'origine.")
+        a = analyser(courriel("Devis", texte).as_bytes())
+        self.assertEqual(a.forme, "texte")
+
+
+EXEMPLES = Path(__file__).resolve().parents[2] / "exemples_courriels"
+
+
+class VraisExemplesTests(TestCase):
+    """Les vrais courriels déposés dans `exemples_courriels/` (non versionnés) :
+    ignorés s'il n'y en a pas, lus un à un s'il y en a."""
+
+    def test_chaque_exemple_se_lit_sans_erreur_et_sans_contresens(self):
+        fichiers = sorted(EXEMPLES.glob("*.eml")) if EXEMPLES.is_dir() else []
+        if not fichiers:
+            self.skipTest("aucun exemple dans exemples_courriels/")
+        for fichier in fichiers:
+            with self.subTest(fichier=fichier.name):
+                a = analyser(fichier.read_bytes())
+                self.assertTrue(a.titre)
+                self.assertIsNotNone(a.moment.tzinfo)
+                self.assertIn("@", a.expediteur)
+                if a.titre.lower().startswith(("re:", "re :")):
+                    # Une réponse est le courriel lui-même, jamais le message qu'elle cite.
+                    self.assertEqual(a.forme, "direct")
+
+
+JOURS_FR = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
+MOIS_FR = ("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août",
+           "septembre", "octobre", "novembre", "décembre")
+
+
+def transferer_en_piece_jointe(octets):
+    """Ce qu'Outlook envoie à la boîte avec « Transférer en tant que pièce jointe »."""
+    from email import message_from_bytes, policy
+
+    enveloppe = courriel("TR: transfert", "Pour le dossier.", de="moi@exemple.be",
+                         recu="Fri, 9 Oct 2026 08:00:00 +0000", message_id="<enveloppe@x>")
+    enveloppe.add_attachment(message_from_bytes(octets, policy=policy.default))
+    return enveloppe.as_bytes()
+
+
+def transferer_dans_le_texte(octets):
+    """Ce qu'Outlook (français) envoie avec un « Transférer » ordinaire : un bloc
+    « De : … Envoyé : … » au-dessus du texte d'origine."""
+    from events.courriels import corps_en_texte, lire
+
+    o = lire(octets)
+    envoye = parsedate_to_datetime(str(o["Date"])).astimezone(BRUXELLES)
+    date = "%s %d %s %d %02d:%02d" % (JOURS_FR[envoye.weekday()], envoye.day,
+                                      MOIS_FR[envoye.month - 1], envoye.year, envoye.hour, envoye.minute)
+    texte = ("Pour le dossier.\n\n________________________________\n"
+             "De : %s\nEnvoyé : %s\nÀ : %s\nObjet : %s\n\n%s"
+             % (o["From"], date, o["To"], o["Subject"], corps_en_texte(o)))
+    return courriel("TR: %s" % o["Subject"], texte, de="moi@exemple.be",
+                    recu="Fri, 9 Oct 2026 08:00:00 +0000", message_id="<enveloppe2@x>").as_bytes()
+
+
+class VraisExemplesTransferesTests(TestCase):
+    """Les vrais exemples, transférés des deux façons à la boîte : l'enveloppe
+    du transfert ne doit jamais l'emporter sur le courriel d'origine."""
+
+    def setUp(self):
+        self.fichiers = sorted(EXEMPLES.glob("*.eml")) if EXEMPLES.is_dir() else []
+        if not self.fichiers:
+            self.skipTest("aucun exemple dans exemples_courriels/")
+
+    def test_transfere_en_piece_jointe(self):
+        for fichier in self.fichiers:
+            with self.subTest(fichier=fichier.name):
+                direct = analyser(fichier.read_bytes())
+                transfere = analyser(transferer_en_piece_jointe(fichier.read_bytes()))
+                # Un exemple déjà transféré une fois reste lu à travers sa couche de texte.
+                self.assertEqual(transfere.forme, "joint" if direct.forme == "direct" else direct.forme)
+                self.assertEqual(transfere.titre, direct.titre)
+                self.assertEqual(transfere.moment, direct.moment)  # la réception d'origine
+                self.assertEqual(transfere.expediteur, direct.expediteur)
+                self.assertEqual(sorted(p.nom for p in transfere.pieces), sorted(p.nom for p in direct.pieces))
+                self.assertTrue(transfere.commentaire.startswith("Pour le dossier."))
+
+    def test_transfere_dans_le_texte(self):
+        for fichier in self.fichiers:
+            with self.subTest(fichier=fichier.name):
+                o = analyser(fichier.read_bytes())
+                envoye = parsedate_to_datetime(str(lire_entete(fichier, "Date"))).astimezone(BRUXELLES)
+                transfere = analyser(transferer_dans_le_texte(fichier.read_bytes()))
+                self.assertEqual(transfere.forme, "texte")
+                self.assertEqual(transfere.titre, o.titre)
+                # Un transfert ordinaire ne porte que l'heure d'envoi, à la minute ; un
+                # exemple déjà transféré se lit jusqu'à son origine, comme en direct.
+                attendu = o.moment if o.forme == "texte" else envoye.replace(second=0, microsecond=0)
+                self.assertEqual(transfere.moment, attendu)
+                self.assertIn(o.expediteur.split("<")[-1].rstrip(">").lower(), transfere.expediteur.lower())
+                self.assertTrue(transfere.commentaire.startswith("Pour le dossier."))
+                self.assertTrue(transfere.texte.startswith(o.texte[:40].strip()))
+
+
+def lire_entete(fichier, nom):
+    from events.courriels import lire
+
+    return lire(fichier.read_bytes())[nom]
+
+
+class TransfertDeTransfertTests(TestCase):
+    """Le courriel d'origine, même enfoui sous deux transferts."""
+
+    def test_en_piece_jointe_deux_fois(self):
+        milieu = courriel("TR: Réponse", "Pour l'avocate", joint=original(), message_id="<milieu@x>")
+        a = analyser(courriel("TR: TR: Réponse", "Pour le dossier", joint=milieu).as_bytes())
+        self.assertEqual(a.titre, "Réponse 2e acompte")
+        self.assertEqual(a.moment, datetime.datetime(2026, 8, 25, 14, 32, 10, tzinfo=BRUXELLES))
+        self.assertEqual(a.commentaire, "Pour le dossier\n\nPour l'avocate")
+        self.assertEqual([p.nom for p in a.pieces], ["facture.pdf"])
+
+    def test_dans_le_texte_deux_fois(self):
+        texte = ("Pour le dossier.\n\nDe : Moi <moi@x.be>\nEnvoyé : mercredi 7 octobre 2026 18:38\n"
+                 "À : Avocate\nObjet : TR: Mise en demeure\n\nBonjour Maître.\n\n"
+                 "De : ACME Bat <contact@acme-bat.example>\nEnvoyé : lundi 28 septembre 2026 20:29\n"
+                 "À : Moi\nObjet : Mise en demeure\n\nMonsieur Dupont,")
+        a = analyser(courriel("TR: TR: Mise en demeure", texte).as_bytes())
+        self.assertEqual(a.titre, "Mise en demeure")
+        self.assertEqual(a.moment, datetime.datetime(2026, 9, 28, 20, 29, tzinfo=BRUXELLES))
+        self.assertIn("contact@acme-bat.example", a.expediteur)
+        self.assertEqual(a.texte, "Monsieur Dupont,")
+        self.assertEqual(a.commentaire, "Pour le dossier.\n\nBonjour Maître.")

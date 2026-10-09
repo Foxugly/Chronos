@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Les paramètres d'un dossier, pour son propriétaire seul : le nom, et l'alias
+d'import par courriel (ajouter, modifier, désactiver). Chaque changement est
+inscrit au journal.
+
+L'alias proposé n'est qu'une suggestion : il n'est enregistré que si le
+propriétaire l'envoie, et il doit d'abord exister dans Exchange.
+{% endcomment %}
+
+{% block title %}{% blocktranslate with nom=dossier.name %}Paramètres — {{ nom }}{% endblocktranslate %}{% endblock %}
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+
+{% block content %}
+    <div class="mx-auto" style="max-width: 900px;">
+        <p class="mb-2">
+            <a class="text-decoration-none" href="{% url 'timeline' dossier.pk %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{{ dossier.name }}</a>
+        </p>
+        <h1 class="h3 mb-4"><i class="bi bi-gear me-2 text-body-secondary" aria-hidden="true"></i>{% translate "Paramètres du dossier" %}</h1>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="h5 mb-3">{% translate "Général" %}</h2>
+                <form method="post" action="{% url 'dossier_parametres' dossier.pk %}">
+                    {% csrf_token %}
+                    <label class="form-label" for="{{ nom_form.name.id_for_label }}">{% translate "Nom du dossier" %}</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <div class="flex-grow-1" style="min-width: 14rem;">
+                            {{ nom_form.name }}
+                            {% for erreur in nom_form.name.errors %}
+                                <div class="invalid-feedback d-block">{{ erreur }}</div>
+                            {% endfor %}
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{% translate "Enregistrer" %}</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="h5 mb-3"><i class="bi bi-tags me-2 text-body-secondary" aria-hidden="true"></i>{% translate "Étiquettes" %}</h2>
+                {% if etiquettes %}
+                    <p class="small text-body-secondary">
+                        {% translate "Elles se créent depuis le formulaire d'un évènement. Supprimer une étiquette la retire des évènements, qui restent." %}
+                    </p>
+                    <ul class="list-group">
+                        {% for etiquette in etiquettes %}
+                            <li class="list-group-item">
+                                <form method="post" action="{% url 'dossier_etiquette' dossier.pk etiquette.pk %}"
+                                      class="d-flex flex-wrap align-items-center gap-2">
+                                    {% csrf_token %}
+                                    <input type="text" name="nom" value="{{ etiquette.nom }}" maxlength="60" required
+                                           class="form-control form-control-sm flex-grow-1" style="min-width: 10rem; max-width: 20rem;"
+                                           aria-label="{% translate "Nom de l'étiquette" %}">
+                                    <span class="small text-body-secondary">
+                                        {% blocktranslate trimmed count n=etiquette.nombre %}{{ n }} évènement{% plural %}{{ n }} évènements{% endblocktranslate %}
+                                    </span>
+                                    <span class="ms-auto d-flex gap-2">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-check-lg me-1" aria-hidden="true"></i>{% translate "Renommer" %}
+                                        </button>
+                                        <button type="submit" name="supprimer" value="1" class="btn btn-sm btn-outline-danger"
+                                                formnovalidate
+                                                title="{% translate "Supprimer" %}" aria-label="{% translate "Supprimer" %}">
+                                            <i class="bi bi-trash3" aria-hidden="true"></i>
+                                        </button>
+                                    </span>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="small text-body-secondary mb-0">
+                        {% translate "Aucune étiquette pour l'instant. Elles se créent depuis le formulaire d'un évènement." %}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-3">
+                    <h2 class="h5 mb-0"><i class="bi bi-envelope-arrow-down me-2 text-body-secondary" aria-hidden="true"></i>{% translate "Import par courriel" %}</h2>
+                    {% if dossier.alias_courriel %}
+                        <span class="badge text-bg-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{% translate "Activé" %}</span>
+                    {% else %}
+                        <span class="badge text-bg-secondary">{% translate "Désactivé" %}</span>
+                    {% endif %}
+                </div>
+
+                <p class="small text-body-secondary">
+                    {% blocktranslate trimmed %}
+                        Un courriel transféré à cette adresse devient un évènement du dossier : sa date
+                        de réception, son objet, son texte, ses pièces jointes, et le courriel complet
+                        joint comme pièce. L'adresse doit exister comme alias de la boîte d'import
+                        dans Exchange.
+                    {% endblocktranslate %}
+                </p>
+                <p class="small text-warning-emphasis">
+                    <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>
+                    {% blocktranslate trimmed %}
+                        Toute personne qui connaît cette adresse peut ajouter un évènement. Choisissez-la
+                        difficile à deviner ; changez-la si elle a circulé.
+                    {% endblocktranslate %}
+                </p>
+
+                {% if dossier.alias_courriel %}
+                    <div class="mb-3">
+                        <span class="small text-body-secondary">{% translate "Adresse actuelle :" %}</span>
+                        <code class="user-select-all ms-1">{{ dossier.alias_courriel }}</code>
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'dossier_alias' dossier.pk %}"{% if exchange_gere %} data-attente-exchange{% endif %}>
+                    {% csrf_token %}
+                    <label class="form-label" for="alias-courriel">
+                        {% if dossier.alias_courriel %}{% translate "Nouvel alias" %}{% else %}{% translate "Alias de courriel" %}{% endif %}
+                    </label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <input type="email" name="alias_courriel" id="alias-courriel" class="form-control flex-grow-1"
+                               style="min-width: 14rem; max-width: 28rem;" required
+                               value="{{ dossier.alias_courriel|default:'' }}"
+                               placeholder="{{ alias_propose|default:'dossier-xxxx@votredomaine.be' }}">
+                        <button type="submit" class="btn btn-primary">
+                            {% if dossier.alias_courriel %}
+                                <i class="bi bi-pencil me-1" aria-hidden="true"></i>{% translate "Modifier l'alias" %}
+                            {% else %}
+                                <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{% translate "Ajouter l'alias" %}
+                            {% endif %}
+                        </button>
+                    </div>
+                    {% if alias_propose %}
+                        <div class="form-text">
+                            {% translate "Proposition :" %}
+                            <code class="user-select-all">{{ alias_propose }}</code>
+                            <button type="button" class="btn btn-link btn-sm p-0 align-baseline ms-1"
+                                    data-utiliser-alias="{{ alias_propose }}">{% translate "utiliser" %}</button>
+                        </div>
+                    {% endif %}
+                </form>
+
+                {% if dossier.alias_courriel %}
+                    <form method="post" action="{% url 'dossier_alias' dossier.pk %}" class="mt-3"{% if exchange_gere %} data-attente-exchange{% endif %}>
+                        {% csrf_token %}
+                        <input type="hidden" name="alias_courriel" value="">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-x-circle me-1" aria-hidden="true"></i>{% translate "Désactiver l'import par courriel" %}
+                        </button>
+                    </form>
+                {% endif %}
+
+                {% if exchange_gere %}
+                    <p class="small text-body-secondary mt-3 mb-2">
+                        <i class="bi bi-cloud-check me-1" aria-hidden="true"></i>
+                        {% translate "Chronos crée, change et retire l'alias dans Exchange lui-même. Comptez une dizaine de secondes par opération." %}
+                    </p>
+                    {% if dossier.alias_courriel %}
+                        <form method="post" action="{% url 'dossier_alias_verifier' dossier.pk %}" data-attente-exchange>
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>{% translate "Vérifier dans Exchange" %}
+                            </button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                <details class="mt-4 small">
+                    <summary class="text-body-secondary">{% translate "Créer l'alias dans Exchange" %}</summary>
+                    <p class="mt-2 mb-1">
+                        {% blocktranslate trimmed %}
+                            L'application ne crée pas l'alias : ajoutez-le à la boîte d'import, puis
+                            enregistrez-le ici. En PowerShell, module ExchangeOnlineManagement :
+                        {% endblocktranslate %}
+                    </p>
+                    <pre class="bg-body-tertiary border rounded p-2 mb-0 text-break" style="white-space: pre-wrap;"><code>Set-Mailbox {{ boite|default:"import@votredomaine.be" }} -EmailAddresses @{add="{{ dossier.alias_courriel|default:alias_propose|default:"dossier-xxxx@votredomaine.be" }}"}</code></pre>
+                </details>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script nonce="{{ csp_nonce }}">
+    "use strict";
+    // Un appel à Exchange prend une dizaine de secondes : on le dit, et on
+    // empêche un second envoi pendant ce temps.
+    document.querySelectorAll("[data-attente-exchange]").forEach(function (formulaire) {
+        formulaire.addEventListener("submit", function () {
+            formulaire.querySelectorAll("button").forEach(function (bouton) {
+                bouton.disabled = true;
+            });
+            const note = document.createElement("div");
+            note.className = "small text-body-secondary mt-2";
+            note.setAttribute("role", "status");
+            note.textContent = "{{ _("Échange avec Exchange en cours…")|escapejs }}";
+            formulaire.appendChild(note);
+        });
+    });
+
+    // « utiliser » recopie la proposition dans le champ ; rien n'est envoyé.
+    document.querySelectorAll("[data-utiliser-alias]").forEach(function (bouton) {
+        bouton.addEventListener("click", function () {
+            const champ = document.getElementById("alias-courriel");
+            champ.value = bouton.dataset.utiliserAlias;
+            champ.focus();
+        });
+    });
+    </script>
+{% endblock %}

@@ -1,0 +1,8 @@
+# /etc/sudoers.d/chronos-deploy — root:root 0440, vérifié par `visudo -c`.
+# Installé à la main (root, hors déploiement) : OPERATIONS.md §3.7.
+# Le compte django ne peut que redémarrer les services de Chronos et
+# recharger nginx — rien d'autre, sans variable d'environnement.
+Cmnd_Alias CHRONOS_SVC_CTRL = /bin/systemctl restart chronos-gunicorn
+Cmnd_Alias CHRONOS_WEB_CTRL = /usr/sbin/nginx -t, /bin/systemctl reload nginx
+django ALL=(root) NOPASSWD: CHRONOS_SVC_CTRL, CHRONOS_WEB_CTRL
+Defaults!CHRONOS_SVC_CTRL,CHRONOS_WEB_CTRL !setenv, !env_keep

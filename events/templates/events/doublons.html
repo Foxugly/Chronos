@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Les doublons possibles d'un dossier (`events/doublons.py`), pour qui peut
+écrire. Pour chaque paire : les deux évènements côte à côte, ce qui les
+rapproche, et deux décisions — fusionner (en choisissant lequel garder) ou
+écarter la paire. Tout ce qui vient d'un contributeur est échappé par Django ;
+la description n'est montrée qu'en texte (`resume`).
+{% endcomment %}
+
+{% block title %}{% blocktranslate with nom=dossier.name %}Doublons — {{ nom }}{% endblocktranslate %}{% endblock %}
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+
+{% block content %}
+    <div class="mx-auto" style="max-width: 1100px;">
+        <p class="mb-2">
+            <a class="text-decoration-none" href="{% url 'timeline' dossier.pk %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{{ dossier.name }}</a>
+        </p>
+        <h1 class="h3"><i class="bi bi-intersect me-2 text-body-secondary" aria-hidden="true"></i>{% translate "Doublons possibles" %}</h1>
+        <p class="text-body-secondary small mb-4">
+            {% blocktranslate trimmed %}
+                Deux évènements qui partagent une pièce à un jour d'écart au plus, ou qui tombent le même
+                jour avec des titres proches. Fusionner garde l'un des deux et y verse l'autre : ses pièces,
+                sa description (ajoutée à la suite, avec son titre et sa date d'origine), son expéditeur.
+                Le journal garde l'évènement absorbé en entier.
+            {% endblocktranslate %}
+        </p>
+
+        {% for paire in paires %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-1 mb-3">
+                        {% for raison in paire.raisons %}
+                            <span class="badge text-bg-warning">{{ raison }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <form method="post" action="{% url 'doublons_fusionner' dossier.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="a" value="{{ paire.a.pk }}">
+                        <input type="hidden" name="b" value="{{ paire.b.pk }}">
+                        <div class="row g-3">
+                            {% include "events/_doublon_cote.html" with evenement=paire.a garder=paire.garder %}
+                            {% include "events/_doublon_cote.html" with evenement=paire.b garder=paire.garder %}
+                        </div>
+
+                        {% if paire.communes %}
+                            <div class="small text-body-secondary mt-3">
+                                <i class="bi bi-paperclip me-1" aria-hidden="true"></i>{% translate "En commun :" %}
+                                {% for document in paire.communes %}{{ document.title }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
+                            <button type="submit" formaction="{% url 'doublons_ecarter' dossier.pk %}"
+                                    class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-1" aria-hidden="true"></i>{% translate "Ce ne sont pas des doublons" %}
+                            </button>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-intersect me-1" aria-hidden="true"></i>{% translate "Fusionner dans l'évènement choisi" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% empty %}
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle me-1" aria-hidden="true"></i>{% translate "Aucun doublon possible dans ce dossier." %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -1,0 +1,10 @@
+[Unit]
+Description=Chronos — import des courriels toutes les 10 minutes
+
+[Timer]
+OnCalendar=*:0/10
+Persistent=true
+RandomizedDelaySec=30s
+
+[Install]
+WantedBy=timers.target

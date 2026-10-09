@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Écran de partage d'un dossier, réservé à son propriétaire.
+
+La page énonce ce que chaque droit permet : « lecture » et « écriture » sont
+des mots usés, et la différence engage ici des pièces de dossier. Un lecteur
+ne peut rien modifier ni retirer ; un contributeur peut tout changer, mais
+jamais décider qui entre — seul le propriétaire le fait, et cette page est le
+seul endroit où cela se décide.
+{% endcomment %}
+
+{% block title %}{% blocktranslate with nom=dossier.name %}Partage — {{ nom }}{% endblocktranslate %}{% endblock %}
+
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+
+{% block content %}
+    <div class="mx-auto" style="max-width: 900px;">
+        <p class="mb-2">
+            <a class="text-decoration-none" href="{% url 'timeline' dossier.pk %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{{ dossier.name }}</a>
+        </p>
+        <h1 class="h3 mb-4"><i class="bi bi-share me-2 text-body-secondary" aria-hidden="true"></i>{% translate "Partage du dossier" %}</h1>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="h5 mb-3">{% translate "Personnes ayant accès" %}</h2>
+
+                <ul class="list-group list-group-flush mb-0">
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>
+                            <strong>{{ dossier.owner.get_username }}</strong>
+                            <span class="badge text-bg-dark ms-2">{% translate "Propriétaire" %}</span>
+                        </span>
+                        <span class="text-body-secondary small">
+                            {% translate "Ne peut pas être retiré" %}
+                        </span>
+                    </li>
+
+                    {% for acces in accesses %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>
+                                {{ acces.user.get_username }}
+                                {% if acces.role == 'write' %}
+                                    <span class="badge text-bg-warning ms-2">{% translate "Lecture et écriture" %}</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary ms-2">{% translate "Lecture seule" %}</span>
+                                {% endif %}
+                                <span class="d-block text-body-secondary small mt-1">
+                                    {% blocktranslate with quand=acces.granted_at|date:"SHORT_DATE_FORMAT" %}Accordé le {{ quand }}{% endblocktranslate %}
+                                    {% if acces.granted_by %}{% blocktranslate with nom=acces.granted_by.get_username %}par {{ nom }}{% endblocktranslate %}{% endif %}
+                                </span>
+                            </span>
+                            <form method="post"
+                                  action="{% url 'dossier_access_revoke' dossier.pk acces.pk %}"
+                                  class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        title="{% translate "Retirer l'accès" %}" aria-label="{% translate "Retirer l'accès" %}"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"></path></svg></button>
+                            </form>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item px-0 text-body-secondary">
+                            {% translate "Personne d'autre n'a accès à ce dossier." %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4 border-warning-subtle">
+            <div class="card-body">
+                <h2 class="h5 mb-3">{% translate "Lien de consultation, sans compte" %}</h2>
+
+                <div class="alert alert-warning small">
+                    <strong>{% translate "C'est le seul accès anonyme de l'application." %}</strong>
+                    {% blocktranslate trimmed %}
+                    Toute personne qui détient le lien consulte le dossier, sans
+                    compte et sans que vous sachiez qui elle est. Un lien se
+                    retransfère, se copie, se retrouve dans un historique de
+                    navigation. Il donne un accès en <strong>lecture seule</strong>
+                    et vous pouvez le couper à tout moment — mais vous ne pouvez
+                    pas reprendre ce qui a déjà été lu.
+                    {% endblocktranslate %}
+                </div>
+
+                <form method="post" action="{% url 'share_link_create' dossier.pk %}">
+                    {% csrf_token %}
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label" for="{{ share_link_form.label.id_for_label }}">
+                                {{ share_link_form.label.label }}
+                            </label>
+                            {{ share_link_form.label }}
+                            <span class="form-text">{{ share_link_form.label.help_text }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="{{ share_link_form.duree.id_for_label }}">
+                                {{ share_link_form.duree.label }}
+                            </label>
+                            {{ share_link_form.duree }}
+                        </div>
+                        <div class="col-md-3 d-grid">
+                            <button type="submit" class="btn btn-outline-warning">
+                                <i class="bi bi-link-45deg me-1" aria-hidden="true"></i>{% translate "Créer un lien" %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                {% if share_links %}
+                    <hr class="my-4">
+                    <h3 class="h6 mb-3">{% translate "Liens existants" %}</h3>
+                    <ul class="list-group list-group-flush mb-0">
+                        {% for lien in share_links %}
+                            <li class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                    <div class="flex-grow-1">
+                                        <span>
+                                            {% translate "Sans destinataire noté" as sans_destinataire %}
+                                            {{ lien.label|default:sans_destinataire }}
+                                            {% if lien.revoked_at %}
+                                                <span class="badge text-bg-secondary ms-2">{% translate "Révoqué" %}</span>
+                                            {% elif lien.is_expired %}
+                                                <span class="badge text-bg-secondary ms-2">{% translate "Expiré" %}</span>
+                                            {% else %}
+                                                <span class="badge text-bg-warning ms-2">{% translate "Actif" %}</span>
+                                            {% endif %}
+                                        </span>
+                                        {% if lien.is_active %}
+                                            <input type="text" readonly
+                                                   class="form-control form-control-sm font-monospace mt-2"
+                                                   value="{{ request.scheme }}://{{ request.get_host }}{% url 'share_timeline' lien.token %}">
+                                        {% endif %}
+                                        <span class="d-block text-body-secondary small mt-1">
+                                            {% blocktranslate with quand=lien.created_at|date:"SHORT_DATE_FORMAT" %}Créé le {{ quand }}{% endblocktranslate %}
+                                            {% if lien.expires_at %}
+                                                · {% blocktranslate with quand=lien.expires_at|date:"SHORT_DATE_FORMAT" %}expire le {{ quand }}{% endblocktranslate %}
+                                            {% else %}
+                                                · <strong>{% translate "sans expiration" %}</strong>
+                                            {% endif %}
+                                            · {% blocktranslate count n=lien.use_count %}consulté {{ n }} fois{% plural %}consulté {{ n }} fois{% endblocktranslate %}
+                                            {% if lien.last_used_at %}
+                                                ({% blocktranslate with quand=lien.last_used_at|date:"SHORT_DATETIME_FORMAT" %}dernier accès le {{ quand }}{% endblocktranslate %})
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    {% if lien.is_active %}
+                                        <form method="post"
+                                              action="{% url 'share_link_revoke' dossier.pk lien.pk %}"
+                                              class="m-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-x-circle me-1" aria-hidden="true"></i>{% translate "Révoquer" %}
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="h5 mb-3">{% translate "Inviter par courriel" %}</h2>
+
+                <p class="small text-body-secondary">
+                    {% blocktranslate trimmed %}
+                    L'invitation part par courriel et contient un lien.
+                    <strong>Qui détient ce lien peut s'en servir</strong>, avec le
+                    compte sous lequel il est connecté : un courriel se
+                    retransfère. Pour une personne dont vous connaissez déjà le
+                    compte, l'attribution directe ci-dessous est plus sûre.
+                    {% endblocktranslate %}
+                </p>
+
+                <form method="post" action="{% url 'dossier_invite' dossier.pk %}">
+                    {% csrf_token %}
+
+                    {% if invitation_form.non_field_errors %}
+                        <div class="alert alert-danger">{{ invitation_form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label" for="{{ invitation_form.email.id_for_label }}">
+                                {{ invitation_form.email.label }}
+                            </label>
+                            {{ invitation_form.email }}
+                            {{ invitation_form.email.errors }}
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label" for="{{ invitation_form.role.id_for_label }}">
+                                {{ invitation_form.role.label }}
+                            </label>
+                            {{ invitation_form.role }}
+                            {{ invitation_form.role.errors }}
+                        </div>
+                        <div class="col-md-2 d-grid">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-envelope-plus me-1" aria-hidden="true"></i>{% translate "Inviter" %}</button>
+                        </div>
+                    </div>
+                </form>
+
+                {% if invitations %}
+                    <hr class="my-4">
+                    <h3 class="h6 mb-3">{% translate "Invitations émises" %}</h3>
+                    <ul class="list-group list-group-flush mb-0">
+                        {% for invitation in invitations %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>
+                                    {{ invitation.email }}
+                                    {% if invitation.status == 'accepted' %}
+                                        <span class="badge text-bg-success ms-2">{% translate "Acceptée" %}</span>
+                                    {% elif invitation.status == 'revoked' %}
+                                        <span class="badge text-bg-secondary ms-2">{% translate "Annulée" %}</span>
+                                    {% elif invitation.is_expired %}
+                                        <span class="badge text-bg-secondary ms-2">{% translate "Expirée" %}</span>
+                                    {% else %}
+                                        <span class="badge text-bg-info ms-2">{% translate "En attente" %}</span>
+                                    {% endif %}
+                                    <span class="d-block text-body-secondary small mt-1">
+                                        {% if invitation.status == 'accepted' %}
+                                            {% blocktranslate with quand=invitation.accepted_at|date:"SHORT_DATE_FORMAT" %}Acceptée le {{ quand }}{% endblocktranslate %}
+                                            {% if invitation.accepted_by %}{% blocktranslate with nom=invitation.accepted_by.get_username %}par {{ nom }}{% endblocktranslate %}{% endif %}
+                                        {% else %}
+                                            {% blocktranslate trimmed with emise=invitation.created_at|date:"SHORT_DATE_FORMAT" expire=invitation.expires_at|date:"SHORT_DATE_FORMAT" %}
+                                            Émise le {{ emise }},
+                                            expire le {{ expire }}
+                                            {% endblocktranslate %}
+                                        {% endif %}
+                                    </span>
+                                </span>
+                                {% if invitation.is_usable %}
+                                    <form method="post"
+                                          action="{% url 'invitation_revoke' dossier.pk invitation.pk %}"
+                                          class="m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-x-circle me-1" aria-hidden="true"></i>{% translate "Annuler" %}
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 mb-3">{% translate "Donner accès à un compte existant" %}</h2>
+
+                {% if form.fields.user.queryset %}
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
+
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label" for="{{ form.user.id_for_label }}">
+                                    {{ form.user.label }}
+                                </label>
+                                {{ form.user }}
+                                {{ form.user.errors }}
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label" for="{{ form.role.id_for_label }}">
+                                    {{ form.role.label }}
+                                </label>
+                                {{ form.role }}
+                                {{ form.role.errors }}
+                            </div>
+                            <div class="col-md-2 d-grid">
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-person-plus me-1" aria-hidden="true"></i>{% translate "Accorder" %}</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <h3 class="h6">{% translate "Ce que chaque droit permet" %}</h3>
+                    <ul class="small text-body-secondary mb-0">
+                        <li>
+                            <strong>{% translate "Lecture seule" %}</strong> —
+                            {% blocktranslate trimmed %}
+                            consulter la chronologie,
+                            les évènements et les pièces. Aucune modification, aucun
+                            retrait, aucun ajout.
+                            {% endblocktranslate %}
+                        </li>
+                        <li>
+                            <strong>{% translate "Lecture et écriture" %}</strong> —
+                            {% blocktranslate trimmed %}
+                            tout ce qui précède,
+                            plus créer et modifier des évènements, ajouter des pièces et
+                            en retirer. Ne permet pas de partager le dossier : vous seul
+                            décidez qui y a accès.
+                            {% endblocktranslate %}
+                        </li>
+                    </ul>
+                {% else %}
+                    <p class="text-body-secondary mb-0">
+                        {% blocktranslate trimmed %}
+                        Tous les comptes existants ont déjà accès à ce dossier.
+                        Les comptes se créent dans l'administration.
+                        {% endblocktranslate %}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

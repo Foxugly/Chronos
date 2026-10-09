@@ -1,0 +1,28 @@
+{% comment %}
+Bibliothèques du formulaire d'évènement, puis son comportement
+(`_event_form_js.html`). Partagé par la page du formulaire et le modal.
+
+Le fichier de langue de flatpickr suit la langue courante (`langue.base`,
+posé par `events.context_processors.langue`). L'anglais est sa langue par
+défaut : il n'a pas de fichier. Une langue ajoutée à `LANGUAGES` demande ici
+son fichier — avec son empreinte.
+
+Plus de bootstrap-fileinput ni de jQuery : le champ de pièces est
+`equiperChampFichiers`, dans `_event_form_js.html`.
+{% endcomment %}
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"
+        integrity="sha384-utBUCeG4SYaCm4m7GQZYr8Hy8Fpy3V4KGjBZaf4WTKOcwhCYpt/0PfeEe3HNlwx8"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"
+        integrity="sha384-5JqMv4L/Xa0hfvtF06qboNdhvuYXUku9ZrhZh3bSk8VXF0A/RuSLHpLsSV9Zqhl6"
+        crossorigin="anonymous"></script>
+{% if langue.base == "fr" %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/fr.js"
+        integrity="sha384-G+W4MJlWkqyxrTEDGqlYx0mcjIOCc60/SvgTHEM8GSs85gMIzcJ2FERdERxhEJ88"
+        crossorigin="anonymous"></script>
+{% elif langue.base == "nl" %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/nl.js"
+        integrity="sha384-ruYBxJ4AlQrbf1c8gA96utojLvk8H61pctWDJc4SJJCi3+lNqUWavTdsjxOqbYia"
+        crossorigin="anonymous"></script>
+{% endif %}
+{% include "events/_event_form_js.html" %}

@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    # La production tourne sur PostgreSQL 16 : la suite aussi. Ne jamais juger
+    # une migration sur SQLite (OPERATIONS.md §3.13) — SQLite accepte ce que
+    # PostgreSQL refuse. Python 3.12, celui d'Ubuntu 24.04 sur le serveur.
+    # Réglages de production (sans DJANGO_DEBUG), sauf la redirection HTTPS,
+    # que le client de test ne suit pas.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: chronos
+          POSTGRES_PASSWORD: chronos
+          POSTGRES_DB: chronos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U chronos"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_ENGINE: postgresql
+      DB_NAME: chronos
+      DB_USER: chronos
+      DB_PASSWORD: chronos
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+      SECRET_KEY: ci-cle-secrete-longue-et-aleatoire-uniquement-pour-les-tests-0123456789
+      ALLOWED_HOSTS: testserver,localhost
+      SECURE_SSL_REDIRECT: "False"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Aucune migration oubliée
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Contrôles de déploiement
+        run: python manage.py check --deploy --fail-level ERROR
+
+      - name: Suite de tests (PostgreSQL 16)
+        run: python manage.py test events

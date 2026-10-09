@@ -1,0 +1,115 @@
+{% load i18n %}
+{% comment %}
+Le détail d'un évènement, sans habillage de page.
+
+Rendu à deux endroits : par `detail_evenement.html` pour la page complète, qui
+reste le repli quand JavaScript échoue, et injecté dans le modal commun aux
+quatre vues. Un seul fragment pour les deux, comme pour le formulaire.
+
+Tout ce qui vient d'un contributeur — titre, noms de pièces — est échappé par
+Django. La description est la seule valeur `safe` : `rendre_detail` la
+réassainit à la sortie. Aucun `<script>` ici : le fragment est injecté dans
+la page, et son comportement (aperçu, visionneuse) est posé par
+`_detail_evenement_js.html`.
+{% endcomment %}
+<article data-detail-evenement>
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+            <span class="badge text-bg-secondary">{{ event.periode_affichee }}</span>
+            <h3 class="h4 mt-2 mb-0">{{ event.title }}</h3>
+            {% if event.etiquettes.all %}
+                <div class="mt-1">{% for etiquette in event.etiquettes.all %}<span class="badge rounded-pill text-bg-light border me-1"><i class="bi bi-tag me-1" aria-hidden="true"></i>{{ etiquette.nom }}</span>{% endfor %}</div>
+            {% endif %}
+            {% if event.expediteur %}
+                <div class="small text-body-secondary mt-1">
+                    <span class="d-inline-block rounded-circle align-middle me-1" style="width: .7em; height: .7em; background-color: {{ event.expediteur.couleur }};" aria-hidden="true"></span>
+                    {% blocktranslate trimmed with nom=event.expediteur adresse=event.expediteur.adresse %}
+                        Importé par courriel — de {{ nom }} ({{ adresse }})
+                    {% endblocktranslate %}
+                </div>
+            {% endif %}
+        </div>
+        {% if url_modifier %}
+            <div class="d-flex gap-2 flex-shrink-0">
+            <a class="btn btn-outline-primary"
+               href="{{ url_modifier }}" data-modifier-evenement
+               title="{% translate "Modifier" %}" aria-label="{% translate "Modifier" %}"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16" aria-hidden="true"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"></path></svg></a>
+            <a class="btn btn-outline-danger" href="{{ url_supprimer }}" data-supprimer-evenement
+               title="{% translate "Supprimer" %}" aria-label="{% translate "Supprimer" %}"><i class="bi bi-trash3" aria-hidden="true"></i></a>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if description %}
+        <div class="mb-3 text-break">{{ description|safe }}</div>
+    {% endif %}
+
+    <h4 class="h6 text-body-secondary mt-4 mb-2">
+        {% translate "Pièces" %}{% if pieces %} ({{ pieces|length }}){% endif %}
+    </h4>
+
+    {% if pieces %}
+        <div class="row g-3">
+            {% for piece in pieces %}
+                <div class="col-6 col-md-4 col-lg-3">
+                    {% if piece.genre == "image" %}
+                        <div class="card h-100">
+                            {# glightbox devine le type par l'extension de l'URL ; #}
+                            {# `/documents/<id>/` n'en a pas, on le déclare.       #}
+                            <a class="glightbox" href="{{ piece.url }}"
+                               data-glightbox="type: image" data-gallery="evenement-{{ event.pk }}">
+                                <img class="card-img-top" src="{{ piece.url }}" alt="{{ piece.titre }}"
+                                     loading="lazy" style="height: 160px; object-fit: cover;">
+                            </a>
+                            <div class="card-body p-2">
+                                <small class="d-block text-body-secondary">{% blocktranslate with n=piece.numero %}Pièce {{ n }}{% endblocktranslate %}</small>
+                                <small class="text-break">{{ piece.titre }}</small>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="card h-100 text-center">
+                            <div class="card-body p-2">
+                                <a class="text-decoration-none d-block" href="{{ piece.url }}"
+                                   {% if piece.genre == "apercu" %}data-apercu{% endif %}>
+                                    <i class="{{ piece.icone }} fa-3x my-2" aria-hidden="true"></i>
+                                    <span class="d-block small text-body-secondary">{% blocktranslate with n=piece.numero %}Pièce {{ n }}{% endblocktranslate %}</span>
+                                    <span class="d-block small text-break">{{ piece.titre }}</span>
+                                </a>
+                                {% if piece.genre == "apercu" %}
+                                    <a class="small text-decoration-none d-block mt-1"
+                                       href="{{ piece.url }}" target="_blank"
+                                       rel="noopener noreferrer">{% translate "Ouvrir dans un onglet" %}</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="small text-body-secondary mb-0">{% translate "Aucune pièce jointe." %}</p>
+    {% endif %}
+
+    <div class="mt-3" data-zone-apercu></div>
+    {% if precedent or suivant %}
+        {# Lire le dossier d'une traite : le fait d'avant, celui d'après (← →). #}
+        <nav class="d-flex justify-content-between align-items-center gap-2 mt-4 pt-3 border-top"
+             aria-label="{% translate "Faits voisins" %}">
+            {% if precedent %}
+                <a class="btn btn-sm btn-outline-secondary text-truncate" style="max-width: 45%;"
+                   href="{{ precedent.url }}" data-voir-evenement data-evenement-precedent
+                   title="{% translate "Fait précédent (flèche gauche)" %}">
+                    <i class="bi bi-chevron-left me-1" aria-hidden="true"></i>{{ precedent.titre }}
+                </a>
+            {% else %}<span></span>{% endif %}
+            <span class="small text-body-secondary text-nowrap">{{ rang }} / {{ nombre }}</span>
+            {% if suivant %}
+                <a class="btn btn-sm btn-outline-secondary text-truncate" style="max-width: 45%;"
+                   href="{{ suivant.url }}" data-voir-evenement data-evenement-suivant
+                   title="{% translate "Fait suivant (flèche droite)" %}">
+                    {{ suivant.titre }}<i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
+                </a>
+            {% else %}<span></span>{% endif %}
+        </nav>
+    {% endif %}
+</article>

@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ dossier.name }}{% endblock %}
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+
+{% comment %}
+    La chronologie est l'écran principal : elle reprend toute la largeur
+    disponible, là où les autres pages restent dans le `container` de
+    `base.html`.
+{% endcomment %}
+{% block main_class %}container-xxl{% endblock %}
+
+{% block extra_css %}
+    {% if peut_ecrire %}{% include "events/_formulaire_css.html" %}{% endif %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/8.5.4/vis-timeline-graph2d.min.css"
+          integrity="sha512-KQvP81PiLLSehDxMeRLv58g78+Vtvecl6pCLFwkTi1Iz9UlkgjuHxWZsVAkS9fRuj/GN4E2iYlaj1iWWG6J8ig=="
+          crossorigin="anonymous" referrerpolicy="no-referrer">
+    {% include "events/_detail_evenement_css.html" %}
+
+    <style>
+        #timeline {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% include "events/_entete_dossier.html" %}
+
+    {# Commandes de la frise, et légende des couleurs d'expéditeur. #}
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2" data-commandes-frise>
+        <div class="btn-group btn-group-sm" role="group" aria-label="{% translate "Zoom" %}">
+            <button type="button" class="btn btn-outline-secondary" data-frise="rapprocher"
+                    title="{% translate "Rapprocher (+)" %}" aria-label="{% translate "Rapprocher" %}"><i class="bi bi-zoom-in" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-frise="eloigner"
+                    title="{% translate "Éloigner (−)" %}" aria-label="{% translate "Éloigner" %}"><i class="bi bi-zoom-out" aria-hidden="true"></i></button>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-frise="tout">
+            <i class="bi bi-arrows-angle-expand me-1" aria-hidden="true"></i>{% translate "Tout voir" %}
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-frise="aujourdhui">
+            <i class="bi bi-calendar-check me-1" aria-hidden="true"></i>{% translate "Aujourd'hui" %}
+        </button>
+        {% if options_expediteurs %}
+            <ul class="list-inline small text-body-secondary mb-0 ms-lg-auto" aria-label="{% translate "Légende des couleurs" %}">
+                {% for expediteur in options_expediteurs %}
+                    <li class="list-inline-item">
+                        <span class="d-inline-block rounded-circle align-middle me-1"
+                              style="width: .75em; height: .75em; background-color: {{ expediteur.couleur }};" aria-hidden="true"></span>{{ expediteur }}
+                    </li>
+                {% endfor %}
+                <li class="list-inline-item">
+                    <span class="d-inline-block rounded-circle align-middle me-1 border"
+                          style="width: .75em; height: .75em; background-color: #d5ddf6;" aria-hidden="true"></span>{% translate "Saisis à la main" %}
+                </li>
+            </ul>
+        {% endif %}
+    </div>
+
+    <div id="timeline"></div>
+
+    {% include "events/_modal_evenement.html" %}
+{% endblock %}
+
+{% block extra_js %}
+    {# `json_script` échappe `<`, `>` et `&` : un titre contenant `</script>` #}
+    {# ne peut plus fermer la balise et ouvrir la sienne. Le JSON est lu via #}
+    {# `textContent`, et analysé par `JSON.parse` — jamais évalué. #}
+    {{ timeline_items|json_script:"timeline-items" }}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-data/8.0.5/peer/umd/vis-data.min.js"
+            integrity="sha512-P3MDf2JdWXaFYyE2N/iD/4EZ6t4SxysdEANZ5BxMiHK0JJbgSn/WTI73DY+bgAslDMkmuuWigjpqbTcyml70qw=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/8.5.4/vis-timeline-graph2d.min.js"
+            integrity="sha512-eeITpKWVe3C1a75I4XId8OEzwHO75bvak4Z+WTiYQj2pOH+CNOyzUz0vzBo/8RBNf4aMHawK5Rutih0z8LLmew=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/js/fontawesome.min.js"
+            integrity="sha512-WgR61jcssTjrH2a2vWm5JiWaEy1kmFIE5G0ybjKB0UEDzygVCebYW4eP2p96XmJWXA0zk/sNhbCfb09Wx39t4A=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    {% include "events/_detail_evenement_js.html" %}
+    {% if peut_ecrire %}{% include "events/_formulaire_modal_js.html" %}{% endif %}
+    <script nonce="{{ csp_nonce }}">
+    "use strict";
+
+    // Aucune donnée venant du serveur n'est concaténée dans du HTML : les
+    // titres de la frise sont posés en `textContent`, et le détail d'un
+    // évènement arrive en fragment rendu — et échappé — par Django.
+
+    {# Pour un lien de partage, les appels partent vers son chemin à lui, #}
+    {# qui ne connaît que le dossier du lien.                              #}
+    const EVENT_DETAIL_URL = "{% if lien_partage %}{% url 'share_event_detail' lien_partage.token 999999999 %}{% else %}{% url 'event_detail' 999999999 %}{% endif %}";
+    const EVENT_ID_PLACEHOLDER = "999999999";
+    const LECTURE_SEULE = {% if peut_ecrire %}false{% else %}true{% endif %};
+
+    const items = new vis.DataSet(
+        JSON.parse(document.getElementById("timeline-items").textContent)
+    );
+
+    // Le titre d'un évènement est saisi par un collaborateur en écriture.
+    // vis-timeline a deux chemins de rendu : une chaîne part dans
+    // `innerHTML` (filtrée par sa js-xss embarquée, qui laisse passer <a>,
+    // <img>, <b>...), un Element part dans `appendChild`. On lui donne donc
+    // un Element dont le texte est posé par `textContent` : rien n'est
+    // jamais interprété comme du balisage.
+    //
+    // Un <img> hors origine injecté dans un titre aurait fuité l'IP et
+    // l'User-Agent du propriétaire à l'hôte choisi par l'attaquant, et un
+    // <a> aurait permis l'hameçonnage depuis sa propre chronologie.
+    function itemTemplate(item) {
+        const span = document.createElement("span");
+        span.textContent = item.content == null ? "" : String(item.content);
+        return span;
+    }
+
+    const langue = JSON.parse(document.getElementById("langue-courante").textContent);
+
+    // `locale` : sans lui, vis-timeline nomme les mois dans la langue du
+    // navigateur, et non dans celle du site.
+    const timeline = new vis.Timeline(
+        document.getElementById("timeline"),
+        items,
+        {template: itemTemplate, locale: langue.base}
+    );
+
+    // Un clic sur un évènement ouvre son détail dans le modal, comme dans
+    // les trois autres vues.
+    timeline.on("select", function (properties) {
+        const eventId = properties.items[0];
+        if (!eventId) {
+            return;
+        }
+        DetailEvenement.ouvrir(
+            EVENT_DETAIL_URL.replace(EVENT_ID_PLACEHOLDER, String(eventId))
+        );
+        // Désélectionner : sans cela, un second clic sur le même évènement,
+        // une fois le modal fermé, ne déclencherait plus rien.
+        timeline.setSelection([]);
+    });
+
+    // Les boutons au-dessus de la frise.
+    const commandes = {
+        rapprocher: function () { timeline.zoomIn(0.4); },
+        eloigner: function () { timeline.zoomOut(0.4); },
+        tout: function () { timeline.fit(); },
+        aujourdhui: function () { timeline.moveTo(new Date()); }
+    };
+    document.querySelectorAll("[data-frise]").forEach(function (bouton) {
+        bouton.addEventListener("click", function () {
+            commandes[bouton.getAttribute("data-frise")]();
+        });
+    });
+
+    // Zoom au clavier : « + » rapproche, « - » éloigne.
+    document.addEventListener("keydown", function (e) {
+        // Ne pas détourner ces touches pendant une saisie de texte.
+        const cible = e.target;
+        if (cible && (cible.isContentEditable
+                || ["INPUT", "TEXTAREA", "SELECT"].indexOf(cible.tagName) !== -1)) {
+            return;
+        }
+
+        if (e.key === "+") {
+            timeline.zoomIn(0.2);
+        }
+
+        if (e.key === "-") {
+            timeline.zoomOut(0.2);
+        }
+    });
+
+    // Le formulaire s'ouvre dans le modal (`_formulaire_modal_js.html`) ;
+    // une fois enregistré, la frise se met à jour sans recharger la page.
+    // `update` crée l'élément s'il n'existe pas encore : un même appel sert
+    // l'ajout et la modification.
+    if (!LECTURE_SEULE && window.FormulaireModal) {
+        FormulaireModal.quandEnregistre(function (data) {
+            items.update(data.event);
+        });
+        DetailEvenement.quandSupprime(function (data) {
+            items.remove(data.id);
+        });
+    }
+    </script>
+{% endblock %}

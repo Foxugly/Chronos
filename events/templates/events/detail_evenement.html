@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% comment %}
+Le détail d'un évènement en page entière.
+
+C'est le repli sans JavaScript, et l'adresse qu'on obtient en ouvrant un
+évènement dans un nouvel onglet. Avec JavaScript, les vues affichent le même
+fragment dans un modal sans quitter la page.
+{% endcomment %}
+
+{% block title %}{{ event.title }} — {{ dossier.name }}{% endblock %}
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+
+{% block extra_css %}
+    {% include "events/_detail_evenement_css.html" %}
+{% endblock %}
+
+{% block content %}
+    <p class="mb-3">
+        <a class="text-decoration-none" href="{{ url_retour }}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{{ dossier.name }}</a>
+    </p>
+    <div class="card">
+        <div class="card-body">
+            {% include "events/_detail_evenement.html" %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {% include "events/_detail_evenement_js.html" %}
+{% endblock %}

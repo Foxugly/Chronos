@@ -1,0 +1,115 @@
+{% load i18n %}
+{% comment %}
+Recherche et filtres, sous les onglets de toutes les vues d'un dossier.
+
+Un formulaire GET ordinaire : il marche sans JavaScript, et l'URL obtenue se
+garde en favori ou se transmet. La vue courante est reportée (`vue`) ; la
+période de navigation (`periode`) ne l'est pas — filtrer repart du début.
+Le traitement est dans `events/filtres.py`.
+{% endcomment %}
+<form method="get" action="{{ base_vue }}" class="card card-body py-2 px-3 mb-3 shadow-sm" role="search"
+      data-barre-filtres>
+    <input type="hidden" name="vue" value="{{ vue }}">
+    <div class="row g-2 align-items-end">
+        <div class="col-12 {% if vue == 'documents' %}col-lg-3{% else %}col-lg-4{% endif %}">
+            <label class="form-label small mb-1" for="filtre-q">{% translate "Rechercher" %}</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+                <input type="search" name="q" id="filtre-q" class="form-control" value="{{ filtres.q }}"
+                       aria-keyshortcuts="/" title="{% translate "Raccourci : /" %}"
+                       placeholder="{% if vue == 'documents' %}{% translate "Nom ou texte de la pièce…" %}{% else %}{% translate "Titre, description, pièce, texte d'un courriel…" %}{% endif %}">
+            </div>
+        </div>
+        {% if vue == "documents" %}
+            {# Le type ne vaut que pour cet onglet : il n'est pas reporté sur les autres. #}
+            <div class="col-12 col-sm-6 col-lg-2">
+                <label class="form-label small mb-1" for="filtre-type">{% translate "Type" %}</label>
+                <select name="type" id="filtre-type" class="form-select form-select-sm">
+                    <option value="">{% translate "Tous" %}</option>
+                    {% for valeur, libelle in types_de_piece %}
+                        <option value="{{ valeur }}"{% if type_piece == valeur %} selected{% endif %}>{{ libelle }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+        <div class="col-12 col-sm-6 {% if vue == 'documents' %}col-lg-2{% else %}col-lg-3{% endif %}">
+            <label class="form-label small mb-1" for="filtre-expediteur">{% translate "Expéditeur" %}</label>
+            <select name="expediteur" id="filtre-expediteur" class="form-select form-select-sm">
+                <option value="">{% translate "Tous" %}</option>
+                {% for expediteur in options_expediteurs %}
+                    <option value="{{ expediteur.pk }}"{% if filtres.expediteur == expediteur.pk|stringformat:"d" %} selected{% endif %}>{{ expediteur }}</option>
+                {% endfor %}
+                <option value="{{ valeur_sans_expediteur }}"{% if filtres.expediteur == valeur_sans_expediteur %} selected{% endif %}>{% translate "Saisis à la main" %}</option>
+            </select>
+        </div>
+        {% if options_etiquettes %}
+            <div class="col-12 col-sm-6 col-lg-2">
+                <label class="form-label small mb-1" for="filtre-etiquette">{% translate "Étiquette" %}</label>
+                <select name="etiquette" id="filtre-etiquette" class="form-select form-select-sm">
+                    <option value="">{% translate "Toutes" %}</option>
+                    {% for etiquette in options_etiquettes %}
+                        <option value="{{ etiquette.pk }}"{% if filtres.etiquette == etiquette.pk|stringformat:"d" %} selected{% endif %}>{{ etiquette.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+        <div class="col-6 col-sm-3 col-lg-2">
+            <label class="form-label small mb-1" for="filtre-du">{% translate "Depuis" %}</label>
+            <select name="du" id="filtre-du" class="form-select form-select-sm">
+                <option value="">—</option>
+                {% for valeur, libelle in options_mois %}
+                    <option value="{{ valeur }}"{% if filtres.du and filtres.du|date:"Y-m" == valeur %} selected{% endif %}>{{ libelle }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-sm-3 col-lg-2">
+            <label class="form-label small mb-1" for="filtre-au">{% translate "Jusqu'à" %}</label>
+            <select name="au" id="filtre-au" class="form-select form-select-sm">
+                <option value="">—</option>
+                {% for valeur, libelle in options_mois %}
+                    <option value="{{ valeur }}"{% if filtres.au and filtres.au|date:"Y-m" == valeur %} selected{% endif %}>{{ libelle }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-lg-1 d-grid">
+            <button type="submit" class="btn btn-sm btn-primary" title="{% translate "Filtrer" %}">
+                <i class="bi bi-funnel me-1" aria-hidden="true"></i>{% translate "Filtrer" %}
+            </button>
+        </div>
+    </div>
+    {% if vue == "documents" and filtres_pieces_actifs %}
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-2 small">
+            <span class="badge {% if nb_pieces %}text-bg-primary{% else %}text-bg-warning{% endif %}">
+                {% blocktranslate trimmed count n=nb_pieces with total=nb_pieces_total %}
+                    {{ n }} pièce sur {{ total }}
+                {% plural %}
+                    {{ n }} pièces sur {{ total }}
+                {% endblocktranslate %}
+            </span>
+            <span class="text-body-secondary">{{ filtres.description }}</span>
+            <a class="ms-auto text-decoration-none" href="{{ base_vue }}?vue={{ vue }}">
+                <i class="bi bi-x-circle me-1" aria-hidden="true"></i>{% translate "Effacer les filtres" %}
+            </a>
+        </div>
+        {% if not nb_pieces %}
+            <div class="text-body-secondary small mt-1">{% translate "Aucune pièce ne correspond à ces critères." %}</div>
+        {% endif %}
+    {% elif filtres.actifs and vue != "documents" %}
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-2 small">
+            <span class="badge {% if nb_retenus %}text-bg-primary{% else %}text-bg-warning{% endif %}">
+                {% blocktranslate trimmed count n=nb_retenus with total=nb_total %}
+                    {{ n }} évènement sur {{ total }}
+                {% plural %}
+                    {{ n }} évènements sur {{ total }}
+                {% endblocktranslate %}
+            </span>
+            <span class="text-body-secondary">{{ filtres.description }}</span>
+            <a class="ms-auto text-decoration-none" href="{{ base_vue }}?vue={{ vue }}">
+                <i class="bi bi-x-circle me-1" aria-hidden="true"></i>{% translate "Effacer les filtres" %}
+            </a>
+        </div>
+        {% if not nb_retenus %}
+            <div class="text-body-secondary small mt-1">{% translate "Aucun évènement ne correspond à ces critères." %}</div>
+        {% endif %}
+    {% endif %}
+</form>

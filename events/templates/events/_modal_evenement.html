@@ -1,0 +1,30 @@
+{% load i18n %}
+{% comment %}
+Le modal commun aux quatre vues : il affiche le détail d'un évènement, et,
+pour qui peut écrire dans la chronologie, le formulaire de modification.
+Présent aussi en lecture seule : lire est le geste de tout le monde.
+{% endcomment %}
+{# Sur grand écran, le modal large (`modal-xl`, 1 140 px) s'étend encore : une #}
+{# galerie de photos ou une lettre de plusieurs pages y respire mieux.          #}
+<style>
+    @media (min-width: 1400px) {
+        [data-dialogue-modal].modal-xl {
+            max-width: min(1500px, 90vw);
+        }
+    }
+</style>
+<div class="modal fade" id="modal-evenement" tabindex="-1"
+     aria-labelledby="titre-modal-evenement" aria-hidden="true">
+    {# Largeur ajustée au contenu par `_detail_evenement_js.html` (`elargir`) ; #}
+    {# plein écran sous la taille « lg », où un modal fenêtré est trop étroit. #}
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-lg-down" data-dialogue-modal>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title h5" id="titre-modal-evenement">{% translate "Évènement" %}</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="{% translate "Fermer" %}"></button>
+            </div>
+            <div class="modal-body" id="corps-modal-evenement"></div>
+        </div>
+    </div>
+</div>

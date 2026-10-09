@@ -1,0 +1,47 @@
+{% extends "account/base_entrance.html" %}
+{% comment %}
+Surcharge de la page de connexion d'allauth.
+
+Le gabarit d'origine renvoie vers l'inscription sans dire ce qu'un compte
+donne — c'est-à-dire rien, tant que le propriétaire d'un dossier n'a pas
+autorisé son titulaire. On le remplace par une phrase qui le dit.
+
+Cette version est volontairement réduite à ce que le projet utilise. Les branches
+retirées du gabarit d'origine sont toutes inertes ici : `socialaccount` n'est pas
+installé, et la connexion par code comme les clés d'accès sont désactivées. Si
+l'une d'elles est activée un jour, reprendre le gabarit d'allauth comme base.
+{% endcomment %}
+{% load i18n %}
+{% load allauth account %}
+
+{% block head_title %}
+    {% trans "Sign In" %}
+{% endblock head_title %}
+
+{% block content %}
+    {% element h1 %}
+        {% trans "Sign In" %}
+    {% endelement %}
+    {% element p %}
+        {% translate "Pas encore de compte ?" %}
+        <a href="{% url 'account_signup' %}">{% translate "Créez-en un" %}</a>.
+        {% blocktranslate trimmed %}
+        Un compte seul ne donne accès à aucun dossier : c'est le propriétaire
+        d'un dossier qui vous y autorise, ou vous y invite.
+        {% endblocktranslate %}
+    {% endelement %}
+    {% url 'account_login' as login_url %}
+    {% element form form=form method="post" action=login_url tags="entrance,login" %}
+        {% slot body %}
+            {% csrf_token %}
+            {% element fields form=form unlabeled=True %}
+            {% endelement %}
+            {{ redirect_field }}
+        {% endslot %}
+        {% slot actions %}
+            {% element button type="submit" tags="prominent,login" %}
+                {% trans "Sign In" %}
+            {% endelement %}
+        {% endslot %}
+    {% endelement %}
+{% endblock content %}

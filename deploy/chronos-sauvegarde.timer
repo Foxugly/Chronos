@@ -1,0 +1,10 @@
+[Unit]
+Description=Chronos — sauvegarde quotidienne
+
+[Timer]
+OnCalendar=*-*-* 03:47:00 UTC
+Persistent=true
+RandomizedDelaySec=2min
+
+[Install]
+WantedBy=timers.target

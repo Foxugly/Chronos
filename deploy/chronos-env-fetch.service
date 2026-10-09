@@ -1,0 +1,21 @@
+[Unit]
+Description=Chronos — configuration depuis SSM vers /run/chronos/.env
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=root
+RuntimeDirectory=chronos
+RuntimeDirectoryPreserve=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+NoNewPrivileges=yes
+RestrictSUIDSGID=yes
+ExecStart=/usr/local/sbin/chronos-env-fetch.sh
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target

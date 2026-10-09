@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Page de confirmation de la suppression d'un évènement : le repli quand
+JavaScript échoue. Le contenu vit dans `_confirmer_suppression.html`, partagé
+avec le modal.
+{% endcomment %}
+
+{% block title %}{% translate "Supprimer l'évènement" %}{% endblock %}
+
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+
+{% block content %}
+    <div class="card shadow-sm mx-auto" style="max-width: 720px;">
+        <div class="card-body">
+            <h1 class="h4 mb-3 text-danger">
+                <i class="bi bi-trash3 me-2" aria-hidden="true"></i>{% translate "Supprimer l'évènement" %}
+            </h1>
+            {% include "events/_confirmer_suppression.html" %}
+        </div>
+    </div>
+{% endblock %}

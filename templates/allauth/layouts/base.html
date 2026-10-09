@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% comment %}
+Surcharge du layout racine de django-allauth.
+
+NB : `{% extends %}` doit être la toute première balise du gabarit — ce commentaire
+ne peut donc pas le précéder.
+
+allauth ne passe PAS par le `base.html` du projet : ses gabarits descendent de
+`allauth/layouts/base.html`, qui embarque son propre document HTML complet. Ses
+pages s'affichaient donc sans aucune feuille de style, et son menu intégré
+proposait « Création de compte » alors que l'inscription est fermée — un lien
+qui ne menait qu'à la page « Inscriptions fermées ».
+
+Ce fichier remplace ce layout par un qui hérite du `base.html` du projet. Comme
+`TEMPLATES["DIRS"]` est consulté avant les répertoires d'applications, celui-ci
+l'emporte sur celui livré par allauth.
+
+Le menu d'allauth n'est volontairement pas repris : la gestion de compte en
+self-service est fermée ici (inscription désactivée, `/accounts/email/` masqué),
+et les comptes sont créés dans l'admin Django. La navigation du site appartient
+au lot de mise en page.
+
+Correspondance des blocs — allauth → projet :
+  head_title → title
+  extra_head → extra_css
+  content    → content  (même nom, transmis tel quel)
+  extra_body → extra_js
+{% endcomment %}
+
+{% block title %}{% block head_title %}{% endblock %}{% endblock %}
+
+{% block main_class %}container auth-page{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* allauth rend des champs bruts, sans classe Bootstrap : on leur donne
+           l'apparence d'un `form-control` sans toucher à ses gabarits. */
+        .auth-page {
+            max-width: 30rem;
+        }
+
+        .auth-page h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .auth-page form p {
+            margin-bottom: 1rem;
+        }
+
+        .auth-page label {
+            display: block;
+            margin-bottom: .25rem;
+            font-weight: 500;
+        }
+
+        .auth-page input[type="text"],
+        .auth-page input[type="email"],
+        .auth-page input[type="password"] {
+            display: block;
+            width: 100%;
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--bs-body-color);
+            background-color: var(--bs-body-bg);
+            border: 1px solid var(--bs-border-color);
+            border-radius: var(--bs-border-radius);
+        }
+
+        .auth-page input[type="text"]:focus,
+        .auth-page input[type="email"]:focus,
+        .auth-page input[type="password"]:focus {
+            outline: 0;
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .25);
+        }
+
+        .auth-page button[type="submit"],
+        .auth-page input[type="submit"] {
+            padding: .375rem .75rem;
+            color: #fff;
+            background-color: var(--bs-primary);
+            border: 1px solid var(--bs-primary);
+            border-radius: var(--bs-border-radius);
+        }
+
+        .auth-page .errorlist {
+            margin: .25rem 0 0;
+            padding-left: 1.25rem;
+            color: var(--bs-danger);
+        }
+
+        .auth-page .helptext {
+            display: block;
+            margin-top: .25rem;
+            font-size: .875rem;
+            color: var(--bs-secondary-color);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+{% endblock %}
+
+{% block extra_js %}{% block extra_body %}{% endblock %}{% endblock %}

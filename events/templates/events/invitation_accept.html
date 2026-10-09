@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Page d'acceptation d'une invitation.
+
+L'acceptation exige un POST : un GET suffirait sinon à consommer
+l'invitation depuis un aperçu de lien, un antivirus de messagerie ou un
+préchargement du navigateur — autant de choses qui ouvrent les liens sans
+que personne ne l'ait voulu.
+
+La page dit toujours à quel dossier et à quel droit elle mène, avant que
+l'on accepte. Accepter sans savoir ce qu'on reçoit n'est pas acceptable sur
+un dossier de pièces.
+{% endcomment %}
+
+{% block title %}{% blocktranslate with nom=invitation.dossier.name %}Invitation — {{ nom }}{% endblocktranslate %}{% endblock %}
+
+{% block content %}
+    <div class="mx-auto" style="max-width: 640px;">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+
+                <h1 class="h4 mb-3">{% translate "Invitation à un dossier" %}</h1>
+
+                <dl class="row mb-4">
+                    <dt class="col-sm-4 text-body-secondary fw-normal">{% translate "Dossier" %}</dt>
+                    <dd class="col-sm-8">{{ invitation.dossier.name }}</dd>
+
+                    <dt class="col-sm-4 text-body-secondary fw-normal">{% translate "Invité par" %}</dt>
+                    <dd class="col-sm-8">{{ invitation.created_by.get_username }}</dd>
+
+                    <dt class="col-sm-4 text-body-secondary fw-normal">{% translate "Droit proposé" %}</dt>
+                    <dd class="col-sm-8">
+                        {% if invitation.role == 'write' %}
+                            {% translate "Lecture et écriture" %}
+                            <span class="d-block small text-body-secondary">
+                                {% blocktranslate trimmed %}
+                                Consulter, créer et modifier des évènements, ajouter
+                                et retirer des pièces. Ne permet pas de partager le
+                                dossier.
+                                {% endblocktranslate %}
+                            </span>
+                        {% else %}
+                            {% translate "Lecture seule" %}
+                            <span class="d-block small text-body-secondary">
+                                {% blocktranslate trimmed %}
+                                Consulter la chronologie, les évènements et les
+                                pièces. Aucune modification possible.
+                                {% endblocktranslate %}
+                            </span>
+                        {% endif %}
+                    </dd>
+                </dl>
+
+                {% if deja_autorise %}
+                    <div class="alert alert-info">
+                        {% blocktranslate trimmed %}
+                        Vous avez déjà accès à ce dossier. Cette invitation n'a rien
+                        à vous ajouter.
+                        {% endblocktranslate %}
+                    </div>
+                    <a class="btn btn-primary"
+                       href="{% url 'timeline' invitation.dossier.pk %}">
+                        <i class="bi bi-folder2-open me-1" aria-hidden="true"></i>{% translate "Ouvrir le dossier" %}
+                    </a>
+
+                {% elif invitation.status == 'accepted' %}
+                    <div class="alert alert-warning">
+                        {% blocktranslate trimmed with quand=invitation.accepted_at|date:"SHORT_DATE_FORMAT" auteur=invitation.created_by.get_username %}
+                        Cette invitation a déjà été acceptée
+                        le {{ quand }}. Une invitation
+                        ne sert qu'une fois. Demandez-en une nouvelle à
+                        {{ auteur }}.
+                        {% endblocktranslate %}
+                    </div>
+
+                {% elif invitation.status == 'revoked' %}
+                    <div class="alert alert-warning">
+                        {% translate "Cette invitation a été annulée par son auteur." %}
+                    </div>
+
+                {% elif invitation.is_expired %}
+                    <div class="alert alert-warning">
+                        {% blocktranslate trimmed with quand=invitation.expires_at|date:"SHORT_DATE_FORMAT" auteur=invitation.created_by.get_username %}
+                        Cette invitation a expiré
+                        le {{ quand }}. Demandez-en une
+                        nouvelle à {{ auteur }}.
+                        {% endblocktranslate %}
+                    </div>
+
+                {% else %}
+                    <p class="text-body-secondary small">
+                        {% blocktranslate trimmed with nom=user.get_username %}
+                        Vous êtes connecté en tant que
+                        <strong>{{ nom }}</strong>. C'est ce compte qui
+                        recevra l'accès.
+                        {% endblocktranslate %}
+                    </p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1" aria-hidden="true"></i>{% translate "Accepter l'invitation" %}
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
