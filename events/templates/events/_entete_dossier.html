@@ -14,7 +14,11 @@ l'autre ne doit pas éjecter un visiteur anonyme hors de son lien.
         {% if not lien_partage %}
             <a href="{% url 'dossier_list' %}" class="text-decoration-none small d-print-none"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Mes dossiers" %}</a>
         {% endif %}
-        <h1 class="h3 mb-0">{{ dossier.name }}</h1>
+        {# Sur grand écran, la barre de navigation montre déjà le dossier (son sélecteur) : #}
+        {# le titre y est masqué, mais reste lu par les lecteurs d'écran et imprimé (la    #}
+        {# barre, elle, ne s'imprime pas). Visible sur téléphone (menu replié) et par un   #}
+        {# lien de partage, où la barre n'affiche aucun dossier.                           #}
+        <h1 class="h3 mb-0{% if not lien_partage %} titre-doublon-barre{% endif %}">{{ dossier.name }}</h1>
     </div>
 
     <div class="d-flex flex-wrap gap-2">

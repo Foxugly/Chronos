@@ -28,6 +28,22 @@
             .card, .list-group-item { break-inside: avoid; box-shadow: none !important; }
             .badge { border: 1px solid #999; color: #000 !important; background: #fff !important; }
         }
+        /* Un titre que la barre de navigation affiche déjà (le nom du dossier) :
+           masqué à l'écran large, sans le retirer aux lecteurs d'écran ni à
+           l'impression (`@media screen` : la règle ne s'applique pas au papier). */
+        @media screen and (min-width: 992px) {
+            .titre-doublon-barre {
+                position: absolute !important;
+                width: 1px !important;
+                height: 1px !important;
+                padding: 0 !important;
+                margin: -1px !important;
+                overflow: hidden !important;
+                clip: rect(0, 0, 0, 0) !important;
+                white-space: nowrap !important;
+                border: 0 !important;
+            }
+        }
         /* Sélecteur de langue, sur le modèle de QuizOnline : bouton compact,
            menu arrondi et ombré, langue courante cochée. */
         .selecteur-langue__declencheur {
