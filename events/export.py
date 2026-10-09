@@ -300,6 +300,15 @@ def _liens_de_transfert(dossier, evenements):
     for suite in Event.objects.filter(dossier=dossier, transfert_de__in=retenus):
         liens.setdefault(suite.transfert_de_id, []).append(
             (_("Transféré ensuite : %(titre)s (%(periode)s)"), suite))
+    repondus = {e.pk: e for e in Event.objects.filter(
+        dossier=dossier, pk__in={e.reponse_a_id for e in evenements if e.reponse_a_id})}
+    for evenement in evenements:
+        if evenement.reponse_a_id in repondus:
+            liens.setdefault(evenement.pk, []).append(
+                (_("En réponse à : %(titre)s (%(periode)s)"), repondus[evenement.reponse_a_id]))
+    for reponse in Event.objects.filter(dossier=dossier, reponse_a__in=retenus):
+        liens.setdefault(reponse.reponse_a_id, []).append(
+            (_("Réponse : %(titre)s (%(periode)s)"), reponse))
     return liens
 
 

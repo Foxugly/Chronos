@@ -244,6 +244,12 @@ class Event(models.Model):
         "self", verbose_name=gettext_lazy("transfert de"), related_name="transferts",
         null=True, blank=True, on_delete=models.SET_NULL,
     )
+    # Le courriel auquel celui-ci répond — celui qu'il cite sous un bloc « De : …
+    # Envoyé : … » (`events/liens.py`). Même règle : même dossier seulement.
+    reponse_a = models.ForeignKey(
+        "self", verbose_name=gettext_lazy("en réponse à"), related_name="reponses",
+        null=True, blank=True, on_delete=models.SET_NULL,
+    )
 
     class Meta:
         # Classé par début, puis par heure : deux faits du même jour se lisent
@@ -430,6 +436,10 @@ class Event(models.Model):
             # Un lien vers un autre dossier ouvrirait une fenêtre d'une affaire sur l'autre.
             raise ValidationError(
                 {"transfert_de": _("Un transfert ne peut renvoyer qu'à un évènement du même dossier.")}
+            )
+        if self.reponse_a_id and self.reponse_a.dossier_id != self.dossier_id:
+            raise ValidationError(
+                {"reponse_a": _("Une réponse ne peut renvoyer qu'à un évènement du même dossier.")}
             )
         if self.date_fin and self.date and self.date_fin < self.date:
             raise ValidationError(
@@ -855,6 +865,11 @@ class CourrielImporte(models.Model):
         null=True, blank=True, on_delete=models.SET_NULL,
     )
     expediteur = models.CharField(gettext_lazy("expéditeur"), max_length=255, blank=True)
+    # Le courriel que celui-ci cite (`liens.citation`) : de quoi le relier *en aval*,
+    # quand le courriel cité arrive après lui, sans relire son .eml.
+    cite_de = models.CharField(gettext_lazy("cite : expéditeur"), max_length=255, blank=True)
+    cite_le = models.DateTimeField(gettext_lazy("cite : date"), null=True, blank=True)
+    cite_objet = models.CharField(gettext_lazy("cite : objet"), max_length=255, blank=True)
     importe_le = models.DateTimeField(gettext_lazy("importé le"), auto_now_add=True)
 
     class Meta:

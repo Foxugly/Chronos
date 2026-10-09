@@ -406,6 +406,17 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   a hash of sender, date and subject (`cle`); the origin also answers to its pre-layers key
   (`cle_ancienne`, the received mail's Message-ID). `analyser()` (one `Analyse`, the origin) is
   kept, folded over the layers.
+- **Same mail, two routes; replies linked** (`events/liens.py`, 2026-10-09). A mail's
+  *empreinte* is sender + subject without TR:/RE: + time **within 20 min** (sent vs received times
+  differ by 2–13 min on the real samples). At import a layer is recognised by its key **or** its
+  empreinte (`meme_courriel`) — the n° 1 / n° 28 duplicate can no longer happen — but never a mail
+  and its own reply (same sender, same thread, minutes apart: n° 4/5). A layer that quotes a
+  « De : … Envoyé : … » block is linked to the quoted mail (`Event.reponse_a`, « En réponse à »),
+  upstream at import and downstream when the quoted mail arrives later (`CourrielImporte.cite_*`
+  keeps what each mail quotes). The Doublons page now proposes two imported events that are the
+  same mail, keeping the richer one. `manage.py relier_courriels` back-fills existing data:
+  **dry run by default** (does the work in a rolled-back transaction), `--appliquer` to write; it
+  never merges or deletes.
 - `events/import_courriels.py` creates, in **one transaction**, the event (instant, Brussels time), the
   original `.eml`, a `.md` text version (for search / AI), the attachments that pass `_verifier_fichier`
   (refused ones are named in the journal and the `.md`, the rest is still imported), a

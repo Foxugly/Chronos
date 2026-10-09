@@ -14,7 +14,9 @@ Deux évènements pour un même fait.
 Partager une pièce ne suffit pas : un courriel joint des photos déjà déposées
 des semaines plus tôt, sans être pour autant le même fait. Deux évènements
 importés de deux courriels distincts ne sont jamais proposés — ce sont deux
-courriels. Un évènement et celui qu'il transfère (`Event.transfert_de`) non plus,
+courriels. **Sauf s'ils sont le même courriel arrivé par deux chemins** (même
+empreinte, `events/liens.py`, et aucun ne cite l'autre) : on propose alors de
+garder le plus riche, celui qui a le plus de pièces. Un évènement et celui qu'il transfère (`Event.transfert_de`) non plus,
 eux qui partagent pourtant le même `.eml`. Une paire écartée (`PaireIgnoree`)
 n'est plus proposée.
 
@@ -77,6 +79,22 @@ def doublons_possibles(dossier, evenements=None):
         .values_list("evenement_id", flat=True)
     )
     ecartees = set(dossier.paires_ignorees.values_list("evenement_a_id", "evenement_b_id"))
+    from .import_courriels import _richesse, citation_de_trace, empreinte_de_trace
+
+    empreintes, citations = {}, {}
+    for trace in CourrielImporte.objects.filter(dossier=dossier).exclude(evenement=None).select_related("evenement"):
+        empreintes.setdefault(trace.evenement_id, empreinte_de_trace(trace))
+        citations.setdefault(trace.evenement_id, citation_de_trace(trace))
+
+    def meme_courriel(a, b):
+        ea, eb = empreintes.get(a.pk), empreintes.get(b.pk)
+        return bool(
+            ea and ea.correspond(eb)
+            and not ea.correspond(citations.get(b.pk))
+            and not eb.correspond(citations.get(a.pk))
+            and a.reponse_a_id != b.pk and b.reponse_a_id != a.pk
+            and a.transfert_de_id != b.pk and b.transfert_de_id != a.pk
+        )
 
     paires = []
     tries = sorted(evenements, key=lambda e: e.pk)
@@ -84,7 +102,8 @@ def doublons_possibles(dossier, evenements=None):
         for b in tries[i + 1:]:
             if (a.pk, b.pk) in ecartees:
                 continue
-            if a.pk in importes and b.pk in importes:
+            deux_importes = a.pk in importes and b.pk in importes
+            if deux_importes and not meme_courriel(a, b):
                 continue
             if a.transfert_de_id == b.pk or b.transfert_de_id == a.pk:
                 continue  # un transfert et ce qu'il transfère : deux courriels, pas un doublon
@@ -102,9 +121,13 @@ def doublons_possibles(dossier, evenements=None):
                 raisons.append(_("un jour d'écart"))
             if proche >= SIMILARITE_MIN:
                 raisons.append(_("titres proches"))
-            if not (communes or (ecart == 0 and proche >= SIMILARITE_MIN)):
+            if deux_importes:
+                raisons.insert(0, _("le même courriel, arrivé par deux chemins"))
+            elif not (communes or (ecart == 0 and proche >= SIMILARITE_MIN)):
                 continue
-            if b.pk in importes and a.pk not in importes:
+            if deux_importes:
+                garder = max((a, b), key=lambda e: (_richesse(e), -e.pk))
+            elif b.pk in importes and a.pk not in importes:
                 garder = b
             elif a.pk in importes:
                 garder = a
@@ -175,10 +198,13 @@ def fusionner(garde, absorbe, *, request):
         Event.objects.filter(pk=garde.pk).update(version=F("version") + 1)
 
         CourrielImporte.objects.filter(evenement=absorbe).update(evenement=garde)
-        # Les transferts qui renvoyaient à l'évènement absorbé renvoient au gardé.
+        # Les transferts et réponses qui renvoyaient à l'absorbé renvoient au gardé.
         Event.objects.filter(transfert_de=absorbe).exclude(pk=garde.pk).update(transfert_de=garde)
+        Event.objects.filter(reponse_a=absorbe).exclude(pk=garde.pk).update(reponse_a=garde)
         if garde.transfert_de_id is None and absorbe.transfert_de_id not in (None, garde.pk):
             Event.objects.filter(pk=garde.pk).update(transfert_de=absorbe.transfert_de_id)
+        if garde.reponse_a_id is None and absorbe.reponse_a_id not in (None, garde.pk):
+            Event.objects.filter(pk=garde.pk).update(reponse_a=absorbe.reponse_a_id)
         garde.etiquettes.add(*absorbe.etiquettes.all())
 
         consigner(

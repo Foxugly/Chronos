@@ -40,7 +40,7 @@ la page, et son comportement (aperçu, visionneuse) est posé par
         {% endif %}
     </div>
 
-    {% if transfert_de or transferts %}
+    {% if transfert_de or transferts or reponse_a or reponses %}
         <ul class="list-unstyled small mb-3">
             {% if transfert_de %}
                 <li><i class="bi bi-arrow-return-right me-1" aria-hidden="true"></i>{% translate "Transfert de :" %}
@@ -51,6 +51,16 @@ la page, et son comportement (aperçu, visionneuse) est posé par
                 <li><i class="bi bi-forward me-1" aria-hidden="true"></i>{% translate "Transféré ensuite :" %}
                     <a href="{{ t.url }}" data-voir-evenement>{{ t.titre }}</a>
                     <span class="text-body-secondary">({{ t.periode }})</span></li>
+            {% endfor %}
+            {% if reponse_a %}
+                <li><i class="bi bi-reply me-1" aria-hidden="true"></i>{% translate "En réponse à :" %}
+                    <a href="{{ reponse_a.url }}" data-voir-evenement>{{ reponse_a.titre }}</a>
+                    <span class="text-body-secondary">({{ reponse_a.periode }})</span></li>
+            {% endif %}
+            {% for r in reponses %}
+                <li><i class="bi bi-chat-left-text me-1" aria-hidden="true"></i>{% translate "Réponse :" %}
+                    <a href="{{ r.url }}" data-voir-evenement>{{ r.titre }}</a>
+                    <span class="text-body-secondary">({{ r.periode }})</span></li>
             {% endfor %}
         </ul>
     {% endif %}

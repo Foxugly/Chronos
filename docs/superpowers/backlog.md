@@ -27,6 +27,51 @@ l'historique de ce qui a été tranché, et pourquoi.
 - **Vérifier dans un navigateur** le champ d'alias en `input-group` et le bouton « Copier »
   (couverts par les tests seulement).
 
+### Liens et doublons entre courriels (2026-10-09)
+
+**Fait** : `events/liens.py` (empreinte à 20 min), reconnaissance du même courriel à l'import,
+lien « En réponse à » (`Event.reponse_a`, migration `0020`) en amont et en aval, page Doublons qui
+propose le même courriel arrivé deux fois (on garde le plus riche), expéditeurs mal formés lus,
+commande `manage.py relier_courriels` (essai par défaut, `--appliquer`). **Reste** : lancer la
+commande sur la production, fusionner n° 28 dans n° 1 par la page Doublons, et la piste « fil de
+discussion » pour les cas comme n° 12 / n° 47 qui ne citent rien.
+
+Constat de départ :
+
+Constaté en production (47 évènements importés) par une analyse en lecture seule des `.eml` :
+
+- **Un vrai doublon** : n° 1 et n° 28, la mise en demeure du 28/09 20:29 arrivée par deux chemins
+  (en direct, puis dans un autre transfert) — deux clés, deux évènements. La page Doublons ne le
+  proposait pas : deux évènements importés n'y sont jamais comparés.
+- **17 liens « répond à / transfère »** détectables : un courriel cite, sous un bloc « De : …
+  Envoyé : … », un courriel présent dans le dossier (même expéditeur, même objet hors TR:/RE:, à
+  20 minutes près — l'heure d'envoi et l'heure de réception diffèrent de 2 à 13 min).
+- **Faux doublons à écarter** : n° 4/5 et n° 40/41, même expéditeur et même objet à quelques
+  minutes — mais l'un répond à l'autre. Un courriel et sa réponse ne sont jamais des doublons.
+- **6 citations sans correspondance** : les courriels cités n'ont pas été importés (BNQ, Julie
+  Petit, Paul Durand) — normal.
+- **n° 12 → n° 47** (l'architecte, puis l'envoi à l'entrepreneur) : n° 12 ne cite rien, aucun lien
+  n'est prouvable. Seul indice : le même fil (« sdb : jonctions sol/murs »). Piste : une vue
+  « fil de discussion » par objet normalisé, sans lien stocké.
+- **Expéditeur manquant** sur une dizaine d'évènements : un « De : » écrit
+  `jdupont@perso.example <jdupont@perso.example>` ou `Nom [mailto:…]` n'était pas lu comme une adresse.
+
+### Monitoring de Chronos
+
+- **Sentry** : créer `chronos-backend` (org `foxugly-srl`, de.sentry.io), mettre `SENTRY_DSN` (et
+  `SENTRY_ENVIRONMENT=production`) dans `/chronos/prod`, redémarrer `chronos-env-fetch` puis
+  `chronos-gunicorn`. Le code est prêt (`sentry-sdk`, sans données personnelles).
+- **UptimeRobot** : moniteur HTTPS mot-clé `"ok"` sur `https://chronos.foxugly.com/health/`, 300 s —
+  dans le tableau de bord (pas d'API sur le plan gratuit).
+
+### Flotte, relevé en chemin (2026-10-09)
+
+- **Facilitation → Redis db6** : préparé (dépôt et docs), en attente de la mise à jour de
+  `/facilitation/prod/REDIS_URL` dans SSM puis du script de bascule. db5 reste à Fabric (arrêté).
+- **poker et pushit partagent Redis db3** (`REDIS_URL` de poker, `CELERY_RESULT_BACKEND` de pushit).
+- **Mémoire** : swap occupé à 1,47 Go sur 2 Go, 960 Mo disponibles après la séparation
+  daphne/gunicorn de Facilitation (gunicorn + daphne ≈ 325 Mo). À surveiller.
+
 ### Demande une décision du propriétaire
 
 - **Une sauvegarde sur le même disque ne protège pas d'une panne de ce disque.**

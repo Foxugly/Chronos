@@ -22,8 +22,11 @@ from django.db import connection, transaction
 from django.utils import timezone
 
 from .couleurs import prochaine_couleur
-from .courriels import adresses, analyser_en_couches, en_markdown, lire, texte_en_html
+from .courriels import _bloc_de_transfert, adresses, analyser_en_couches, en_markdown, lire, texte_en_html
 from .graph import ClientGraph
+from .liens import (
+    adresse_de, citation, empreinte, empreinte_d_evenement, empreinte_de_couche,
+)
 from .journal import consigner, consigner_pieces, instantane
 from .models import CourrielImporte, Dossier, Event, Expediteur, Journal
 from .sanitize import nettoyer
@@ -42,9 +45,15 @@ def expediteur_du_dossier(dossier, texte):
     """L'expéditeur du dossier pour « Nom <adresse> », créé à son premier
     courriel avec la première couleur libre de la palette. `None` si le texte
     ne contient aucune adresse lisible."""
-    adresses = [(nom, adresse.lower()) for nom, adresse in getaddresses([texte or ""]) if adresse]
+    adresses = [(nom, adresse.lower()) for nom, adresse in getaddresses([texte or ""]) if "@" in adresse]
     if not adresses:
-        return None
+        # `x@y <x@y>` et `Nom [mailto:x@y]` (Outlook) échappent à `getaddresses`.
+        adresse = adresse_de(texte)
+        if not adresse:
+            return None
+        paires = getaddresses([texte or ""])
+        nom = paires[0][0] if paires else ""
+        adresses = [("" if "@" in nom else nom, adresse)]
     nom, adresse = adresses[0]
     expediteur = Expediteur.objects.filter(dossier=dossier, adresse=adresse).first()
     if expediteur is None:
@@ -81,21 +90,111 @@ def evenement_importe(dossier, analyse):
     return trace.evenement if trace else None
 
 
+def _traces(dossier):
+    return list(CourrielImporte.objects.filter(dossier=dossier).exclude(evenement=None)
+                .select_related("evenement"))
+
+
+def empreinte_de_trace(trace):
+    return empreinte_d_evenement(trace.evenement, trace.expediteur)
+
+
+def citation_de_trace(trace):
+    return empreinte(trace.cite_de, trace.cite_le, trace.cite_objet) if trace.cite_le else None
+
+
+def _richesse(evenement):
+    """Les pièces autres que le courriel lui-même (.eml) et sa version texte (.md)."""
+    return sum(1 for d in evenement.documents.all() if not d.title.lower().endswith((".eml", ".md")))
+
+
+def meme_courriel(couche, traces):
+    """L'évènement qui est déjà ce courriel, arrivé par un autre chemin — ou `None`.
+
+    Même empreinte (expéditeur, objet, heure à 20 min près), mais jamais un courriel
+    et sa réponse : même fil, même expéditeur, quelques minutes d'écart, et pourtant
+    deux courriels (n° 4 et 5 du dossier réel)."""
+    soi, cite = empreinte_de_couche(couche), citation(couche)
+    candidats = [
+        t.evenement for t in traces
+        if soi.correspond(empreinte_de_trace(t))
+        and not (cite and cite.correspond(empreinte_de_trace(t)))
+        and not soi.correspond(citation_de_trace(t))
+    ]
+    return max(candidats, key=lambda e: (_richesse(e), -e.pk)) if candidats else None
+
+
+def relier(evenement, couche, traces):
+    """Relie `evenement` au courriel qu'il cite (en amont) et ceux qui le citent à lui
+    (en aval). Rend la liste des `(réponse, courriel cité)` reliés."""
+    relies = []
+    cite = None if couche.transfert else citation(couche)
+    if cite and evenement.reponse_a_id is None:
+        amont = [t.evenement for t in traces
+                 if t.evenement_id != evenement.pk and cite.correspond(empreinte_de_trace(t))]
+        if amont:
+            cible = max(amont, key=lambda e: (_richesse(e), -e.pk))
+            if cible.reponse_a_id != evenement.pk:
+                Event.objects.filter(pk=evenement.pk).update(reponse_a=cible)
+                evenement.reponse_a = cible
+                relies.append((evenement, cible))
+    soi = empreinte_de_couche(couche)
+    for t in traces:
+        aval = t.evenement
+        if (aval.pk != evenement.pk and aval.reponse_a_id is None and evenement.reponse_a_id != aval.pk
+                and soi.correspond(citation_de_trace(t))):
+            Event.objects.filter(pk=aval.pk).update(reponse_a=evenement)
+            aval.reponse_a = evenement
+            relies.append((aval, evenement))
+    return relies
+
+
+def champs_cites(analyse):
+    """`(de, le, objet)` du courriel que cette couche cite, à stocker ; vides sinon."""
+    cite = citation(analyse)
+    if cite is None:
+        return "", None, ""
+    champs = _bloc_de_transfert(analyse.texte or "")[1]
+    return champs.get("de", "")[:255], cite.moment, champs.get("objet", "")[:255]
+
+
+def _memoriser(dossier, analyse, evenement):
+    cite_de, cite_le, cite_objet = champs_cites(analyse)
+    CourrielImporte.objects.create(
+        dossier=dossier, message_id=cle_du_courriel(analyse), evenement=evenement,
+        expediteur=analyse.expediteur[:255], cite_de=cite_de, cite_le=cite_le, cite_objet=cite_objet,
+    )
+
+
 def importer_couches(dossier, couches):
     """Une couche, un évènement : de l'origine au plus récent, chacun relié à
-    celui qu'il transfère (`Event.transfert_de`). Une couche déjà importée
-    n'est pas recréée, mais le transfert suivant s'y relie — la mise en
+    celui qu'il transfère (`Event.transfert_de`) et à celui qu'il cite
+    (`Event.reponse_a`, `relier`). Une couche déjà présente n'est pas recréée —
+    reconnue par sa clé, ou par son empreinte quand elle arrive par un autre
+    chemin (`meme_courriel`) — mais le courriel suivant s'y relie : la mise en
     demeure importée hier, transférée à l'avocate aujourd'hui. Rend les
     évènements créés ; la chaîne entière ou rien.
     """
     crees = []
     with transaction.atomic():
+        traces = _traces(dossier)
         precedent = None
         for couche in couches:
             evenement = evenement_importe(dossier, couche)
             if evenement is None:
+                evenement = meme_courriel(couche, traces)
+                if evenement is not None:
+                    # Le même courriel, arrivé par un autre chemin : on retient sa clé.
+                    _memoriser(dossier, couche, evenement)
+            if evenement is None:
                 evenement = importer(dossier, couche, transfert_de=precedent)
                 crees.append(evenement)
+            elif precedent is not None and couche.transfert and evenement.transfert_de_id is None:
+                Event.objects.filter(pk=evenement.pk).update(transfert_de=precedent)
+            traces = _traces(dossier)
+            for reponse, cite in relier(evenement, couche, traces):
+                consigner(dossier, Journal.Action.EVENEMENT_MODIFIE, objet=reponse.title, evenement=reponse,
+                          details={"changements": {"reponse_a": ["", cite.title]}, "source": "courriel"})
             precedent = evenement
     return crees
 
@@ -143,12 +242,7 @@ def importer(dossier, analyse, transfert_de=None):
         ] + acceptees
         pieces = [_attach_document(evenement, f) for f in fichiers]
 
-        CourrielImporte.objects.create(
-            dossier=dossier,
-            message_id=cle_du_courriel(analyse),
-            evenement=evenement,
-            expediteur=analyse.expediteur[:255],
-        )
+        _memoriser(dossier, analyse, evenement)
         consigner(
             dossier, Journal.Action.COURRIEL_IMPORTE, objet=evenement.title, evenement=evenement,
             details={

@@ -238,10 +238,14 @@ def vue_du_dossier(request, dossier, base_vue):
     par_pk = {evenement.pk: evenement for evenement in tous}
     for evenement in tous:
         evenement.lien_transfert_de = par_pk.get(evenement.transfert_de_id)
+        evenement.lien_reponse_a = par_pk.get(evenement.reponse_a_id)
         evenement.liens_transferts = []
+        evenement.liens_reponses = []
     for evenement in tous:
         if evenement.lien_transfert_de is not None:
             evenement.lien_transfert_de.liens_transferts.append(evenement)
+        if evenement.lien_reponse_a is not None:
+            evenement.lien_reponse_a.liens_reponses.append(evenement)
     filtres = filtrage.lire_filtres(request.GET, dossier)
     retenus, correspondances = filtrage.appliquer(tous, filtres)
     for evenement in retenus:
@@ -523,9 +527,12 @@ def _liens_de_transfert(event, detail_de, url_retour):
 
     meme_dossier = Event.objects.filter(dossier_id=event.dossier_id)
     origine = meme_dossier.filter(pk=event.transfert_de_id).first() if event.transfert_de_id else None
+    repondu = meme_dossier.filter(pk=event.reponse_a_id).first() if event.reponse_a_id else None
     return {
         "transfert_de": lien(origine) if origine else None,
         "transferts": [lien(t) for t in meme_dossier.filter(transfert_de=event)],
+        "reponse_a": lien(repondu) if repondu else None,
+        "reponses": [lien(r) for r in meme_dossier.filter(reponse_a=event)],
     }
 
 

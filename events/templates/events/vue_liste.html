@@ -64,7 +64,7 @@ l'est en connaissance de cause.
                             {% if evenement.etiquettes.all %}
                                 <div class="mt-1">{% for etiquette in evenement.etiquettes.all %}<span class="badge rounded-pill text-bg-light border me-1"><i class="bi bi-tag me-1" aria-hidden="true"></i>{{ etiquette.nom }}</span>{% endfor %}</div>
                             {% endif %}
-                            {% if evenement.lien_transfert_de or evenement.liens_transferts %}
+                            {% if evenement.lien_transfert_de or evenement.liens_transferts or evenement.lien_reponse_a or evenement.liens_reponses %}
                                 <ul class="list-unstyled small mt-1 mb-0">
                                     {% with origine=evenement.lien_transfert_de %}
                                         {% if origine %}
@@ -77,6 +77,18 @@ l'est en connaissance de cause.
                                         <li><i class="bi bi-forward me-1" aria-hidden="true"></i>{% translate "Transféré ensuite :" %}
                                             <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token suite.pk %}{% else %}{% url 'event_detail' suite.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>{{ suite.title }}</a>
                                             <span class="text-body-secondary">({{ suite.periode_affichee }})</span></li>
+                                    {% endfor %}
+                                    {% with cite=evenement.lien_reponse_a %}
+                                        {% if cite %}
+                                            <li><i class="bi bi-reply me-1" aria-hidden="true"></i>{% translate "En réponse à :" %}
+                                                <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token cite.pk %}{% else %}{% url 'event_detail' cite.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>{{ cite.title }}</a>
+                                                <span class="text-body-secondary">({{ cite.periode_affichee }})</span></li>
+                                        {% endif %}
+                                    {% endwith %}
+                                    {% for reponse in evenement.liens_reponses %}
+                                        <li><i class="bi bi-chat-left-text me-1" aria-hidden="true"></i>{% translate "Réponse :" %}
+                                            <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token reponse.pk %}{% else %}{% url 'event_detail' reponse.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>{{ reponse.title }}</a>
+                                            <span class="text-body-secondary">({{ reponse.periode_affichee }})</span></li>
                                     {% endfor %}
                                 </ul>
                             {% endif %}
