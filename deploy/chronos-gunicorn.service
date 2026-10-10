@@ -18,6 +18,16 @@ ExecStart=/var/www/django_websites/Chronos/.venv/bin/gunicorn --workers 2 --time
     --access-logfile /var/log/chronos/gunicorn-access.log \
     --error-logfile /var/log/chronos/gunicorn-error.log \
     config.wsgi:application
+# Durcissement (OPERATIONS.md §3.22) : pas d'élévation de privilèges, /tmp privé, système en
+# lecture seule (/usr, /boot, /etc). Jamais ProtectSystem=strict : /var/www et /var/log/chronos
+# doivent rester inscriptibles. pwsh (alias Exchange) n'appelle pas sudo et n'écrit que dans
+# $HOME et /tmp.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
 Restart=always
 RestartSec=3
 

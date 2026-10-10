@@ -708,5 +708,6 @@ What is deliberately **not** done, and recorded in `backlog.md` (section « Ouve
 - Production follow-ups (owner's side or fleet-wide): Sentry is wired since 2026-10-09
   (`chronos-backend`) and UptimeRobot watches `/health/`; `OPERATIONS.md` (repo `foxugly-ops`) lists
   Chronos since 2026-10-09. Still open: no off-box backup (S3 — the owner declined to pursue it,
-  2026-10-10), HSTS sent twice (Django and nginx), and `chronos-gunicorn` lacks the hardening block
-  of `OPERATIONS.md §3.22` (fleet backlog #17).
+  2026-10-10) and HSTS sent twice (Django and nginx). `chronos-gunicorn` carries the hardening
+  block of `OPERATIONS.md §3.22` since 2026-10-10 (fleet backlog #17), guarded by
+  `events/tests/test_durcissement_systemd.py`.
