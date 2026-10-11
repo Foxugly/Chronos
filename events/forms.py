@@ -9,6 +9,7 @@ from django.db.models import F
 from django.utils import timezone
 from django import forms
 from django.utils.translation import gettext as _
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy
 from .sanitize import est_vide, nettoyer
 from .couleurs import PALETTE
@@ -252,6 +253,13 @@ class DossierAccessForm(forms.ModelForm):
             self.fields["user"].empty_label = _("Choisir un compte…")
 
 
+def langue_courante():
+    """La langue active, ramenée à l'un des codes de `LANGUAGES` (sinon `LANGUAGE_CODE`)."""
+    codes = {code for code, _nom in settings.LANGUAGES}
+    langue = (get_language() or "").lower()
+    return langue if langue in codes else settings.LANGUAGE_CODE
+
+
 class InvitationForm(forms.ModelForm):
     """Inviter une adresse à rejoindre un dossier.
 
@@ -261,21 +269,30 @@ class InvitationForm(forms.ModelForm):
 
     class Meta:
         model = Invitation
-        fields = ["email", "role"]
+        fields = ["email", "role", "langue"]
         widgets = {
             "email": forms.EmailInput(
                 attrs={"class": "form-control", "placeholder": gettext_lazy("adresse@exemple.be")}
             ),
             "role": forms.Select(attrs={"class": "form-select"}),
+            "langue": forms.Select(attrs={"class": "form-select"}),
         }
         labels = {
             "email": gettext_lazy("Adresse électronique"),
             "role": gettext_lazy("Droit accordé"),
+            "langue": gettext_lazy("Langue du courriel"),
         }
 
     def __init__(self, *args, dossier=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.dossier = dossier
+        # Proposée : la langue de l'interface. Facultative, comme `precision` dans
+        # `EventForm` : un envoi direct sans ce champ garde l'ancien comportement.
+        self.fields["langue"].required = False
+        self.fields["langue"].initial = langue_courante()
+
+    def clean_langue(self):
+        return self.cleaned_data.get("langue") or langue_courante()
 
     def clean_email(self):
         email = self.cleaned_data["email"]

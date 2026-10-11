@@ -269,3 +269,53 @@ class RevokingAnInvitationTests(TestCase):
         self.assertEqual(reponse.status_code, 404)
         ailleurs.refresh_from_db()
         self.assertTrue(ailleurs.is_usable)
+
+
+class LangueDeLInvitationTests(TestCase):
+    """Le courriel part dans la langue de la personne invitée, choisie par le propriétaire.
+
+    Avant : dans la langue de l'interface du propriétaire au moment de l'envoi —
+    une avocate néerlandophone recevait un courriel en français.
+    """
+
+    def setUp(self):
+        self.owner = make_user("owner")
+        self.dossier = make_dossier(self.owner, name="Dossier adverse")
+        self.client.force_login(self.owner)
+
+    def _inviter(self, **champs):
+        return self.client.post(
+            reverse("dossier_invite", args=[self.dossier.pk]),
+            {"email": "advocaat@example.test", "role": DossierAccess.Role.READ, **champs},
+        )
+
+    def test_le_courriel_part_dans_la_langue_choisie(self):
+        reponse = self._inviter(langue="nl")
+        self.assertEqual(reponse.status_code, 302)
+        self.assertEqual(Invitation.objects.get().langue, "nl")
+        self.assertEqual(mail.outbox[0].subject, "Toegang tot het dossier ‘Dossier adverse’")
+        self.assertNotIn("Droit accordé", mail.outbox[0].body)
+
+    def test_le_proprietaire_garde_sa_langue(self):
+        """Le message de confirmation reste dans la langue de l'interface."""
+        reponse = self._inviter(langue="en-gb")
+        self.assertEqual(mail.outbox[0].subject, "Access to the case file “Dossier adverse”")
+        confirmation = [str(m) for m in reponse.wsgi_request._messages]
+        self.assertTrue(confirmation[0].startswith("Invitation envoyée"))
+
+    def test_sans_langue_postee_celle_de_l_interface(self):
+        """Un envoi direct sans le champ garde l'ancien comportement."""
+        self.client.cookies["django_language"] = "nl"
+        self._inviter()
+        self.assertEqual(Invitation.objects.get().langue, "nl")
+        self.assertIn("Toegang tot het dossier", mail.outbox[0].subject)
+
+    def test_le_formulaire_propose_la_langue_de_l_interface(self):
+        self.client.cookies["django_language"] = "en-gb"
+        page = self.client.get(reverse("dossier_share", args=[self.dossier.pk]))
+        self.assertContains(page, '<option value="en-gb" selected>', html=False)
+
+    def test_une_langue_inconnue_est_refusee(self):
+        reponse = self._inviter(langue="de")
+        self.assertEqual(reponse.status_code, 400)
+        self.assertFalse(Invitation.objects.exists())

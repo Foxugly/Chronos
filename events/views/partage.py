@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
+from django.utils import translation
 from django.utils.translation import gettext as _
 
 from ..forms import DossierAccessForm, InvitationForm, ShareLinkForm
@@ -103,27 +104,30 @@ def _envoyer_invitation(request, invitation):
     lien = request.build_absolute_uri(
         reverse("invitation_accept", args=[invitation.token])
     )
-    send_mail(
-        subject=_("Accès au dossier « %(dossier)s »")
-        % {"dossier": invitation.dossier.name},
-        message=(
-            _(
-                "%(auteur)s vous donne accès au dossier « %(dossier)s ».\n\n"
-                "Droit accordé : %(droit)s\n\n"
-                "Pour l'accepter, ouvrez ce lien :\n%(lien)s\n\n"
-                "Ce lien expire le %(date)s. Il ne sert qu'une fois.\n"
-            )
-            % {
-                "auteur": invitation.created_by.get_username(),
-                "dossier": invitation.dossier.name,
-                "droit": invitation.get_role_display(),
-                "lien": lien,
-                "date": _date_courte(invitation.expires_at),
-            }
-        ),
-        from_email=None,
-        recipient_list=[invitation.email],
-    )
+    # Dans la langue de la personne invitée : objet, texte, droit et format de
+    # la date. L'interface du propriétaire, elle, reste dans la sienne.
+    with translation.override(invitation.langue):
+        send_mail(
+            subject=_("Accès au dossier « %(dossier)s »")
+            % {"dossier": invitation.dossier.name},
+            message=(
+                _(
+                    "%(auteur)s vous donne accès au dossier « %(dossier)s ».\n\n"
+                    "Droit accordé : %(droit)s\n\n"
+                    "Pour l'accepter, ouvrez ce lien :\n%(lien)s\n\n"
+                    "Ce lien expire le %(date)s. Il ne sert qu'une fois.\n"
+                )
+                % {
+                    "auteur": invitation.created_by.get_username(),
+                    "dossier": invitation.dossier.name,
+                    "droit": invitation.get_role_display(),
+                    "lien": lien,
+                    "date": _date_courte(invitation.expires_at),
+                }
+            ),
+            from_email=None,
+            recipient_list=[invitation.email],
+        )
     return lien
 
 

@@ -178,7 +178,9 @@ older allauth the login page would redirect to itself.
   an access decision. Two other routes in: an `Invitation` (an emailed token that grants
   `READ` or `WRITE` on acceptance, with an expiry) and a `ShareLink` (an anonymous token, served
   by `events/share_views.py`). **Only the owner may create either one**, and write access never
-  carries the right to share — see invariant 5 below.
+  carries the right to share — see invariant 5 below. The invitation mail goes out in
+  `Invitation.langue` (chosen by the owner, defaulting to their interface language; rendered under
+  `translation.override`), while the owner's own confirmation stays in theirs.
 - **`/accounts/email/` is shadowed to 404** in `config/urls.py`, registered *before*
   `include("allauth.urls")`. That view would otherwise let any authenticated user attach arbitrary
   unconfirmed email addresses to their account. **This protection depends on URL declaration order** —
@@ -693,8 +695,8 @@ left out — read `backlog.md` first, it is the most current of the four.
 « Relever les courriels » button, alias suffix), and on 2026-10-10 better reply/forward linking
 (Exchange `ATT` suites, every quoted block, content match for a forward whose header was lost) and
 `Event.destinataires`, back-filled in production by `relier_courriels --recalculer --appliquer`
-(26 replies and 4 forwards linked, 47 events with recipients). The suite is at **688 tests**, green,
-with no pending migrations (latest: `0021_destinataires`). Delivered: a shared `base.html` with navbar and logout,
+(26 replies and 4 forwards linked, 47 events with recipients). The suite is at **711 tests**, green,
+with no pending migrations (latest: `0022_langue_invitation`). Delivered: a shared `base.html` with navbar and logout,
 `404.html` / `500.html`, the event form as a modal (page version kept as the no-JavaScript
 fallback), a Quill rich-text editor sanitised server-side by nh3 (`events/sanitize.py`), four views
 (chronology, month, week, list — the last three render without JavaScript), content-hash

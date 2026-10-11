@@ -593,6 +593,12 @@ class Invitation(models.Model):
         gettext_lazy("rôle"), max_length=10, choices=DossierAccess.Role.choices
     )
     token = models.CharField(gettext_lazy("jeton"), max_length=64, unique=True, editable=False)
+    # La langue du courriel d'invitation : celle de la personne invitée, que le
+    # propriétaire choisit. Avant ce champ, celle de son interface au moment de l'envoi.
+    langue = models.CharField(
+        gettext_lazy("langue du courriel"), max_length=10,
+        choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE,
+    )
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

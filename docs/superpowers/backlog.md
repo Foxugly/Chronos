@@ -92,8 +92,8 @@ Le site est en FR / NL / EN (voir « Fait »). Restent :
 
 - **Relecture du néerlandais** par un locuteur natif : les traductions ont été écrites d'un
   seul jet. Elles vivent dans `locale/nl/LC_MESSAGES/django.po`.
-- **Langue d'un courriel d'invitation** : aujourd'hui celle de l'émetteur au moment de l'envoi.
-  Celle du destinataire demanderait de la connaître (champ à ajouter à l'invitation).
+- ~~Langue d'un courriel d'invitation~~ **fait le 2026-10-11** : `Invitation.langue` (migration
+  `0022`), choisie par le propriétaire, proposée dans la langue de son interface.
 - Un anglais américain demanderait de lire `FIRST_DAY_OF_WEEK` dans `calendrier.py`, qui
   suppose le lundi.
 
