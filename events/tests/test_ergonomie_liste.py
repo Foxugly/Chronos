@@ -162,3 +162,15 @@ class ResumeSurUneLigneTests(Base):
         resume = self.resume(self.page(vue="liste"), "Mise en demeure")
         self.assertRegex(resume, r'<span class="[^"]*text-truncate[^"]*"[^>]*title="Mise en demeure')
         self.assertRegex(resume, r'<summary class="[^"]*flex-nowrap')
+
+
+class DocumentsEvenementsTronquesTests(Base):
+    def test_le_nom_de_l_evenement_tient_sur_une_ligne(self):
+        from events.tests.factories import make_document
+        long = "Mise en demeure – paiement des travaux réalisés et indemnisation du préjudice subi"
+        Event.objects.filter(pk=self.evenement.pk).update(title=long)
+        make_document(self.evenement, "devis.pdf", b"%PDF-devis")
+        html = self.page(vue="documents")
+        lien = re.search(r'<a [^>]*data-voir-evenement[^>]*>', html).group(0)
+        self.assertIn("text-truncate", lien)
+        self.assertIn('title="%s"' % long, lien)

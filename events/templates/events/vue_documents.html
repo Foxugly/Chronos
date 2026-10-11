@@ -59,11 +59,13 @@ Tout ce qui vient d'un contributeur est échappé par Django.
                                             </div>
                                         {% endif %}
                                     </td>
-                                    <td style="min-width: 12rem;">
+                                    {# Un évènement par ligne, son nom coupé (entier au survol) : dans un #}
+                                    {# tableau, `max-width: 0` est ce qui permet à la cellule de couper.  #}
+                                    <td style="min-width: 12rem; max-width: 0; width: 40%;">
                                         {% for evenement in ligne.evenements %}
-                                            <div class="text-break">
-                                                <span class="text-body-secondary text-nowrap">{{ evenement.date|date:"SHORT_DATE_FORMAT" }}</span>
-                                                <a class="text-decoration-none ms-1" data-voir-evenement
+                                            <div class="d-flex gap-1">
+                                                <span class="text-body-secondary text-nowrap flex-shrink-0">{{ evenement.date|date:"SHORT_DATE_FORMAT" }}</span>
+                                                <a class="text-decoration-none text-truncate" data-voir-evenement title="{{ evenement.title }}"
                                                    href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token evenement.pk %}{% else %}{% url 'event_detail' evenement.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}">{{ evenement.title }}</a>
                                             </div>
                                         {% empty %}
