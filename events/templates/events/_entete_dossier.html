@@ -23,6 +23,12 @@ l'autre ne doit pas éjecter un visiteur anonyme hors de son lien.
                 <i class="bi bi-intersect me-1" aria-hidden="true"></i>{% blocktranslate trimmed count n=nb_doublons %}{{ n }} doublon possible{% plural %}{{ n }} doublons possibles{% endblocktranslate %}
             </a>
         {% endif %}
+        {% if nb_manquants and not lien_partage %}
+            <a href="{% url 'dossier_manquants' dossier.pk %}" class="btn btn-outline-warning"
+               title="{% translate "Des courriels du dossier en citent un qui n'y est pas" %}">
+                <i class="bi bi-envelope-exclamation me-1" aria-hidden="true"></i>{% blocktranslate trimmed count n=nb_manquants %}{{ n }} courriel manquant{% plural %}{{ n }} courriels manquants{% endblocktranslate %}
+            </a>
+        {% endif %}
         {% if peut_ecrire %}
             <a href="{% if lien_partage %}{% url 'share_event_add' lien_partage.token %}{% else %}{% url 'event_add' dossier.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}"
                class="btn btn-success" data-ouvrir-formulaire

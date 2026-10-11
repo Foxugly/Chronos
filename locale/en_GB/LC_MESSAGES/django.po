@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 23:31+0200\n"
+"POT-Creation-Date: 2026-10-11 13:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -226,7 +226,7 @@ msgstr ""
 "Warning: %(n)s document(s) no longer match the hash recorded when they were "
 "uploaded. See “Integrity check”."
 
-#: .\events\export.py:354 .\events\views.py:161
+#: .\events\export.py:354 .\events\views\dossiers.py:90
 msgid "Chronologie"
 msgstr "Chronology"
 
@@ -528,7 +528,7 @@ msgstr "case file"
 msgid "dossiers"
 msgstr "case files"
 
-#: .\events\models.py:90 .\events\views.py:323
+#: .\events\models.py:90 .\events\views\dossiers.py:253
 msgid "Lecture"
 msgstr "Read"
 
@@ -935,16 +935,16 @@ msgstr "dismissed duplicate pairs"
 msgid "étiquette"
 msgstr "tag"
 
-#: .\events\models.py:941 .\events\views.py:1094
+#: .\events\models.py:941 .\events\views\journal.py:65
 msgid "étiquettes"
 msgstr "tags"
 
-#: .\events\share_views.py:276
+#: .\events\share_views.py:273
 #, python-format
 msgid "le lien de partage « %(nom)s »"
 msgstr "the share link “%(nom)s”"
 
-#: .\events\share_views.py:278
+#: .\events\share_views.py:275
 msgid "un lien de partage"
 msgstr "a share link"
 
@@ -978,6 +978,7 @@ msgid "Tous"
 msgstr "All"
 
 #: .\events\templates\events\_barre_filtres.html:36
+#: .\events\templates\events\manquants.html:34
 msgid "Expéditeur"
 msgstr "Sender"
 
@@ -1063,7 +1064,7 @@ msgid "Supprimer définitivement l'évènement « %(titre)s » ?"
 msgstr "Permanently delete the event “%(titre)s”?"
 
 #: .\events\templates\events\_confirmer_suppression.html:21
-#: .\events\templates\events\_detail_evenement.html:84
+#: .\events\templates\events\_detail_evenement.html:98
 msgid "Pièces"
 msgstr "Documents"
 
@@ -1141,29 +1142,33 @@ msgstr "In reply to:"
 msgid "Réponse :"
 msgstr "Reply:"
 
-#: .\events\templates\events\_detail_evenement.html:101
-#: .\events\templates\events\_detail_evenement.html:111
+#: .\events\templates\events\_detail_evenement.html:83
+msgid "Même fil de discussion"
+msgstr "Same thread"
+
+#: .\events\templates\events\_detail_evenement.html:115
+#: .\events\templates\events\_detail_evenement.html:125
 #, python-format
 msgid "Pièce %(n)s"
 msgstr "Document %(n)s"
 
-#: .\events\templates\events\_detail_evenement.html:117
+#: .\events\templates\events\_detail_evenement.html:131
 msgid "Ouvrir dans un onglet"
 msgstr "Open in a tab"
 
-#: .\events\templates\events\_detail_evenement.html:126
+#: .\events\templates\events\_detail_evenement.html:140
 msgid "Aucune pièce jointe."
 msgstr "No attached documents."
 
-#: .\events\templates\events\_detail_evenement.html:133
+#: .\events\templates\events\_detail_evenement.html:147
 msgid "Faits voisins"
 msgstr "Adjacent facts"
 
-#: .\events\templates\events\_detail_evenement.html:137
+#: .\events\templates\events\_detail_evenement.html:151
 msgid "Fait précédent (flèche gauche)"
 msgstr "Previous fact (left arrow)"
 
-#: .\events\templates\events\_detail_evenement.html:145
+#: .\events\templates\events\_detail_evenement.html:159
 msgid "Fait suivant (flèche droite)"
 msgstr "Next fact (right arrow)"
 
@@ -1245,39 +1250,50 @@ msgid_plural "%(n)s doublons possibles"
 msgstr[0] "%(n)s possible duplicate"
 msgstr[1] "%(n)s possible duplicates"
 
+#: .\events\templates\events\_entete_dossier.html:28
+msgid "Des courriels du dossier en citent un qui n'y est pas"
+msgstr "Emails in this case file quote one that is not in it"
+
 #: .\events\templates\events\_entete_dossier.html:29
+#, python-format
+msgid "%(n)s courriel manquant"
+msgid_plural "%(n)s courriels manquants"
+msgstr[0] "%(n)s missing email"
+msgstr[1] "%(n)s missing emails"
+
+#: .\events\templates\events\_entete_dossier.html:35
 msgid "Raccourci : N"
 msgstr "Shortcut: N"
 
-#: .\events\templates\events\_entete_dossier.html:30
+#: .\events\templates\events\_entete_dossier.html:36
 #: .\events\templates\events\_formulaire_modal_js.html:125
 #: .\events\templates\events\event_form.html:13
 #: .\events\templates\events\event_form.html:30
 msgid "Nouvel évènement"
 msgstr "New event"
 
-#: .\events\templates\events\_entete_dossier.html:42
+#: .\events\templates\events\_entete_dossier.html:48
 msgid "Journal"
 msgstr "Log"
 
-#: .\events\templates\events\_entete_dossier.html:46
+#: .\events\templates\events\_entete_dossier.html:52
 #: .\events\templates\events\expediteurs.html:18
 msgid "Expéditeurs"
 msgstr "Senders"
 
-#: .\events\templates\events\_entete_dossier.html:55
+#: .\events\templates\events\_entete_dossier.html:61
 msgid "Importer tout de suite les courriels transférés à l'alias du dossier"
 msgstr "Import now the emails forwarded to this case file's alias"
 
-#: .\events\templates\events\_entete_dossier.html:56
+#: .\events\templates\events\_entete_dossier.html:62
 msgid "Relever les courriels"
 msgstr "Fetch emails"
 
-#: .\events\templates\events\_entete_dossier.html:63
+#: .\events\templates\events\_entete_dossier.html:69
 msgid "Partager"
 msgstr "Share"
 
-#: .\events\templates\events\_entete_dossier.html:66
+#: .\events\templates\events\_entete_dossier.html:72
 msgid "Paramètres"
 msgstr "Settings"
 
@@ -1286,6 +1302,7 @@ msgid "Titre"
 msgstr "Title"
 
 #: .\events\templates\events\_event_form.html:67
+#: .\events\templates\events\manquants.html:33
 msgid "Date"
 msgstr "Date"
 
@@ -1462,7 +1479,7 @@ msgstr "as a list"
 msgid "Frise"
 msgstr "Timeline"
 
-#: .\events\templates\events\calendrier.html:175 .\events\views.py:163
+#: .\events\templates\events\calendrier.html:175 .\events\views\dossiers.py:92
 msgid "Liste"
 msgstr "List"
 
@@ -1471,6 +1488,7 @@ msgstr "List"
 #: .\events\templates\events\doublons.html:18
 #: .\events\templates\events\expediteurs.html:17
 #: .\events\templates\events\journal.html:31
+#: .\events\templates\events\manquants.html:16
 #: .\events\templates\events\parametres.html:19
 msgid "Retour au dossier"
 msgstr "Back to the case file"
@@ -1532,7 +1550,8 @@ msgstr "Case file sharing"
 msgid "Personnes ayant accès"
 msgstr "People with access"
 
-#: .\events\templates\events\dossier_share.html:34 .\events\views.py:322
+#: .\events\templates\events\dossier_share.html:34
+#: .\events\views\dossiers.py:252
 msgid "Propriétaire"
 msgstr "Owner"
 
@@ -1912,6 +1931,39 @@ msgstr "Value"
 msgid "contenu déjà présent dans le dossier : rattaché, pas stocké deux fois"
 msgstr "content already in the case file: linked, not stored twice"
 
+#: .\events\templates\events\manquants.html:10
+#, python-format
+msgid "Courriels manquants — %(nom)s"
+msgstr "Missing emails — %(nom)s"
+
+#: .\events\templates\events\manquants.html:17
+msgid "Courriels manquants"
+msgstr "Missing emails"
+
+#: .\events\templates\events\manquants.html:21
+msgid ""
+"Des courriels du dossier répondent à un courriel qui n'y est pas : il est "
+"cité dans leur texte, mais n'a jamais été importé. Pour le compléter, "
+"transférez-le à l'adresse du dossier ; il disparaîtra de cette liste dès son "
+"import."
+msgstr ""
+"Some emails in this case file reply to an email that is not in it: it is "
+"quoted in their text but was never imported. To complete the file, forward "
+"it to the case file's address; it will leave this list as soon as it is "
+"imported."
+
+#: .\events\templates\events\manquants.html:35
+msgid "Objet"
+msgstr "Subject"
+
+#: .\events\templates\events\manquants.html:36
+msgid "Cité par"
+msgstr "Quoted by"
+
+#: .\events\templates\events\manquants.html:59
+msgid "Aucun courriel cité ne manque au dossier."
+msgstr "No quoted email is missing from this case file."
+
 #: .\events\templates\events\parametres.html:13
 #, python-format
 msgid "Paramètres — %(nom)s"
@@ -2161,54 +2213,38 @@ msgstr "Previous week"
 msgid "Semaine suivante"
 msgstr "Next week"
 
-#: .\events\views.py:162
+#: .\events\views\dossiers.py:91
 msgid "Calendrier"
 msgstr "Calendar"
 
-#: .\events\views.py:164
+#: .\events\views\dossiers.py:93
 msgid "Documents"
 msgstr "Documents"
 
-#: .\events\views.py:189
+#: .\events\views\dossiers.py:118
 #, python-format
 msgid "Semaine du %(date)s"
 msgstr "Week of %(date)s"
 
-#: .\events\views.py:323
+#: .\events\views\dossiers.py:253
 msgid "Écriture"
 msgstr "Write"
 
-#: .\events\views.py:407
+#: .\events\views\doublons.py:62
 #, python-format
 msgid "« %(absorbe)s » a été fusionné dans « %(garde)s »."
 msgstr "“%(absorbe)s” was merged into “%(garde)s”."
 
-#: .\events\views.py:418
+#: .\events\views\doublons.py:73
 msgid "Ces deux évènements ne seront plus proposés comme doublons."
 msgstr "These two events will no longer be suggested as duplicates."
 
-#: .\events\views.py:597
-#, python-format
-msgid ""
-"Le fichier « %(name)s » n'est pas d'un type accepté. Types acceptés : "
-"%(allowed)s."
-msgstr ""
-"The file “%(name)s” is not an accepted type. Accepted types: %(allowed)s."
-
-#: .\events\views.py:609
-#, python-format
-msgid ""
-"Le fichier « %(name)s » est trop lourd (%(taille)s Mo). Taille maximale : "
-"%(max)s Mo."
-msgstr ""
-"The file “%(name)s” is too large (%(taille)s MB). Maximum size: %(max)s MB."
-
-#: .\events\views.py:1052
+#: .\events\views\evenements.py:412
 #, python-format
 msgid "Évènement « %(titre)s » supprimé."
 msgstr "Event “%(titre)s” deleted."
 
-#: .\events\views.py:1257
+#: .\events\views\parametres.py:58
 #, python-format
 msgid ""
 "Exchange a refusé l'alias %(alias)s : rien n'a été enregistré. Détail : "
@@ -2216,7 +2252,7 @@ msgid ""
 msgstr ""
 "Exchange refused the alias %(alias)s: nothing was saved. Detail: %(detail)s"
 
-#: .\events\views.py:1274
+#: .\events\views\parametres.py:75
 #, python-format
 msgid ""
 "L'ancien alias %(alias)s n'a pas pu être retiré d'Exchange : retirez-le à la "
@@ -2225,38 +2261,38 @@ msgstr ""
 "The old alias %(alias)s could not be removed from Exchange: remove it by "
 "hand. Its emails no longer create events. Detail: %(detail)s"
 
-#: .\events\views.py:1279
+#: .\events\views\parametres.py:80
 #, python-format
 msgid ""
 "Les courriels transférés à %(alias)s deviendront des évènements de ce "
 "dossier."
 msgstr "Emails forwarded to %(alias)s will become events of this case file."
 
-#: .\events\views.py:1281
+#: .\events\views\parametres.py:82
 msgid "Import par courriel désactivé pour ce dossier."
 msgstr "Import by email disabled for this case file."
 
-#: .\events\views.py:1301
+#: .\events\views\parametres.py:102
 msgid "Un import est déjà en cours : réessayez dans une minute."
 msgstr "An import is already running: try again in a minute."
 
-#: .\events\views.py:1306
+#: .\events\views\parametres.py:107
 #, python-format
 msgid "La boîte n'a pas pu être relevée : %(detail)s"
 msgstr "The mailbox could not be fetched: %(detail)s"
 
-#: .\events\views.py:1311
+#: .\events\views\parametres.py:112
 #, python-format
 msgid "%(n)d courriel importé dans ce dossier."
 msgid_plural "%(n)d courriels importés dans ce dossier."
 msgstr[0] "%(n)d email imported into this case file."
 msgstr[1] "%(n)d emails imported into this case file."
 
-#: .\events\views.py:1314
+#: .\events\views\parametres.py:115
 msgid "Aucun nouveau courriel pour ce dossier."
 msgstr "No new email for this case file."
 
-#: .\events\views.py:1317
+#: .\events\views\parametres.py:118
 msgid ""
 "Certains courriels n'ont pas pu être importés : ils restent dans la boîte de "
 "réception et seront retentés."
@@ -2264,24 +2300,24 @@ msgstr ""
 "Some emails could not be imported: they stay in the inbox and will be "
 "retried."
 
-#: .\events\views.py:1320
+#: .\events\views\parametres.py:121
 #, python-format
 msgid "%(n)d courriel importé"
 msgid_plural "%(n)d courriels importés"
 msgstr[0] "%(n)d email imported"
 msgstr[1] "%(n)d emails imported"
 
-#: .\events\views.py:1336
+#: .\events\views\parametres.py:137
 #, python-format
 msgid "Exchange n'a pas pu être interrogé : %(detail)s"
 msgstr "Exchange could not be queried: %(detail)s"
 
-#: .\events\views.py:1339
+#: .\events\views\parametres.py:140
 #, python-format
 msgid "L'alias %(alias)s est actif dans Exchange."
 msgstr "The alias %(alias)s is active in Exchange."
 
-#: .\events\views.py:1343
+#: .\events\views\parametres.py:144
 #, python-format
 msgid ""
 "L'alias %(alias)s n'existe pas dans Exchange : les courriels transférés "
@@ -2290,49 +2326,49 @@ msgstr ""
 "The alias %(alias)s does not exist in Exchange: forwarded emails will be "
 "refused. Save it again to recreate it."
 
-#: .\events\views.py:1401
+#: .\events\views\parametres.py:202
 msgid "Dossier renommé."
 msgstr "Case file renamed."
 
-#: .\events\views.py:1432
+#: .\events\views\parametres.py:233
 #, python-format
 msgid "Étiquette « %(nom)s » supprimée."
 msgstr "Tag “%(nom)s” deleted."
 
-#: .\events\views.py:1436
+#: .\events\views\parametres.py:237
 msgid "Le nom d'une étiquette ne peut pas être vide."
 msgstr "A tag name cannot be empty."
 
-#: .\events\views.py:1438
+#: .\events\views\parametres.py:239
 #, python-format
 msgid "Une étiquette « %(nom)s » existe déjà dans ce dossier."
 msgstr "A tag “%(nom)s” already exists in this case file."
 
-#: .\events\views.py:1445
+#: .\events\views\parametres.py:246
 msgid "Étiquette renommée."
 msgstr "Tag renamed."
 
-#: .\events\views.py:1468
+#: .\events\views\parametres.py:269
 #, python-format
 msgid "Couleur invalide pour %(nom)s."
 msgstr "Invalid colour for %(nom)s."
 
-#: .\events\views.py:1507
+#: .\events\views\partage.py:41
 #, python-format
 msgid "Accès accordé à %(compte)s (%(droit)s)."
 msgstr "Access granted to %(compte)s (%(droit)s)."
 
-#: .\events\views.py:1549
+#: .\events\views\partage.py:83
 #, python-format
 msgid "Accès retiré à %(compte)s."
 msgstr "Access removed for %(compte)s."
 
-#: .\events\views.py:1573
+#: .\events\views\partage.py:107
 #, python-format
 msgid "Accès au dossier « %(dossier)s »"
 msgstr "Access to the case file “%(dossier)s”"
 
-#: .\events\views.py:1577
+#: .\events\views\partage.py:111
 #, python-format
 msgid ""
 "%(auteur)s vous donne accès au dossier « %(dossier)s ».\n"
@@ -2353,22 +2389,22 @@ msgstr ""
 "\n"
 "This link expires on %(date)s. It can only be used once.\n"
 
-#: .\events\views.py:1617
+#: .\events\views\partage.py:151
 #, python-format
 msgid "Invitation envoyée à %(email)s. Elle expire le %(date)s."
 msgstr "Invitation sent to %(email)s. It expires on %(date)s."
 
-#: .\events\views.py:1657
+#: .\events\views\partage.py:191
 #, python-format
 msgid "Invitation annulée pour %(email)s."
 msgstr "Invitation cancelled for %(email)s."
 
-#: .\events\views.py:1697
+#: .\events\views\partage.py:231
 #, python-format
 msgid "Vous avez désormais accès au dossier « %(dossier)s »."
 msgstr "You now have access to the case file “%(dossier)s”."
 
-#: .\events\views.py:1734
+#: .\events\views\partage.py:268
 msgid ""
 "Lien créé. Toute personne qui le détient pourra consulter ce dossier, sans "
 "compte et sans trace nominative."
@@ -2376,9 +2412,25 @@ msgstr ""
 "Link created. Anyone who holds it can view this case file, without an "
 "account and without being identified by name."
 
-#: .\events\views.py:1755
+#: .\events\views\partage.py:289
 msgid "Lien révoqué. Il ne donne plus accès à rien."
 msgstr "Link revoked. It no longer gives access to anything."
+
+#: .\events\views\pieces.py:74
+#, python-format
+msgid ""
+"Le fichier « %(name)s » n'est pas d'un type accepté. Types acceptés : "
+"%(allowed)s."
+msgstr ""
+"The file “%(name)s” is not an accepted type. Accepted types: %(allowed)s."
+
+#: .\events\views\pieces.py:86
+#, python-format
+msgid ""
+"Le fichier « %(name)s » est trop lourd (%(taille)s Mo). Taille maximale : "
+"%(max)s Mo."
+msgstr ""
+"The file “%(name)s” is too large (%(taille)s MB). Maximum size: %(max)s MB."
 
 #: .\templates\404.html:16
 msgid "Page introuvable"

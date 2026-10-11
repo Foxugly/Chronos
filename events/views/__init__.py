@@ -4,6 +4,7 @@ Ce paquet n'expose que les vues que `urls.py` route ; le reste s'importe depuis
 son module.
 """
 
+from .courriels import dossier_manquants
 from .dossiers import dossier_list, timeline
 from .doublons import dossier_doublons, doublons_ecarter, doublons_fusionner
 from .evenements import event_add, event_delete, event_detail, event_edit
@@ -28,6 +29,7 @@ from .partage import (
 from .pieces import document_detach, document_download
 
 __all__ = [
+    "dossier_manquants",
     "document_detach",
     "document_download",
     "dossier_access_revoke",

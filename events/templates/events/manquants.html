@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Les courriels cités qui manquent au dossier (`events/fils.py`). Calculés à la
+lecture : un courriel qui arrive, par la boîte ou par un transfert, quitte la
+liste de lui-même. Tout ce qui s'affiche vient d'un courriel : Django l'échappe.
+{% endcomment %}
+
+{% block title %}{% blocktranslate with nom=dossier.name %}Courriels manquants — {{ nom }}{% endblocktranslate %}{% endblock %}
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+
+{% block content %}
+    <div class="mx-auto" style="max-width: 1100px;">
+        <div class="page-header">
+            <div class="page-header__left"><a class="btn btn-outline-secondary btn-sm" href="{% url 'timeline' dossier.pk %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Retour au dossier" %}</a></div>
+            <h1 class="page-header__title"><i class="bi bi-envelope-exclamation" aria-hidden="true"></i>{% translate "Courriels manquants" %}</h1>
+            <div class="page-header__right"></div>
+        </div>
+        <p class="text-body-secondary small mb-4">
+            {% blocktranslate trimmed %}
+                Des courriels du dossier répondent à un courriel qui n'y est pas : il est cité dans leur
+                texte, mais n'a jamais été importé. Pour le compléter, transférez-le à l'adresse du
+                dossier ; il disparaîtra de cette liste dès son import.
+            {% endblocktranslate %}
+        </p>
+
+        {% if manquants %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">{% translate "Date" %}</th>
+                            <th scope="col">{% translate "Expéditeur" %}</th>
+                            <th scope="col">{% translate "Objet" %}</th>
+                            <th scope="col">{% translate "Cité par" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in manquants %}
+                            <tr>
+                                <td class="text-nowrap">{{ m.le|date:"SHORT_DATE_FORMAT" }} {{ m.le|time:"TIME_FORMAT" }}</td>
+                                <td class="text-break">{{ m.de }}</td>
+                                <td class="text-break">{{ m.objet|default:"—" }}</td>
+                                <td>
+                                    <ul class="list-unstyled mb-0">
+                                        {% for e in m.cite_par %}
+                                            <li><a href="{% url 'event_detail' e.pk %}?retour={{ request.get_full_path|urlencode }}">{{ e.title }}</a>
+                                                <span class="text-body-secondary small">({{ e.periode_affichee }})</span></li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="alert alert-success">{% translate "Aucun courriel cité ne manque au dossier." %}</p>
+        {% endif %}
+    </div>
+{% endblock %}

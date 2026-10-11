@@ -10,6 +10,7 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 
 from .. import calendrier, doublons as dedoublonnage, filtres as filtrage
+from ..fils import courriels_manquants
 from ..import_courriels import import_configure
 from ..models import CourrielImporte, Dossier
 from ..permissions import get_dossier_for_read
@@ -277,6 +278,8 @@ def timeline(request, dossier_id):
     contexte["peut_ecrire"] = (
         Dossier.objects.writable_by(request.user).filter(pk=dossier.pk).exists()
     )
+    # Comme « Doublons » : le bouton n'apparaît que s'il manque quelque chose.
+    contexte["nb_manquants"] = len(courriels_manquants(dossier))
     if contexte["peut_ecrire"]:
         # Le bouton « Doublons » n'apparaît que s'il y a quelque chose à voir.
         contexte["nb_doublons"] = len(

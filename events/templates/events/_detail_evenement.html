@@ -76,6 +76,20 @@ la page, et son comportement (aperçu, visionneuse) est posé par
             {% endfor %}
         </ul>
     {% endif %}
+    {% if fil %}
+        {# Même objet, sans lien prouvé : une conversation que les citations ne relient pas. #}
+        <details class="small mb-3">
+            <summary class="text-body-secondary">
+                <i class="bi bi-chat-square-text me-1" aria-hidden="true"></i>{% translate "Même fil de discussion" %} ({{ fil|length }})
+            </summary>
+            <ul class="list-unstyled ms-3 mt-1 mb-0">
+                {% for f in fil %}
+                    <li><a href="{{ f.url }}" data-voir-evenement>{{ f.titre }}</a>
+                        <span class="text-body-secondary">({{ f.periode }})</span></li>
+                {% endfor %}
+            </ul>
+        </details>
+    {% endif %}
     {% if description %}
         <div class="mb-3 text-break">{{ description|safe }}</div>
     {% endif %}

@@ -22,6 +22,7 @@ from .views import (
     dossier_parametres,
     dossier_etiquette,
     dossier_doublons,
+    dossier_manquants,
     doublons_ecarter,
     doublons_fusionner,
     dossier_export,
@@ -57,6 +58,7 @@ urlpatterns = [
         name="dossier_etiquette",
     ),
     path("dossiers/<int:dossier_id>/doublons/", dossier_doublons, name="dossier_doublons"),
+    path("dossiers/<int:dossier_id>/manquants/", dossier_manquants, name="dossier_manquants"),
     path("dossiers/<int:dossier_id>/doublons/fusionner/", doublons_fusionner, name="doublons_fusionner"),
     path("dossiers/<int:dossier_id>/doublons/ecarter/", doublons_ecarter, name="doublons_ecarter"),
     path(

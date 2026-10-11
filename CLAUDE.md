@@ -439,6 +439,15 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   same mail, keeping the richer one. `manage.py relier_courriels` back-fills existing data:
   **dry run by default** (does the work in a rolled-back transaction), `--appliquer` to write; it
   never merges or deletes. `--recalculer` re-reads every mail's citations (after a reading fix).
+- **Threads and missing mails** (`events/fils.py`, 2026-10-11) — **computed on read, nothing
+  stored**. *Same thread*: imported mails of the dossier whose subject matches once
+  `objet_normalise`d (manual events never; « (sans objet) » never), shown in the event detail
+  minus what « En réponse à » / « Transfert de » already shows — it covers what no quote proves
+  (n° 12 → n° 47). *Missing mail*: the mail an imported mail directly quotes (`cite_*`) when no
+  imported mail of the dossier matches its empreinte; listed on `/dossiers/<id>/manquants/`
+  (readers too, never via a share link) behind a header button that only appears when something
+  is missing, and leaves the list by itself once the mail is imported. Only the *direct* quote
+  is stored at import, so a missing older ancestor is not reported.
 - **Exchange splits bodies**: when a server touches a message in transit, the rest of the body
   comes as attachments `ATT00001.txt`, `ATT00003.htm`… — the quote of the previous mail lives
   there (real n° 12, 18). `corps_en_texte` appends them (plain first, no duplicates) and

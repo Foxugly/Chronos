@@ -31,9 +31,11 @@ l'historique de ce qui a été tranché, et pourquoi.
 **Fait** : `events/liens.py` (empreinte à 20 min), reconnaissance du même courriel à l'import,
 lien « En réponse à » (`Event.reponse_a`, migration `0020`) en amont et en aval, page Doublons qui
 propose le même courriel arrivé deux fois (on garde le plus riche), expéditeurs mal formés lus,
-commande `manage.py relier_courriels` (essai par défaut, `--appliquer`). **Reste** : lancer la
-commande sur la production, fusionner n° 28 dans n° 1 par la page Doublons, et la piste « fil de
-discussion » pour les cas comme n° 12 / n° 47 qui ne citent rien.
+commande `manage.py relier_courriels` (essai par défaut, `--appliquer`), lancée en production le
+2026-10-10. Le 2026-10-11 : **fil de discussion** (même objet normalisé, dans le détail — couvre
+n° 12 / n° 47) et **courriels manquants** (cités mais absents, page `manquants/` et bouton dans
+l'en-tête), tous deux calculés à la lecture (`events/fils.py`). **Reste** (au propriétaire) :
+fusionner n° 28 dans n° 1 par la page Doublons.
 
 Constat de départ :
 

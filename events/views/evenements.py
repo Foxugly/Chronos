@@ -15,6 +15,7 @@ from ..etiquettes import (
     contexte_du_formulaire as contexte_des_etiquettes,
     appliquer as poser_etiquettes,
 )
+from ..fils import fil_de_discussion
 from ..forms import EventForm
 from ..journal import consigner, consigner_pieces, differences, instantane
 from ..models import CourrielImporte, Dossier, Event, Journal
@@ -141,11 +142,17 @@ def _liens_de_transfert(event, detail_de, url_retour):
     meme_dossier = Event.objects.filter(dossier_id=event.dossier_id)
     origine = meme_dossier.filter(pk=event.transfert_de_id).first() if event.transfert_de_id else None
     repondu = meme_dossier.filter(pk=event.reponse_a_id).first() if event.reponse_a_id else None
+    transferts = list(meme_dossier.filter(transfert_de=event))
+    reponses = list(meme_dossier.filter(reponse_a=event))
+    deja_relies = {e.pk for e in (origine, repondu, *transferts, *reponses) if e is not None}
     return {
         "transfert_de": lien(origine) if origine else None,
-        "transferts": [lien(t) for t in meme_dossier.filter(transfert_de=event)],
+        "transferts": [lien(t) for t in transferts],
         "reponse_a": lien(repondu) if repondu else None,
-        "reponses": [lien(r) for r in meme_dossier.filter(reponse_a=event)],
+        "reponses": [lien(r) for r in reponses],
+        # Le même objet, sans lien prouvé (`events/fils.py`) : ce que les lignes
+        # ci-dessus montrent déjà n'y est pas répété. Borné au dossier, lui aussi.
+        "fil": [lien(f) for f in fil_de_discussion(event) if f.pk not in deja_relies],
     }
 
 
