@@ -340,6 +340,13 @@ class Event(models.Model):
         return _("du %(debut)s au %(fin)s") % {"debut": debut, "fin": fin}
 
     @property
+    def pieces_affichees(self):
+        """Les pièces à montrer : toutes, sauf la version texte des courriels.
+
+        Lit `documents.all()`, donc profite d'un `prefetch_related("documents")`."""
+        return [d for d in self.documents.all() if not d.est_version_texte]
+
+    @property
     def couleur_affichee(self):
         """La couleur de l'évènement : l'expéditeur prime, puis le choix manuel."""
         if self.expediteur_id:
@@ -528,6 +535,16 @@ class Document(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def est_version_texte(self):
+        """La version texte d'un courriel importé (`.md`), faite pour la recherche.
+
+        Jamais affichée : le courriel lui-même (`.eml`) l'est. Elle reste une
+        pièce à part entière — numérotée, journalisée, exportée — et la
+        recherche continue de lire son texte.
+        """
+        return self.title.lower().endswith(".md")
 
     def save(self, *args, **kwargs):
         """Attribue le numéro au premier enregistrement, par tous les chemins
@@ -878,6 +895,9 @@ class CourrielImporte(models.Model):
     cite_de = models.CharField(gettext_lazy("cite : expéditeur"), max_length=255, blank=True)
     cite_le = models.DateTimeField(gettext_lazy("cite : date"), null=True, blank=True)
     cite_objet = models.CharField(gettext_lazy("cite : objet"), max_length=255, blank=True)
+    # La ligne « À : » du bloc cité : à qui le courriel cité était adressé. Montré
+    # quand ce courriel manque au dossier (`events/fils.py`), jamais comparé.
+    cite_a = models.TextField(gettext_lazy("cite : destinataires"), blank=True)
     importe_le = models.DateTimeField(gettext_lazy("importé le"), auto_now_add=True)
 
     class Meta:

@@ -51,7 +51,8 @@ def fil_de_discussion(event):
 
 def courriels_manquants(dossier):
     """Les courriels cités qu'aucun courriel du dossier ne reconnaît, du plus ancien au
-    plus récent : `{"de", "le", "objet", "cite_par": [évènements qui le citent]}`.
+    plus récent : `{"de", "le", "objet", "a", "cite_par": [évènements qui le citent]}`.
+    `a` : ses destinataires, tels que le premier courriel qui les donne les cite.
 
     Deux réponses au même absent n'en font qu'un (même empreinte)."""
     traces = _traces(dossier.pk)
@@ -64,8 +65,10 @@ def courriels_manquants(dossier):
         groupe = next((m for m in manquants if m["empreinte"].correspond(cite)), None)
         if groupe is None:
             groupe = {"empreinte": cite, "de": trace.cite_de, "le": trace.cite_le,
-                      "objet": trace.cite_objet, "cite_par": []}
+                      "objet": trace.cite_objet, "a": "", "cite_par": []}
             manquants.append(groupe)
+        if not groupe["a"]:
+            groupe["a"] = trace.cite_a
         if trace.evenement not in groupe["cite_par"]:
             groupe["cite_par"].append(trace.evenement)
     for groupe in manquants:

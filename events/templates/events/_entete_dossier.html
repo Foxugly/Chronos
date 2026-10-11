@@ -48,7 +48,7 @@ l'autre ne doit pas éjecter un visiteur anonyme hors de son lien.
             <i class="bi bi-journal-text me-1" aria-hidden="true"></i>{% translate "Journal" %}
         </a>
         {% if dossier.expediteurs.exists %}
-            <a href="{% url 'dossier_expediteurs' dossier.pk %}" class="btn btn-outline-secondary">
+            <a href="{% url 'dossier_expediteurs' dossier.pk %}" class="btn btn-outline-secondary" data-ouvrir-expediteurs>
                 <i class="bi bi-people me-1" aria-hidden="true"></i>{% translate "Expéditeurs" %}
             </a>
         {% endif %}
@@ -79,7 +79,9 @@ l'autre ne doit pas éjecter un visiteur anonyme hors de son lien.
 {# Quatre onglets (`onglets` dans `_contexte_de_vue`). Le calendrier choisit #}
 {# ses vues dans sa propre barre ; la liste est aussi le repli sans JavaScript #}
 {# et la version qui s'imprime.                                               #}
-<ul class="nav nav-tabs mb-3">
+{# Les actions propres à l'onglet (imprimer, déployer la liste) se rangent à    #}
+{# droite des onglets, sur la même ligne : elles ne valent pas une ligne à elles. #}
+<ul class="nav nav-tabs mb-3 align-items-center">
     {% for cle, libelle in onglets %}
         <li class="nav-item">
             <a class="nav-link {% if onglet_actif == cle %}active{% endif %}"
@@ -87,6 +89,20 @@ l'autre ne doit pas éjecter un visiteur anonyme hors de son lien.
                href="{{ base_vue }}?vue={{ cle }}{{ suffixe_filtres }}">{{ libelle }}</a>
         </li>
     {% endfor %}
+    {% if onglet_actif == "liste" or onglet_actif == "documents" %}
+        <li class="nav-item ms-auto d-flex gap-2 pb-1 d-print-none">
+            {% if onglet_actif == "liste" %}
+                {# Masqué sans JavaScript : sans lui, chaque fait se déploie d'un clic. #}
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-tout-deployer hidden
+                        data-texte-replier="{% translate "Tout replier" %}">
+                    <i class="bi bi-arrows-expand me-1" aria-hidden="true"></i><span>{% translate "Tout déployer" %}</span>
+                </button>
+            {% endif %}
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-imprimer>
+                <i class="bi bi-printer me-1" aria-hidden="true"></i>{% translate "Imprimer" %}
+            </button>
+        </li>
+    {% endif %}
 </ul>
 
 {% include "events/_barre_filtres.html" %}

@@ -169,6 +169,21 @@ class CommandeRelierTests(MediaMixin, TestCase):
         self.assertIsNone(self.reponse.reponse_a)
         self.assertFalse(CourrielImporte.objects.exclude(cite_le=None).exists())
 
+    def test_le_destinataire_cite_est_retenu_a_l_import(self):
+        trace = CourrielImporte.objects.get(evenement=importer(
+            make_dossier(make_user("autre"), name="Autre"), analyser(reponse_a_la_mise_en_demeure(5))))
+        self.assertEqual(trace.cite_a, "Jean <jdupont@exemple.be>")
+
+    def test_appliquer_complete_le_destinataire_sans_rien_recalculer(self):
+        """Sans --recalculer, une citation déjà notée garde ses champs ; seul le
+        destinataire, nouveau, est complété."""
+        CourrielImporte.objects.filter(evenement=self.reponse).update(
+            cite_de="garde", cite_le="2026-09-28T18:29Z", cite_objet="garde", cite_a="")
+        self.lancer("--appliquer")
+        trace = CourrielImporte.objects.get(evenement=self.reponse)
+        self.assertEqual((trace.cite_de, trace.cite_objet), ("garde", "garde"))
+        self.assertEqual(trace.cite_a, "Jean <jdupont@exemple.be>")
+
     def test_appliquer_ecrit_le_lien_et_la_citation(self):
         self.lancer("--appliquer")
         self.reponse.refresh_from_db()

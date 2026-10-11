@@ -3,7 +3,7 @@
 
 {% comment %}
 Les pièces du dossier, en tableau : nom, évènements qui s'y appuient, taille,
-date de dépôt, empreinte. Recherche et filtres dans la barre commune
+date de dépôt. L'empreinte SHA-256 reste dans l'export (`empreintes.sha256`). Recherche et filtres dans la barre commune
 (`_barre_filtres.html`) ; le calcul est `filtres.pieces_filtrees`.
 
 Sans JavaScript, comme la liste : les noms ouvrent la pièce, les évènements
@@ -31,11 +31,6 @@ Tout ce qui vient d'un contributeur est échappé par Django.
             {% blocktranslate trimmed with criteres=filtres.description %}Sélection : {{ criteres }}.{% endblocktranslate %}
         {% endif %}
     </div>
-    <div class="d-flex justify-content-end mb-2" data-pas-a-l-impression>
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-imprimer>
-            <i class="bi bi-printer me-1" aria-hidden="true"></i>{% translate "Imprimer" %}
-        </button>
-    </div>
 
     {% if pieces %}
         <div class="card shadow-sm">
@@ -48,7 +43,6 @@ Tout ce qui vient d'un contributeur est échappé par Django.
                             <th scope="col">{% translate "Évènements" %}</th>
                             <th scope="col" class="d-none d-md-table-cell text-end">{% translate "Taille" %}</th>
                             <th scope="col" class="d-none d-lg-table-cell text-nowrap">{% translate "Déposée le" %}</th>
-                            <th scope="col" class="d-none d-xl-table-cell">SHA-256</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,7 +72,6 @@ Tout ce qui vient d'un contributeur est échappé par Django.
                                     </td>
                                     <td class="d-none d-md-table-cell text-end text-nowrap">{{ ligne.taille|filesizeformat }}</td>
                                     <td class="d-none d-lg-table-cell text-nowrap">{{ document.uploaded_at|date:"SHORT_DATE_FORMAT" }}</td>
-                                    <td class="d-none d-xl-table-cell"><code class="user-select-all" title="{{ document.content_hash }}">{{ document.content_hash|truncatechars:13 }}</code></td>
                                 </tr>
                             {% endwith %}
                         {% endfor %}

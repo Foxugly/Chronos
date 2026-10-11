@@ -56,7 +56,9 @@ class RechercheTests(RechercheFixtureMixin, TestCase):
         reponse = self.liste(q="ETANCHEITE mapeguard")
         self.assertEqual(reponse.context["nb_retenus"], 1)
         self.assertContains(reponse, "Mise en demeure")
-        self.assertContains(reponse, "texte de « courriel.md »")
+        # La version texte n'est jamais nommée : c'est « le texte du courriel ».
+        self.assertContains(reponse, "texte du courriel")
+        self.assertNotContains(reponse, "courriel.md")
         self.assertNotContains(reponse, "Devis signé</a>")
 
     def test_tous_les_mots_sont_requis(self):
@@ -287,6 +289,12 @@ class HachageDesTestsTests(TestCase):
 class OngletDocumentsTests(RechercheFixtureMixin, TestCase):
     """L'onglet « Documents » : les pièces, cherchées et filtrées."""
 
+    def setUp(self):
+        super().setUp()
+        # Comme un vrai import : le courriel (.eml) à côté de sa version texte
+        # (.md), qui n'est jamais une ligne de l'onglet.
+        make_document(self.courriel, title="courriel.eml", content=b"From: ev@exemple.be\r\n\r\nvoir texte")
+
     def documents(self, **parametres):
         return self.liste(vue="documents", **parametres)
 
@@ -296,14 +304,15 @@ class OngletDocumentsTests(RechercheFixtureMixin, TestCase):
     def test_toutes_les_pieces_avec_leurs_evenements(self):
         reponse = self.documents()
         self.assertEqual(reponse.status_code, 200)
-        self.assertEqual(self.noms(reponse), ["devis.pdf", "courriel.md"])
+        self.assertEqual(self.noms(reponse), ["devis.pdf", "courriel.eml"])
         self.assertContains(reponse, "Mise en demeure")
         self.assertContains(reponse, reverse("document_download", args=[self.document.pk]))
 
     def test_recherche_dans_le_nom_et_le_texte_de_la_piece(self):
         self.assertEqual(self.noms(self.documents(q="devis")), ["devis.pdf"])
+        # Le mot n'est que dans la version texte : c'est le courriel qui sort.
         reponse = self.documents(q="ETANCHEITE")
-        self.assertEqual(self.noms(reponse), ["courriel.md"])
+        self.assertEqual(self.noms(reponse), ["courriel.eml"])
         self.assertEqual(reponse.context["pieces"][0]["trouve_dans"], ["texte"])
         self.assertContains(reponse, "1 pièce sur 2")
 
@@ -312,12 +321,12 @@ class OngletDocumentsTests(RechercheFixtureMixin, TestCase):
         self.assertEqual(self.noms(self.documents(q="conteste")), [])
 
     def test_filtre_par_type(self):
-        self.assertEqual(self.noms(self.documents(type="courriel")), ["courriel.md"])
+        self.assertEqual(self.noms(self.documents(type="courriel")), ["courriel.eml"])
         self.assertEqual(self.noms(self.documents(type="pdf")), ["devis.pdf"])
         self.assertEqual(len(self.noms(self.documents(type="nimporte"))), 2)
 
     def test_filtre_par_expediteur_et_periode(self):
-        self.assertEqual(self.noms(self.documents(expediteur=self.expediteur.pk)), ["courriel.md"])
+        self.assertEqual(self.noms(self.documents(expediteur=self.expediteur.pk)), ["courriel.eml"])
         self.assertEqual(self.noms(self.documents(au="2026-06")), ["devis.pdf"])
 
     def test_une_piece_sans_evenement_est_montree_sans_filtre(self):

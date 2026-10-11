@@ -82,11 +82,15 @@ class Command(BaseCommand):
                 self.stdout.write("  n°%d : aucune couche retrouvée dans ses .eml" % evenement.pk)
                 continue
             couches[evenement.pk] = couche
-            cite_de, cite_le, cite_objet = champs_cites(couche)
+            cite_de, cite_le, cite_objet, cite_a = champs_cites(couche)
             traces = CourrielImporte.objects.filter(evenement=evenement)
             if not self.recalculer:
                 traces = traces.filter(cite_le=None)
-            traces.update(cite_de=cite_de, cite_le=cite_le, cite_objet=cite_objet)
+            traces.update(cite_de=cite_de, cite_le=cite_le, cite_objet=cite_objet, cite_a=cite_a)
+            # Le destinataire cité est plus récent que les autres champs : il se
+            # complète seul, sans toucher à une citation déjà notée.
+            if cite_a:
+                CourrielImporte.objects.filter(evenement=evenement, cite_a="").update(cite_a=cite_a)
             if not evenement.destinataires and couche.destinataires:
                 Event.objects.filter(pk=evenement.pk).update(destinataires=couche.destinataires)
                 self.stdout.write("  n°%d : destinataires — %s" % (evenement.pk, couche.destinataires[:80]))

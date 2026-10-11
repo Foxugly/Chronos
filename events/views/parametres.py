@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Count
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.text import slugify
@@ -20,7 +21,7 @@ from ..import_courriels import import_configure, relever_la_boite, verrou_de_rel
 from ..journal import consigner
 from ..models import Dossier, Journal
 from ..permissions import get_dossier_for_owner, get_dossier_for_read, get_dossier_for_write
-from .evenements import adresse_de_retour
+from .evenements import _est_ajax, adresse_de_retour
 
 
 def dossier_alias(request, dossier_id):
@@ -254,11 +255,17 @@ def dossier_expediteurs(request, dossier_id):
     Modifiable par qui peut écrire : changer une couleur recolore d'un coup
     tous les évènements de cet expéditeur, puisqu'ils la lisent chez lui.
     Chaque changement est inscrit au journal.
+
+    Ouverte dans le modal des vues du dossier : en AJAX, le GET rend le
+    fragment seul et le POST répond `{"modifies": n, "erreurs": [...]}` — la
+    page se recharge s'il y a eu un changement. Sans JavaScript, la page
+    entière et la redirection d'avant.
     """
     dossier = get_dossier_for_read(request.user, dossier_id)
     peut_ecrire = Dossier.objects.writable_by(request.user).filter(pk=dossier.pk).exists()
     if request.method == "POST":
         dossier = get_dossier_for_write(request.user, dossier_id)
+        modifies, erreurs = 0, []
         for expediteur in dossier.expediteurs.all():
             nouvelle = (request.POST.get("couleur-%d" % expediteur.pk) or "").strip().lower()
             if not nouvelle or nouvelle == expediteur.couleur:
@@ -266,7 +273,7 @@ def dossier_expediteurs(request, dossier_id):
             try:
                 valider_couleur(nouvelle)
             except ValidationError:
-                messages.error(request, _("Couleur invalide pour %(nom)s.") % {"nom": expediteur})
+                erreurs.append(_("Couleur invalide pour %(nom)s.") % {"nom": expediteur})
                 continue
             consigner(
                 dossier, Journal.Action.DOSSIER_MODIFIE, request=request, objet=str(expediteur),
@@ -275,8 +282,14 @@ def dossier_expediteurs(request, dossier_id):
             )
             expediteur.couleur = nouvelle
             expediteur.save(update_fields=["couleur"])
+            modifies += 1
+        if _est_ajax(request):
+            return JsonResponse({"modifies": modifies, "erreurs": erreurs})
+        for erreur in erreurs:
+            messages.error(request, erreur)
         return redirect("dossier_expediteurs", dossier_id=dossier.pk)
     expediteurs = dossier.expediteurs.annotate(nombre=Count("evenements"))
-    return render(request, "events/expediteurs.html", {
+    gabarit = "events/_expediteurs.html" if _est_ajax(request) else "events/expediteurs.html"
+    return render(request, gabarit, {
         "dossier": dossier, "expediteurs": expediteurs, "peut_ecrire": peut_ecrire,
     })

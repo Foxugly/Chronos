@@ -199,19 +199,21 @@ def _moment(evenement):
 
 
 def champs_cites(analyse):
-    """`(de, le, objet)` du courriel que cette couche cite, à stocker ; vides sinon."""
+    """`(de, le, objet, a)` du courriel que cette couche cite, à stocker ; vides sinon."""
     cite = citation(analyse)
     if cite is None:
-        return "", None, ""
+        return "", None, "", ""
     champs = _bloc_de_transfert(analyse.texte or "")[1]
-    return champs.get("de", "")[:255], cite.moment, champs.get("objet", "")[:255]
+    return (champs.get("de", "")[:255], cite.moment, champs.get("objet", "")[:255],
+            champs.get("a", ""))
 
 
 def _memoriser(dossier, analyse, evenement):
-    cite_de, cite_le, cite_objet = champs_cites(analyse)
+    cite_de, cite_le, cite_objet, cite_a = champs_cites(analyse)
     CourrielImporte.objects.create(
         dossier=dossier, message_id=cle_du_courriel(analyse), evenement=evenement,
         expediteur=analyse.expediteur[:255], cite_de=cite_de, cite_le=cite_le, cite_objet=cite_objet,
+        cite_a=cite_a,
     )
 
 

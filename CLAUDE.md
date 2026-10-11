@@ -224,7 +224,12 @@ toolbar**, and `history.replaceState` keeps `?vue=calendrier-…` in the URL), *
 `vue_liste.html`) and *Documents*. The server-rendered month and week views (`?vue=mois`, `?vue=semaine`)
 are no longer tabs but are still served: they are the calendar's no-JavaScript fallback (`<noscript>`
 links), link to each other, and light the *Calendrier* tab. The list is the printable view — keep it and
-the documents tab working without any script. All four use the same frame (`container-xxl`) so the header,
+the documents tab working without any script. **The list is an accordion** (2026-10-11): one native
+`<details data-fait>` per event (collapsed: date, title, tags, piece count; open: the rest), so it opens
+without JavaScript; a search arrives expanded, printing expands everything (`beforeprint`) then restores.
+The eye / edit / delete buttons sit **next to** the `<details>`, in its `data-fait-ligne` wrapper — a closed
+`<details>` hides everything but its summary, and a button inside a summary toggles it. « Imprimer » (and
+« Tout déployer » for the list) live on the tabs row, right-aligned, not on a row of their own. All four use the same frame (`container-xxl`) so the header,
 tabs and filters never move between tabs; `base.html` reserves the scrollbar gutter for the same reason.
 
 **Attachments field: one selection, and it is what gets sent.** `equiperChampFichiers`
@@ -449,7 +454,9 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   imported mail of the dossier matches its empreinte; listed on `/dossiers/<id>/manquants/`
   (readers too, never via a share link) behind a header button that only appears when something
   is missing, and leaves the list by itself once the mail is imported. Only the *direct* quote
-  is stored at import, so a missing older ancestor is not reported.
+  is stored at import, so a missing older ancestor is not reported. Its recipients come from the
+  quoted « À : » line (`CourrielImporte.cite_a`, migration `0023`); `relier_courriels --appliquer`
+  fills `cite_a` where it is empty without recomputing an existing quote.
 - **Exchange splits bodies**: when a server touches a message in transit, the rest of the body
   comes as attachments `ATT00001.txt`, `ATT00003.htm`… — the quote of the previous mail lives
   there (real n° 12, 18). `corps_en_texte` appends them (plain first, no duplicates) and
@@ -491,8 +498,14 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   so at the top of the PDF and in `LISEZMOI.txt` — a partial archive must not pass for the whole file.
   « Avec le journal » adds `journal.pdf`, filtered like the journal page (sharing entries for the owner
   only); never through a share link.
+- **The text version of a mail (`.md`) is never displayed** (2026-10-11): `Document.est_version_texte`,
+  `Event.pieces_affichees` — list, detail, form, week, duplicates, dashboard count and Documents tab all
+  skip it. It stays a document (numbered, journaled, **exported**), and search still reads it: in the
+  list the match reads « texte du courriel », in the Documents tab the `.eml` with the same file stem
+  stands for it. Numbers therefore show gaps where `.md` files sit.
 - **Documents tab** (`?vue=documents`, `vue_documents.html`, no JavaScript needed): every document
-  of the dossier with its events, size, upload date and hash. There the sender and period filters choose
+  of the dossier with its events, size and upload date (no SHA-256 column since 2026-10-11 — the
+  hashes are in the export's `empreintes.sha256`). There the sender and period filters choose
   the *events* (hence their documents), but `q` searches the **document itself** (name, `.md` text), and
   `type` (pdf / image / courriel / bureautique) applies to this tab only — it is not carried to the others.
   Documents linked to no event are listed when no event filter is active.
@@ -526,7 +539,9 @@ An event's colour is **derived, never copied**: `Event.couleur_affichee` returns
 `expediteur` (an imported mail's sender, `Expediteur`, one per dossier and address) if any, else the
 event's own `couleur` (chosen from `couleurs.PALETTE` in the form), else none. Changing a sender's colour
 on `/dossiers/<id>/expediteurs/` (writers; readers see it as a legend) therefore recolours all their
-events at once. A new sender gets the first free palette colour.
+events at once. The header button opens it **in the shared modal** (`data-ouvrir-expediteurs`): an AJAX
+GET gets the fragment `_expediteurs.html`, an AJAX POST answers `{"modifies", "erreurs"}` and the page
+reloads only if something changed; the full page remains the no-JavaScript path. A new sender gets the first free palette colour.
 
 - Colours end up in `style` attributes and in the calendars' JSON: **only `#rrggbb`** is accepted
   (`valider_couleur` on both models, palette-only choice in the form, regex in the senders view).
@@ -695,8 +710,8 @@ left out — read `backlog.md` first, it is the most current of the four.
 « Relever les courriels » button, alias suffix), and on 2026-10-10 better reply/forward linking
 (Exchange `ATT` suites, every quoted block, content match for a forward whose header was lost) and
 `Event.destinataires`, back-filled in production by `relier_courriels --recalculer --appliquer`
-(26 replies and 4 forwards linked, 47 events with recipients). The suite is at **711 tests**, green,
-with no pending migrations (latest: `0022_langue_invitation`). Delivered: a shared `base.html` with navbar and logout,
+(26 replies and 4 forwards linked, 47 events with recipients). The suite is at **742 tests**, green,
+with no pending migrations (latest: `0023_cite_destinataires`). Delivered: a shared `base.html` with navbar and logout,
 `404.html` / `500.html`, the event form as a modal (page version kept as the no-JavaScript
 fallback), a Quill rich-text editor sanitised server-side by nh3 (`events/sanitize.py`), four views
 (chronology, month, week, list — the last three render without JavaScript), content-hash

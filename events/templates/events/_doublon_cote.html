@@ -23,7 +23,7 @@
             <p class="small mt-2 mb-2 text-break">{{ evenement.resume }}</p>
         {% endif %}
         <div class="small text-body-secondary">
-            <i class="bi bi-paperclip me-1" aria-hidden="true"></i>{% blocktranslate trimmed count n=evenement.documents.all|length %}{{ n }} pièce{% plural %}{{ n }} pièces{% endblocktranslate %}
+            <i class="bi bi-paperclip me-1" aria-hidden="true"></i>{% blocktranslate trimmed count n=evenement.pieces_affichees|length %}{{ n }} pièce{% plural %}{{ n }} pièces{% endblocktranslate %}
         </div>
     </label>
 </div>

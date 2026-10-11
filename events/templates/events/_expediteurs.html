@@ -1,0 +1,45 @@
+{% load i18n %}
+{% comment %}
+Les expéditeurs et leur couleur : le fragment, servi seul dans le modal des vues
+du dossier (`_detail_evenement_js.html`) et inclus par la page entière, qui reste
+le chemin sans JavaScript. Noms et adresses viennent des courriels — du texte,
+échappé par Django. Aucun script ici : le modal équipe le formulaire.
+{% endcomment %}
+<p class="text-body-secondary small">
+    {% blocktranslate trimmed %}
+        Chaque personne dont un courriel a été importé a sa couleur. Ses évènements la prennent,
+        partout : la changer ici les recolore tous.
+    {% endblocktranslate %}
+</p>
+
+{% if expediteurs %}
+    <form method="post" action="{% url 'dossier_expediteurs' dossier.pk %}" data-formulaire-expediteurs>
+        {% csrf_token %}
+        <div class="list-group mb-3">
+            {% for expediteur in expediteurs %}
+                <div class="list-group-item d-flex align-items-center gap-3">
+                    {% if peut_ecrire %}
+                        <input type="color" class="form-control form-control-color flex-shrink-0"
+                               name="couleur-{{ expediteur.pk }}" value="{{ expediteur.couleur }}"
+                               aria-label="{% blocktranslate with nom=expediteur %}Couleur de {{ nom }}{% endblocktranslate %}">
+                    {% else %}
+                        <span class="d-inline-block rounded border flex-shrink-0"
+                              style="width: 2rem; height: 2rem; background-color: {{ expediteur.couleur }};"></span>
+                    {% endif %}
+                    <div class="flex-grow-1 text-break">
+                        <div class="fw-semibold">{{ expediteur }}</div>
+                        <div class="small text-body-secondary">{{ expediteur.adresse }}</div>
+                    </div>
+                    <span class="badge text-bg-light">
+                        {% blocktranslate count n=expediteur.nombre %}{{ n }} évènement{% plural %}{{ n }} évènements{% endblocktranslate %}
+                    </span>
+                </div>
+            {% endfor %}
+        </div>
+        {% if peut_ecrire %}
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{% translate "Enregistrer" %}</button>
+        {% endif %}
+    </form>
+{% else %}
+    <p class="text-body-secondary">{% translate "Aucun courriel n'a encore été importé dans ce dossier." %}</p>
+{% endif %}

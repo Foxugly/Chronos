@@ -32,6 +32,7 @@ liste de lui-même. Tout ce qui s'affiche vient d'un courriel : Django l'échapp
                         <tr>
                             <th scope="col">{% translate "Date" %}</th>
                             <th scope="col">{% translate "Expéditeur" %}</th>
+                            <th scope="col">{% translate "Destinataires" %}</th>
                             <th scope="col">{% translate "Objet" %}</th>
                             <th scope="col">{% translate "Cité par" %}</th>
                         </tr>
@@ -41,6 +42,7 @@ liste de lui-même. Tout ce qui s'affiche vient d'un courriel : Django l'échapp
                             <tr>
                                 <td class="text-nowrap">{{ m.le|date:"SHORT_DATE_FORMAT" }} {{ m.le|time:"TIME_FORMAT" }}</td>
                                 <td class="text-break">{{ m.de }}</td>
+                                <td class="text-break">{{ m.a|default:"—" }}</td>
                                 <td class="text-break">{{ m.objet|default:"—" }}</td>
                                 <td>
                                     <ul class="list-unstyled mb-0">

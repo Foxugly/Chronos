@@ -74,7 +74,7 @@ def rendre_detail(request, event, *, peut_ecrire, lien=None):
         url_retour = adresse_de_retour(request, base, prefixe=base)
 
     pieces = []
-    for document in event.documents.all():
+    for document in event.pieces_affichees:
         extension = _extension_of(document.title)
         if extension in IMAGE_EXTENSIONS:
             genre = "image"

@@ -3,7 +3,7 @@
 from datetime import timedelta
 from urllib.parse import urlencode
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.formats import date_format
@@ -239,7 +239,9 @@ def dossier_list(request):
     # et sans `distinct` chaque accès multiplierait les comptes.
     dossiers = Dossier.objects.accessible_by(request.user).annotate(
         event_count=Count("events", distinct=True),
-        piece_count=Count("documents", distinct=True),
+        # La version texte des courriels (`.md`) n'est pas une pièce que l'on montre.
+        piece_count=Count("documents", distinct=True,
+                          filter=~Q(documents__title__iendswith=".md")),
     )
     modifiables = set(Dossier.objects.writable_by(request.user).values_list("pk", flat=True))
     cartes = []

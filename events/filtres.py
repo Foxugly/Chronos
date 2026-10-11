@@ -163,9 +163,14 @@ def _sources(evenement, cache):
     yield _("titre"), normaliser(evenement.title)
     yield _("description"), normaliser(html.unescape(strip_tags(evenement.description or "")))
     for document in evenement.documents.all():
+        texte = _texte_de_piece(document, cache)
+        if document.est_version_texte:
+            # Jamais affichée : on cherche dans son texte, on ne la nomme pas.
+            if texte:
+                yield _("texte du courriel"), texte
+            continue
         yield (_("pièce « %(nom)s »") % {"nom": document.title},
                normaliser("%s %s" % (document.numero or "", document.title)))
-        texte = _texte_de_piece(document, cache)
         if texte:
             yield _("texte de « %(nom)s »") % {"nom": document.title}, texte
 
@@ -238,6 +243,11 @@ def _extension(nom):
     return nom.rsplit(".", 1)[-1].lower() if "." in nom else ""
 
 
+def _radical(nom):
+    """`courriel-20260928-2029.eml` et `.md` → `courriel-20260928-2029`."""
+    return nom.rsplit(".", 1)[0].lower() if "." in nom else nom.lower()
+
+
 def pieces_filtrees(dossier, evenements, filtres, type_piece=""):
     """L'onglet « Documents » : les pièces, avec leurs évènements.
 
@@ -246,14 +256,21 @@ def pieces_filtrees(dossier, evenements, filtres, type_piece=""):
     `type_piece` restreint à une famille d'extensions. Sans filtre d'évènement,
     une pièce rattachée à aucun évènement est montrée aussi.
 
+    La version texte d'un courriel (`.md`) n'est jamais une ligne : son texte
+    est cherché sur le courriel (`.eml`) du même nom, qui la représente.
+
     Rend `(lignes, total)` ; chaque ligne : `document`, `extension`,
     `evenements` (du dossier, dans l'ordre), `trouve_dans`.
     """
-    tous = {}
+    tous, versions_texte = {}, {}
     for evenement in evenements:
         for document in evenement.documents.all():
-            tous.setdefault(document.pk, document)
-    sans_evenement = list(dossier.documents.filter(events__isnull=True))
+            if document.est_version_texte:
+                versions_texte.setdefault(_radical(document.title), []).append(document)
+            else:
+                tous.setdefault(document.pk, document)
+    sans_evenement = [d for d in dossier.documents.filter(events__isnull=True)
+                      if not d.est_version_texte]
     total = len(tous) + len(sans_evenement)
 
     filtres_evenements = Filtres(expediteur=filtres.expediteur, etiquette=filtres.etiquette,
@@ -261,7 +278,7 @@ def pieces_filtrees(dossier, evenements, filtres, type_piece=""):
     retenus, _vide = appliquer(evenements, filtres_evenements)
     candidats = {}
     for evenement in retenus:
-        for document in evenement.documents.all():
+        for document in evenement.pieces_affichees:
             candidats.setdefault(document.pk, document)
     if not filtres_evenements.actifs:
         for document in sans_evenement:
@@ -281,7 +298,10 @@ def pieces_filtrees(dossier, evenements, filtres, type_piece=""):
         trouve_dans = []
         if filtres.mots:
             nom = normaliser("%s %s" % (document.numero or "", document.title))
-            texte = _texte_de_piece(document, cache)
+            texte = " ".join([_texte_de_piece(document, cache)] + [
+                _texte_de_piece(version, cache)
+                for version in versions_texte.get(_radical(document.title), [])
+            ])
             if not all(mot in nom or mot in texte for mot in filtres.mots):
                 continue
             if any(mot in nom for mot in filtres.mots):

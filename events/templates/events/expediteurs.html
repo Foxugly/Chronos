@@ -2,7 +2,9 @@
 {% load i18n %}
 
 {% comment %}
-Les expéditeurs des courriels importés dans le dossier, et leur couleur.
+Les expéditeurs des courriels importés dans le dossier, et leur couleur : la
+page entière, chemin sans JavaScript. Avec, elle s'ouvre dans le modal des vues
+du dossier, qui ne reçoit que le fragment (`_expediteurs.html`).
 
 La couleur d'un évènement importé est lue chez son expéditeur : la changer ici
 recolore tous ses évènements à la fois. Les noms et adresses viennent des
@@ -18,42 +20,5 @@ courriels — du texte, échappé par Django.
         <h1 class="page-header__title"><i class="bi bi-people" aria-hidden="true"></i>{% translate "Expéditeurs" %}</h1>
         <div class="page-header__right"></div>
     </div>
-    <p class="text-body-secondary small">
-        {% blocktranslate trimmed %}
-            Chaque personne dont un courriel a été importé a sa couleur. Ses évènements la prennent,
-            partout : la changer ici les recolore tous.
-        {% endblocktranslate %}
-    </p>
-
-    {% if expediteurs %}
-        <form method="post">
-            {% csrf_token %}
-            <div class="list-group mb-3">
-                {% for expediteur in expediteurs %}
-                    <div class="list-group-item d-flex align-items-center gap-3">
-                        {% if peut_ecrire %}
-                            <input type="color" class="form-control form-control-color flex-shrink-0"
-                                   name="couleur-{{ expediteur.pk }}" value="{{ expediteur.couleur }}"
-                                   aria-label="{% blocktranslate with nom=expediteur %}Couleur de {{ nom }}{% endblocktranslate %}">
-                        {% else %}
-                            <span class="d-inline-block rounded border flex-shrink-0"
-                                  style="width: 2rem; height: 2rem; background-color: {{ expediteur.couleur }};"></span>
-                        {% endif %}
-                        <div class="flex-grow-1">
-                            <div class="fw-semibold">{{ expediteur }}</div>
-                            <div class="small text-body-secondary">{{ expediteur.adresse }}</div>
-                        </div>
-                        <span class="badge text-bg-light">
-                            {% blocktranslate count n=expediteur.nombre %}{{ n }} évènement{% plural %}{{ n }} évènements{% endblocktranslate %}
-                        </span>
-                    </div>
-                {% endfor %}
-            </div>
-            {% if peut_ecrire %}
-                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{% translate "Enregistrer" %}</button>
-            {% endif %}
-        </form>
-    {% else %}
-        <p class="text-body-secondary">{% translate "Aucun courriel n'a encore été importé dans ce dossier." %}</p>
-    {% endif %}
+    {% include "events/_expediteurs.html" %}
 {% endblock %}

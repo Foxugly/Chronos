@@ -5,7 +5,8 @@
 Le dossier en liste, groupé par mois, du plus ancien au plus récent.
 
 C'est la vue qui fonctionne partout : sans JavaScript, à l'impression, dans
-un lecteur d'écran. Sur un dossier destiné à une procédure, c'est aussi la
+un lecteur d'écran. Chaque fait est un volet (`<details>`) : replié, sa date
+et son titre ; l'impression et une recherche les déploient. Sur un dossier destiné à une procédure, c'est aussi la
 seule qui se lit d'un bout à l'autre sans manipuler quoi que ce soit — un
 avocat ou un expert ouvrira celle-ci.
 
@@ -22,14 +23,19 @@ l'est en connaissance de cause.
 
 {% block extra_css %}
     <style>
-        .description-repliee {
-            max-height: 9rem;
-            overflow: hidden;
-            -webkit-mask-image: linear-gradient(to bottom, #000 65%, transparent);
-            mask-image: linear-gradient(to bottom, #000 65%, transparent);
+        .fait-liste summary {
+            list-style: none;
+            cursor: pointer;
+            /* La place des boutons, posés par-dessus à droite. */
+            padding-right: 9.5rem !important;
         }
+        .fait-liste summary::-webkit-details-marker { display: none; }
+        .fait-liste__chevron { transition: transform .15s ease; }
+        .fait-liste details[open] > summary .fait-liste__chevron { transform: rotate(90deg); }
+        .fait-liste__actions { position: absolute; top: .35rem; right: .75rem; }
         @media print {
-            .description-repliee { max-height: none; -webkit-mask-image: none; mask-image: none; }
+            .fait-liste summary { padding-right: 1rem !important; }
+            .fait-liste__chevron { display: none; }
         }
     </style>
     {% include "events/_detail_evenement_css.html" %}
@@ -45,82 +51,73 @@ l'est en connaissance de cause.
             {% blocktranslate trimmed with criteres=filtres.description %}Sélection : {{ criteres }}.{% endblocktranslate %}
         {% endif %}
     </div>
-    <div class="d-flex justify-content-end mb-2" data-pas-a-l-impression>
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-imprimer>
-            <i class="bi bi-printer me-1" aria-hidden="true"></i>{% translate "Imprimer" %}
-        </button>
-    </div>
 
     {% for groupe in groupes %}
         <h2 class="h5 text-capitalize text-body-secondary mt-4 mb-2">{{ groupe.titre }}</h2>
 
         <div class="list-group mb-3">
             {% for evenement in groupe.evenements %}
-                <div class="list-group-item"{% if evenement.couleur_affichee %} style="border-left: 6px solid {{ evenement.couleur_affichee }};"{% endif %}>
-                    <div class="d-flex justify-content-between align-items-start gap-3">
-                        <div>
-                            <span class="badge text-bg-secondary">{{ evenement.periode_affichee }}</span>
-                            <a class="ms-2 fw-semibold text-decoration-none" href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token evenement.pk %}{% else %}{% url 'event_detail' evenement.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>{{ evenement.title }}</a>
-                            {% if evenement.etiquettes.all %}
-                                <div class="mt-1">{% for etiquette in evenement.etiquettes.all %}<span class="badge rounded-pill text-bg-light border me-1"><i class="bi bi-tag me-1" aria-hidden="true"></i>{{ etiquette.nom }}</span>{% endfor %}</div>
-                            {% endif %}
-                            {% if evenement.destinataires %}
-                                <div class="small text-body-secondary mt-1 text-break">
-                                    <i class="bi bi-envelope-arrow-up me-1" aria-hidden="true"></i>{% translate "Destinataires :" %} {{ evenement.destinataires }}
-                                </div>
-                            {% endif %}
-                            {% if evenement.lien_transfert_de or evenement.liens_transferts or evenement.lien_reponse_a or evenement.liens_reponses %}
-                                <ul class="list-unstyled small mt-1 mb-0">
-                                    {% with origine=evenement.lien_transfert_de %}
-                                        {% if origine %}
-                                            <li><i class="bi bi-arrow-return-right me-1" aria-hidden="true"></i>{% translate "Transfert de :" %}
-                                                <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token origine.pk %}{% else %}{% url 'event_detail' origine.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>{{ origine.title }}</a>
-                                                <span class="text-body-secondary">({{ origine.periode_affichee }})</span></li>
-                                        {% endif %}
-                                    {% endwith %}
-                                    {% for suite in evenement.liens_transferts %}
-                                        <li><i class="bi bi-forward me-1" aria-hidden="true"></i>{% translate "Transféré ensuite :" %}
-                                            <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token suite.pk %}{% else %}{% url 'event_detail' suite.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>{{ suite.title }}</a>
-                                            <span class="text-body-secondary">({{ suite.periode_affichee }})</span></li>
-                                    {% endfor %}
-                                    {% with cite=evenement.lien_reponse_a %}
-                                        {% if cite %}
-                                            <li><i class="bi bi-reply me-1" aria-hidden="true"></i>{% translate "En réponse à :" %}
-                                                <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token cite.pk %}{% else %}{% url 'event_detail' cite.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>{{ cite.title }}</a>
-                                                <span class="text-body-secondary">({{ cite.periode_affichee }})</span></li>
-                                        {% endif %}
-                                    {% endwith %}
-                                    {% for reponse in evenement.liens_reponses %}
-                                        <li><i class="bi bi-chat-left-text me-1" aria-hidden="true"></i>{% translate "Réponse :" %}
-                                            <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token reponse.pk %}{% else %}{% url 'event_detail' reponse.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}" data-voir-evenement>{{ reponse.title }}</a>
-                                            <span class="text-body-secondary">({{ reponse.periode_affichee }})</span></li>
-                                    {% endfor %}
-                                </ul>
-                            {% endif %}
-                            {% if evenement.trouve_dans %}
-                                <div class="small text-body-secondary mt-1 d-print-none">
-                                    <i class="bi bi-search me-1" aria-hidden="true"></i>{% translate "Trouvé dans :" %} {{ evenement.trouve_dans|join:", " }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        {% if peut_ecrire %}
-                            <div class="d-flex gap-2 flex-shrink-0">
-                            <a class="btn btn-outline-info"
-                               href="{% if lien_partage %}{% url 'share_event_edit' lien_partage.token evenement.pk %}{% else %}{% url 'event_edit' evenement.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}"
-                               title="{% translate "Modifier" %}" aria-label="{% translate "Modifier" %}"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16" aria-hidden="true"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"></path></svg></a>
-                            <a class="btn btn-outline-danger"
-                               href="{% if lien_partage %}{% url 'share_event_delete' lien_partage.token evenement.pk %}{% else %}{% url 'event_delete' evenement.pk %}{% endif %}?retour={{ request.get_full_path|urlencode }}"
-                               data-supprimer-evenement
-                               title="{% translate "Supprimer" %}" aria-label="{% translate "Supprimer" %}"><i class="bi bi-trash3" aria-hidden="true"></i></a>
+                {% with pieces=evenement.pieces_affichees url_retour=request.get_full_path|urlencode %}
+                {# Un volet par fait : replié, la date et le titre ; déployé, tout le reste. #}
+                {# Natif (`<details>`) : il s'ouvre sans JavaScript, et une recherche      #}
+                {# arrive déployée. Les boutons sont à côté du volet, pas dedans : un     #}
+                {# `<details>` fermé masque tout sauf son résumé, et un bouton dans un     #}
+                {# résumé est mal annoncé et ouvrirait le volet à chaque clic.            #}
+                <div class="list-group-item p-0 position-relative fait-liste" data-fait-ligne{% if evenement.couleur_affichee %} style="border-left: 6px solid {{ evenement.couleur_affichee }};"{% endif %}>
+                <details data-fait{% if filtres.mots %} open{% endif %}>
+                    <summary class="d-flex flex-wrap align-items-center gap-2 px-3 py-2">
+                        <i class="bi bi-chevron-right fait-liste__chevron" aria-hidden="true"></i>
+                        <span class="badge text-bg-secondary">{{ evenement.periode_affichee }}</span>
+                        <span class="fw-semibold text-break">{{ evenement.title }}</span>
+                        {% for etiquette in evenement.etiquettes.all %}<span class="badge rounded-pill text-bg-light border"><i class="bi bi-tag me-1" aria-hidden="true"></i>{{ etiquette.nom }}</span>{% endfor %}
+                        {% if pieces %}
+                            <span class="badge text-bg-light border text-body-secondary"><i class="bi bi-paperclip" aria-hidden="true"></i> {{ pieces|length }}</span>
+                        {% endif %}
+                    </summary>
+                    <div class="px-3 pb-3">
+                        {% if evenement.destinataires %}
+                            <div class="small text-body-secondary text-break">
+                                <i class="bi bi-envelope-arrow-up me-1" aria-hidden="true"></i>{% translate "Destinataires :" %} {{ evenement.destinataires }}
                             </div>
                         {% endif %}
-                    </div>
+                        {% if evenement.lien_transfert_de or evenement.liens_transferts or evenement.lien_reponse_a or evenement.liens_reponses %}
+                            <ul class="list-unstyled small mt-1 mb-0">
+                                {% with origine=evenement.lien_transfert_de %}
+                                    {% if origine %}
+                                        <li><i class="bi bi-arrow-return-right me-1" aria-hidden="true"></i>{% translate "Transfert de :" %}
+                                            <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token origine.pk %}{% else %}{% url 'event_detail' origine.pk %}{% endif %}?retour={{ url_retour }}" data-voir-evenement>{{ origine.title }}</a>
+                                            <span class="text-body-secondary">({{ origine.periode_affichee }})</span></li>
+                                    {% endif %}
+                                {% endwith %}
+                                {% for suite in evenement.liens_transferts %}
+                                    <li><i class="bi bi-forward me-1" aria-hidden="true"></i>{% translate "Transféré ensuite :" %}
+                                        <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token suite.pk %}{% else %}{% url 'event_detail' suite.pk %}{% endif %}?retour={{ url_retour }}" data-voir-evenement>{{ suite.title }}</a>
+                                        <span class="text-body-secondary">({{ suite.periode_affichee }})</span></li>
+                                {% endfor %}
+                                {% with cite=evenement.lien_reponse_a %}
+                                    {% if cite %}
+                                        <li><i class="bi bi-reply me-1" aria-hidden="true"></i>{% translate "En réponse à :" %}
+                                            <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token cite.pk %}{% else %}{% url 'event_detail' cite.pk %}{% endif %}?retour={{ url_retour }}" data-voir-evenement>{{ cite.title }}</a>
+                                            <span class="text-body-secondary">({{ cite.periode_affichee }})</span></li>
+                                    {% endif %}
+                                {% endwith %}
+                                {% for reponse in evenement.liens_reponses %}
+                                    <li><i class="bi bi-chat-left-text me-1" aria-hidden="true"></i>{% translate "Réponse :" %}
+                                        <a href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token reponse.pk %}{% else %}{% url 'event_detail' reponse.pk %}{% endif %}?retour={{ url_retour }}" data-voir-evenement>{{ reponse.title }}</a>
+                                        <span class="text-body-secondary">({{ reponse.periode_affichee }})</span></li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        {% if evenement.trouve_dans %}
+                            <div class="small text-body-secondary mt-1 d-print-none">
+                                <i class="bi bi-search me-1" aria-hidden="true"></i>{% translate "Trouvé dans :" %} {{ evenement.trouve_dans|join:", " }}
+                            </div>
+                        {% endif %}
 
-                    {% if evenement.description %}
-                        <div class="mt-2 small text-break description-repliee">{{ evenement.description|safe }}</div>
-                    {% endif %}
+                        {% if evenement.description %}
+                            <div class="mt-2 small text-break">{{ evenement.description|safe }}</div>
+                        {% endif %}
 
-                    {% with pieces=evenement.documents.all %}
                         {% if pieces %}
                             <div class="mt-2 d-flex flex-wrap gap-1">
                                 {% for document in pieces %}
@@ -132,8 +129,24 @@ l'est en connaissance de cause.
                                 {% endfor %}
                             </div>
                         {% endif %}
-                    {% endwith %}
+                    </div>
+                </details>
+                    <div class="fait-liste__actions d-flex gap-2 d-print-none">
+                        <a class="btn btn-sm btn-outline-primary"
+                           href="{% if lien_partage %}{% url 'share_event_detail' lien_partage.token evenement.pk %}{% else %}{% url 'event_detail' evenement.pk %}{% endif %}?retour={{ url_retour }}" data-voir-evenement
+                           title="{% translate "Voir" %}" aria-label="{% translate "Voir" %}"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                        {% if peut_ecrire %}
+                            <a class="btn btn-sm btn-outline-info"
+                               href="{% if lien_partage %}{% url 'share_event_edit' lien_partage.token evenement.pk %}{% else %}{% url 'event_edit' evenement.pk %}{% endif %}?retour={{ url_retour }}"
+                               title="{% translate "Modifier" %}" aria-label="{% translate "Modifier" %}"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                            <a class="btn btn-sm btn-outline-danger"
+                               href="{% if lien_partage %}{% url 'share_event_delete' lien_partage.token evenement.pk %}{% else %}{% url 'event_delete' evenement.pk %}{% endif %}?retour={{ url_retour }}"
+                               data-supprimer-evenement
+                               title="{% translate "Supprimer" %}" aria-label="{% translate "Supprimer" %}"><i class="bi bi-trash3" aria-hidden="true"></i></a>
+                        {% endif %}
+                    </div>
                 </div>
+                {% endwith %}
             {% endfor %}
         </div>
     {% empty %}
@@ -145,4 +158,42 @@ l'est en connaissance de cause.
 
 {% block extra_js %}
     {% include "events/_detail_evenement_js.html" %}
+    <script nonce="{{ csp_nonce }}">
+    "use strict";
+    (function () {
+        const faits = Array.from(document.querySelectorAll("details[data-fait]"));
+        const bouton = document.querySelector("[data-tout-deployer]");
+        if (bouton && faits.length) {
+            const libelle = bouton.querySelector("span");
+            const deployer = libelle.textContent;
+            const replier = bouton.dataset.texteReplier;
+            const icone = bouton.querySelector("i");
+            function mettreAJour() {
+                const tousOuverts = faits.every(function (f) { return f.open; });
+                libelle.textContent = tousOuverts ? replier : deployer;
+                icone.className = (tousOuverts ? "bi bi-arrows-collapse" : "bi bi-arrows-expand") + " me-1";
+            }
+            bouton.addEventListener("click", function () {
+                const ouvrir = !faits.every(function (f) { return f.open; });
+                faits.forEach(function (f) { f.open = ouvrir; });
+                mettreAJour();
+            });
+            faits.forEach(function (f) { f.addEventListener("toggle", mettreAJour); });
+            bouton.hidden = false;
+            mettreAJour();
+        }
+        // À l'impression, tout est déployé ; on revient ensuite à l'état d'avant.
+        let avantImpression = null;
+        window.addEventListener("beforeprint", function () {
+            avantImpression = faits.map(function (f) { return f.open; });
+            faits.forEach(function (f) { f.open = true; });
+        });
+        window.addEventListener("afterprint", function () {
+            if (avantImpression) {
+                faits.forEach(function (f, i) { f.open = avantImpression[i]; });
+                avantImpression = null;
+            }
+        });
+    })();
+    </script>
 {% endblock %}

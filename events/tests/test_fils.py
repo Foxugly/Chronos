@@ -71,6 +71,18 @@ class CourrielsManquantsTests(Base):
         self.assertEqual(manquants[0]["de"], "BNQ <info@banque.example>")
         self.assertEqual(manquants[0]["objet"], "Facture")
         self.assertEqual(manquants[0]["cite_par"], [reponse])
+        self.assertEqual(manquants[0]["a"], "")
+
+    def test_le_destinataire_du_manquant(self):
+        self.courriel("RE: Facture", "2026-09-10",
+                      **self.cite("info@banque.example", 8, "09:15", "Facture"), cite_a="Jean <r@x.be>")
+        self.assertEqual(courriels_manquants(self.dossier)[0]["a"], "Jean <r@x.be>")
+
+    def test_le_destinataire_vient_de_la_premiere_reponse_qui_le_connait(self):
+        self.courriel("RE: Facture", "2026-09-10", **self.cite("info@banque.example", 8, "09:15", "Facture"))
+        self.courriel("RE: Facture", "2026-09-11", **self.cite("info@banque.example", 8, "09:16", "Facture"),
+                      cite_a="Jean <r@x.be>")
+        self.assertEqual(courriels_manquants(self.dossier)[0]["a"], "Jean <r@x.be>")
 
     def test_le_courriel_arrive_et_ne_manque_plus(self):
         self.courriel("RE: Facture", "2026-09-10", **self.cite("info@banque.example", 8, "09:15", "Facture"))
@@ -102,7 +114,7 @@ class PagesTests(Base):
         super().setUp()
         self.reponse = self.courriel(
             "RE: Facture", "2026-09-10",
-            cite_de="BNQ <info@banque.example>", cite_objet="Facture",
+            cite_de="BNQ <info@banque.example>", cite_objet="Facture", cite_a="Jean <jdupont@perso.example>",
             cite_le=datetime.datetime(2026, 9, 8, 9, 15, tzinfo=BRUXELLES),
         )
         self.page = reverse("dossier_manquants", args=[self.dossier.pk])
@@ -114,6 +126,7 @@ class PagesTests(Base):
         self.client.force_login(lecteur)
         reponse = self.client.get(self.page)
         self.assertContains(reponse, "info@banque.example")
+        self.assertContains(reponse, "jdupont@perso.example")
         self.assertContains(reponse, "Facture")
         self.assertContains(reponse, reverse("event_detail", args=[self.reponse.pk]))
         self.assertContains(self.client.get(self.dossier_url, {"vue": "liste"}), self.page)

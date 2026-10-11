@@ -308,6 +308,98 @@ window.DetailEvenement = (function () {
         }
     });
 
+    // « Expéditeurs » s'ouvre dans le même modal : le fragment rendu par Django,
+    // et son formulaire envoyé en arrière-plan. Un changement recharge la page,
+    // dont toutes les couleurs dépendent ; sinon le modal se ferme. Sans
+    // JavaScript, le lien mène à la page entière.
+    function ouvrirExpediteurs(url) {
+        elargir(false);
+        titreModal.textContent = "{{ _("Expéditeurs")|escapejs }}";
+        message("{{ _("Chargement…")|escapejs }}", "text-body-secondary mb-0");
+        modal.show();
+        fetch(url, {headers: {"X-Requested-With": "XMLHttpRequest"}})
+            .then(function (reponse) {
+                if (!reponse.ok) {
+                    throw new Error("HTTP " + reponse.status);
+                }
+                return reponse.text();
+            })
+            .then(function (html) {
+                corpsModal.innerHTML = html;
+                equiperExpediteurs();
+            })
+            .catch(function () {
+                message("{{ _("Les expéditeurs n'ont pas pu être chargés.")|escapejs }}", "alert alert-danger mb-0");
+            });
+    }
+
+    function equiperExpediteurs() {
+        const formulaire = corpsModal.querySelector("form[data-formulaire-expediteurs]");
+        if (!formulaire) {
+            return;
+        }
+        formulaire.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const bouton = formulaire.querySelector("button[type=submit]");
+            if (bouton) {
+                bouton.disabled = true;
+            }
+            corpsModal.querySelectorAll("[data-erreur-expediteurs]").forEach(function (n) { n.remove(); });
+            fetch(formulaire.action, {
+                method: "POST",
+                body: new FormData(formulaire),
+                headers: {"X-Requested-With": "XMLHttpRequest"}
+            })
+                .then(function (reponse) {
+                    if (!reponse.ok) {
+                        throw new Error("HTTP " + reponse.status);
+                    }
+                    return reponse.json();
+                })
+                .then(function (data) {
+                    if (data.modifies > 0) {
+                        window.location.reload();
+                        return;
+                    }
+                    if (!data.erreurs.length) {
+                        modal.hide();
+                        return;
+                    }
+                    if (bouton) {
+                        bouton.disabled = false;
+                    }
+                    data.erreurs.forEach(function (texte) {
+                        const erreur = document.createElement("div");
+                        erreur.className = "alert alert-danger mt-3 mb-0";
+                        erreur.dataset.erreurExpediteurs = "";
+                        erreur.textContent = texte;
+                        formulaire.after(erreur);
+                    });
+                })
+                .catch(function () {
+                    if (bouton) {
+                        bouton.disabled = false;
+                    }
+                    const erreur = document.createElement("div");
+                    erreur.className = "alert alert-danger mt-3 mb-0";
+                    erreur.dataset.erreurExpediteurs = "";
+                    erreur.textContent = "{{ _("L'enregistrement a échoué. Rien n'a été modifié.")|escapejs }}";
+                    formulaire.after(erreur);
+                });
+        });
+    }
+
+    document.addEventListener("click", function (e) {
+        if (!clicSimple(e)) {
+            return;
+        }
+        const expediteurs = e.target.closest("a[data-ouvrir-expediteurs]");
+        if (expediteurs) {
+            e.preventDefault();
+            ouvrirExpediteurs(expediteurs.href);
+        }
+    });
+
     // ← et → passent au fait précédent ou suivant, quand le détail est
     // ouvert et que l'on n'est pas en train d'écrire.
     document.addEventListener("keydown", function (e) {

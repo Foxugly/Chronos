@@ -55,9 +55,9 @@ grille de sept colonnes sur 400 px de large ne se lit pas.
                                         {{ evenement.periode_affichee }}
                                     </span>
                                 {% endif %}
-                                {% if evenement.documents.count %}
+                                {% if evenement.pieces_affichees %}
                                     <span class="badge text-bg-light">
-                                        {% blocktranslate trimmed count n=evenement.documents.count %}
+                                        {% blocktranslate trimmed count n=evenement.pieces_affichees|length %}
                                             {{ n }} pièce
                                         {% plural %}
                                             {{ n }} pièces
