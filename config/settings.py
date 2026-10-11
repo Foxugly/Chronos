@@ -307,6 +307,15 @@ ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login/"
 # — ni `runserver`, ni un serveur WSGI, qui ne passent pas par `manage.py test`.
 if sys.argv[1:2] == ["test"]:
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+    # Jamais le vrai `media/` : il contient les seules copies des pièces. Un test
+    # qui oubliait `MediaMixin` y a déposé 324 fichiers le 2026-10-11. Un dossier
+    # temporaire par exécution, effacé à la sortie ; `MediaMixin` reste valable.
+    import atexit
+    import shutil
+    import tempfile
+
+    MEDIA_ROOT = Path(tempfile.mkdtemp(prefix="chronos-tests-media-"))
+    atexit.register(shutil.rmtree, MEDIA_ROOT, ignore_errors=True)
 
 
 # --- Production ---------------------------------------------------------------
