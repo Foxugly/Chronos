@@ -15,12 +15,13 @@ l'historique de ce qui a été tranché, et pourquoi.
 - **Changer l'alias du dossier ACMEBAT** : il date d'avant le suffixe `.chronos@foxugly.com`.
   Il reçoit toujours ; la page Paramètres le signale. L'enregistrer à nouveau impose le format
   (Chronos ajoute le nouveau dans Exchange puis retire l'ancien).
-- **`OPERATIONS.md`** (dépôt `foxugly-ops`) : ligne d'inventaire, rôle `chronos-deploy` dans la
-  table du §3.11 — et Facilitation, qui y manque aussi.
+- ~~`OPERATIONS.md` : ligne d'inventaire, rôle `chronos-deploy` dans le §3.11~~ **fait** (Chronos et
+  Facilitation y figurent).
 - **Sauvegardes : décision du propriétaire (2026-10-09), ne plus en parler.** L'hébergement AWS est jugé
   suffisant pour un usage non commercial : pas de copie hors machine, pas de vérification de la
   première sauvegarde PostgreSQL. `chronos-sauvegarde.timer` tourne quand même chaque nuit.
-- **HSTS envoyé deux fois** (Django et nginx, durées différentes) : en retirer un.
+- ~~HSTS envoyé deux fois~~ **fait le 2026-10-11** (avec `nosniff` et `Referrer-Policy`, doublés eux
+  aussi : Django pose ceux des pages qu'il sert, nginx ceux des statiques et des pièces).
 - **Échéances** : secret de l'application « Chronos » et certificat « Chronos Exchange »
   expirent le **2028-10-09** (relancer `deploy/m365-setup.ps1`).
 - **Vérifier dans un navigateur** le champ d'alias en `input-group` et le bouton « Copier »
@@ -120,6 +121,28 @@ Le site est en FR / NL / EN (voir « Fait »). Restent :
   orphelins, ce qui cascaderait sur leurs `Document`. Sans effet dans les tests actuels.
 
 ## Fait
+
+### Ergonomie, partage, courriels, CI — 2026-10-11
+
+- **En-têtes de sécurité** : plus de doublons ; le `Referrer-Policy` de nginx défaisait le
+  `no-referrer` des liens de partage. **`views.py` découpé** en paquet `events/views/` (7 modules).
+- **Calendrier** : navigation bornée aux dates du dossier (`validRange`) ; **double-clic** sur une
+  case vide → création pré-remplie (date, et heure en vue semaine), pour qui peut écrire.
+- **Courriels** : **fil de discussion** (même objet) dans le détail ; **courriels manquants** (cités
+  mais absents, avec leurs destinataires, `cite_a`, migration `0023`) ; un courriel **sans objet**
+  se relie enfin à ses réponses.
+- **Liste** en accordéon (une ligne par fait : date, expéditeur ou « Saisi à la main », titre coupé),
+  bouton œil, « Imprimer » / « Tout déployer » sur la ligne des onglets. **Documents** : plusieurs
+  types à la fois, noms d'évènements sur une ligne, plus de colonne SHA-256. **`.md` jamais
+  affichés** (gardés dans l'export, toujours cherchés). **Expéditeurs** dans le modal.
+- **Lien de consultation** : « Créer un lien » était refusé en silence (champ « Droit accordé » non
+  affiché) — réparé ; le lien créé s'affiche en tête avec « Copier ». **Étiquettes** sous la
+  description, avec autocomplétion de celles du dossier.
+- **Invitations** dans la langue de la personne invitée (`Invitation.langue`, migration `0022`) ;
+  néerlandais relu (27 corrections).
+- **vis-timeline** en build autonome (l'ancien était déprécié). **CI** : image PostgreSQL en cache
+  d'Actions (aussi sur toute la flotte, sauf Fabric). Les tests n'écrivent plus jamais dans le vrai
+  `media/` (324 fichiers parasites retirés du poste, 77 pièces vérifiées conformes).
 
 ### Habillage de la flotte — 2026-10-09
 
