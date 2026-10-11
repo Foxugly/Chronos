@@ -185,10 +185,9 @@ def vue_du_dossier(request, dossier, base_vue):
     parametres = filtres.parametres()
     if contexte["vue"] == "documents":
         # La recherche porte ici sur les pièces elles-mêmes ; le compteur aussi.
-        type_piece = request.GET.get("type", "")
-        if type_piece not in filtrage.TYPES_DE_PIECE:
-            type_piece = ""
-        lignes, total = filtrage.pieces_filtrees(dossier, tous, filtres, type_piece)
+        # Plusieurs types à la fois : `?type=pdf&type=image`.
+        types_piece = filtrage.types_choisis(request.GET.getlist("type"))
+        lignes, total = filtrage.pieces_filtrees(dossier, tous, filtres, types_piece)
         for ligne in lignes:
             try:
                 ligne["taille"] = ligne["document"].file.size
@@ -203,11 +202,11 @@ def vue_du_dossier(request, dossier, base_vue):
                 ligne["icone"] = "fa-regular fa-envelope text-secondary"
         contexte.update({
             "pieces": lignes,
-            "type_piece": type_piece,
+            "types_piece": types_piece,
             "types_de_piece": filtrage.libelles_des_types(),
             "nb_pieces": len(lignes),
             "nb_pieces_total": total,
-            "filtres_pieces_actifs": filtres.actifs or bool(type_piece),
+            "filtres_pieces_actifs": filtres.actifs or bool(types_piece),
         })
     contexte.update({
         "base_vue": base_vue,

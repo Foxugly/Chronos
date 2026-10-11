@@ -11,7 +11,7 @@ Le traitement est dans `events/filtres.py`.
       data-barre-filtres>
     <input type="hidden" name="vue" value="{{ vue }}">
     <div class="row g-2 align-items-end">
-        <div class="col-12 {% if vue == 'documents' %}col-lg-3{% else %}col-lg-4{% endif %}">
+        <div class="col-12 {% if vue == 'documents' %}col-lg-2{% else %}col-lg-4{% endif %}">
             <label class="form-label small mb-1" for="filtre-q">{% translate "Rechercher" %}</label>
             <div class="input-group input-group-sm">
                 <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
@@ -21,15 +21,17 @@ Le traitement est dans `events/filtres.py`.
             </div>
         </div>
         {% if vue == "documents" %}
-            {# Le type ne vaut que pour cet onglet : il n'est pas reporté sur les autres. #}
-            <div class="col-12 col-sm-6 col-lg-2">
-                <label class="form-label small mb-1" for="filtre-type">{% translate "Type" %}</label>
-                <select name="type" id="filtre-type" class="form-select form-select-sm">
-                    <option value="">{% translate "Tous" %}</option>
+            {# Le type ne vaut que pour cet onglet : il n'est pas reporté sur les autres.  #}
+            {# Des cases à cocher, en boutons : plusieurs types à la fois, sans JavaScript ; #}
+            {# aucune cochée, ce sont toutes les pièces.                                   #}
+            <div class="col-12 col-lg-3">
+                <span class="form-label small mb-1 d-block" id="filtre-type">{% translate "Type" %}</span>
+                <div class="d-flex flex-wrap gap-1" role="group" aria-labelledby="filtre-type">
                     {% for valeur, libelle in types_de_piece %}
-                        <option value="{{ valeur }}"{% if type_piece == valeur %} selected{% endif %}>{{ libelle }}</option>
+                        <input type="checkbox" class="btn-check" name="type" value="{{ valeur }}" id="filtre-type-{{ valeur }}" autocomplete="off"{% if valeur in types_piece %} checked{% endif %}>
+                        <label class="btn btn-sm btn-outline-secondary" for="filtre-type-{{ valeur }}">{{ libelle }}</label>
                     {% endfor %}
-                </select>
+                </div>
             </div>
         {% endif %}
         <div class="col-12 col-sm-6 {% if vue == 'documents' %}col-lg-2{% else %}col-lg-3{% endif %}">

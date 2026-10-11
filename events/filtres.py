@@ -248,12 +248,19 @@ def _radical(nom):
     return nom.rsplit(".", 1)[0].lower() if "." in nom else nom.lower()
 
 
-def pieces_filtrees(dossier, evenements, filtres, type_piece=""):
+def types_choisis(valeurs):
+    """Les types de pièce demandés (`?type=pdf&type=image`), connus et sans doublon,
+    dans l'ordre de `TYPES_DE_PIECE`. Un type inconnu est ignoré, jamais une erreur."""
+    return [t for t in TYPES_DE_PIECE if t in set(valeurs)]
+
+
+def pieces_filtrees(dossier, evenements, filtres, types_piece=()):
     """L'onglet « Documents » : les pièces, avec leurs évènements.
 
     L'expéditeur et la période choisissent les évènements, donc leurs pièces ;
     la recherche, elle, porte sur la pièce même (son nom, le texte d'un `.md`) ;
-    `type_piece` restreint à une famille d'extensions. Sans filtre d'évènement,
+    `types_piece` restreint à une ou plusieurs familles d'extensions (aucune :
+    toutes). Sans filtre d'évènement,
     une pièce rattachée à aucun évènement est montrée aussi.
 
     La version texte d'un courriel (`.md`) n'est jamais une ligne : son texte
@@ -289,7 +296,7 @@ def pieces_filtrees(dossier, evenements, filtres, type_piece=""):
         for document in evenement.documents.all():
             par_document.setdefault(document.pk, []).append(evenement)
 
-    extensions = TYPES_DE_PIECE.get(type_piece)
+    extensions = set().union(*(TYPES_DE_PIECE[t] for t in types_piece))
     lignes, cache = [], {}
     for document in candidats.values():
         extension = _extension(document.title)

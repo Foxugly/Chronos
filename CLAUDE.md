@@ -507,7 +507,8 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   of the dossier with its events, size and upload date (no SHA-256 column since 2026-10-11 — the
   hashes are in the export's `empreintes.sha256`). There the sender and period filters choose
   the *events* (hence their documents), but `q` searches the **document itself** (name, `.md` text), and
-  `type` (pdf / image / courriel / bureautique) applies to this tab only — it is not carried to the others.
+  `type` (pdf / image / courriel / bureautique, **repeatable**: `?type=pdf&type=image`, toggle buttons in
+  the filter bar, none = all) applies to this tab only — it is not carried to the others.
   Documents linked to no event are listed when no event filter is active.
 - **Duplicates** (`events/doublons.py`, `/dossiers/<id>/doublons/`, writers only): a pair sharing a
   document at most one day apart, or same day with similar titles. Sharing a document alone is *not*

@@ -7,6 +7,7 @@ de doublons ne perd rien et le journal garde l'absorbé.
 
 import io
 import os
+import re
 import subprocess
 import sys
 import zipfile
@@ -324,6 +325,21 @@ class OngletDocumentsTests(RechercheFixtureMixin, TestCase):
         self.assertEqual(self.noms(self.documents(type="courriel")), ["courriel.eml"])
         self.assertEqual(self.noms(self.documents(type="pdf")), ["devis.pdf"])
         self.assertEqual(len(self.noms(self.documents(type="nimporte"))), 2)
+
+    def test_plusieurs_types_a_la_fois(self):
+        from events.tests.factories import make_document
+        make_document(self.courriel, title="photo.jpg", content=b"jpeg")
+        self.assertEqual(sorted(self.noms(self.documents(type=["pdf", "image"]))), ["devis.pdf", "photo.jpg"])
+        self.assertEqual(len(self.noms(self.documents(type=["pdf", "image", "courriel"]))), 3)
+        # Un type inconnu est ignoré ; les autres valent toujours.
+        self.assertEqual(self.noms(self.documents(type=["pdf", "nimporte"])), ["devis.pdf"])
+
+    def test_les_types_choisis_restent_coches(self):
+        html = self.documents(type=["pdf", "courriel"]).content.decode()
+        for valeur, coche in (("pdf", True), ("courriel", True), ("image", False), ("bureautique", False)):
+            with self.subTest(type=valeur):
+                balise = re.search(r'<input[^>]*name="type"[^>]*value="%s"[^>]*>' % valeur, html).group(0)
+                self.assertEqual(" checked" in balise, coche)
 
     def test_filtre_par_expediteur_et_periode(self):
         self.assertEqual(self.noms(self.documents(expediteur=self.expediteur.pk)), ["courriel.eml"])
