@@ -97,6 +97,37 @@ pointerait vers l'URL de la chronologie et non vers celle du formulaire.
         {{ form.description.errors }}
     </div>
 
+    {# Étiquettes : celles du dossier en pastilles à cocher, de nouvelles à saisir. #}
+    {# Le champ propose celles du dossier (autocomplétion) ; avec JavaScript, Entrée #}
+    {# ou une virgule ajoute l'étiquette — cochée si elle existe, nouvelle sinon     #}
+    {# (`equiperEtiquettes`). Sans lui, le champ texte, séparé par des virgules.     #}
+    {# Le marqueur dit au serveur que la section a été montrée (sinon il n'y touche  #}
+    {# pas).                                                                         #}
+    <div class="mb-3" data-etiquettes>
+        <input type="hidden" name="etiquettes_presentes" value="1">
+        <label class="form-label d-block" for="nouvelles-etiquettes-{{ champ_documents }}">{% translate "Étiquettes" %}</label>
+        <div class="d-flex flex-wrap gap-2 mb-2" data-pastilles-etiquettes>
+            {% for etiquette in etiquettes_du_dossier %}
+                <input type="checkbox" class="btn-check" name="etiquettes" value="{{ etiquette.pk }}" data-nom="{{ etiquette.nom }}"
+                       id="etiquette-{{ champ_documents }}-{{ etiquette.pk }}" autocomplete="off"
+                       {% if etiquette.pk in etiquettes_cochees %}checked{% endif %}>
+                <label class="btn btn-sm btn-outline-secondary rounded-pill" for="etiquette-{{ champ_documents }}-{{ etiquette.pk }}">
+                    <i class="bi bi-tag me-1" aria-hidden="true"></i>{{ etiquette.nom }}
+                </label>
+            {% endfor %}
+        </div>
+        <input type="text" class="form-control" data-saisie-etiquette name="nouvelles_etiquettes" maxlength="300"
+               id="nouvelles-etiquettes-{{ champ_documents }}" list="suggestions-etiquettes-{{ champ_documents }}"
+               value="{{ nouvelles_etiquettes }}" autocomplete="off"
+               placeholder="{% translate "Ajouter des étiquettes, séparées par des virgules" %}">
+        <datalist id="suggestions-etiquettes-{{ champ_documents }}">
+            {% for proposition in propositions_etiquettes %}<option value="{{ proposition }}">{% endfor %}
+        </datalist>
+        {% if suggestions_etiquettes and not etiquettes_du_dossier %}
+            <div class="form-text">{% translate "Par exemple :" %} {{ suggestions_etiquettes|join:", " }}</div>
+        {% endif %}
+    </div>
+
     {# La couleur. Un évènement importé prend celle de son expéditeur — la    #}
     {# changer se fait pour tous ses évènements, sur la page Expéditeurs.     #}
     {% if event.expediteur %}
@@ -134,35 +165,6 @@ pointerait vers l'URL de la chronologie et non vers celle du formulaire.
 
     <h2 class="h5">{% translate "Documents existants" %}</h2>
 
-    {# Étiquettes : celles du dossier à cocher, de nouvelles à saisir. Le marqueur #}
-    {# dit au serveur que la section a été montrée (sinon il n'y touche pas).     #}
-    <div class="mb-3">
-        <input type="hidden" name="etiquettes_presentes" value="1">
-        <span class="form-label d-block">{% translate "Étiquettes" %}</span>
-        {% if etiquettes_du_dossier %}
-            <div class="d-flex flex-wrap gap-2 mb-2">
-                {% for etiquette in etiquettes_du_dossier %}
-                    <input type="checkbox" class="btn-check" name="etiquettes" value="{{ etiquette.pk }}"
-                           id="etiquette-{{ champ_documents }}-{{ etiquette.pk }}" autocomplete="off"
-                           {% if etiquette.pk in etiquettes_cochees %}checked{% endif %}>
-                    <label class="btn btn-sm btn-outline-secondary rounded-pill" for="etiquette-{{ champ_documents }}-{{ etiquette.pk }}">
-                        <i class="bi bi-tag me-1" aria-hidden="true"></i>{{ etiquette.nom }}
-                    </label>
-                {% endfor %}
-            </div>
-        {% endif %}
-        <input type="text" class="form-control" name="nouvelles_etiquettes" maxlength="300"
-               id="nouvelles-etiquettes-{{ champ_documents }}" list="suggestions-etiquettes-{{ champ_documents }}"
-               value="{{ nouvelles_etiquettes }}"
-               placeholder="{% translate "Ajouter des étiquettes, séparées par des virgules" %}"
-               aria-label="{% translate "Nouvelles étiquettes" %}">
-        <datalist id="suggestions-etiquettes-{{ champ_documents }}">
-            {% for suggestion in suggestions_etiquettes %}<option value="{{ suggestion }}">{% endfor %}
-        </datalist>
-        {% if suggestions_etiquettes %}
-            <div class="form-text">{% translate "Par exemple :" %} {{ suggestions_etiquettes|join:", " }}</div>
-        {% endif %}
-    </div>
 
     {% if event and event.pieces_affichees %}
         <ul class="list-group mb-4" data-document-list>

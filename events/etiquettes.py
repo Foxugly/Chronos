@@ -57,9 +57,13 @@ def contexte_du_formulaire(dossier, evenement, donnees=None):
         cochees = set(evenement.etiquettes.values_list("pk", flat=True)) if evenement and evenement.pk else set()
         nouvelles = ""
     noms = {e.nom.casefold() for e in existantes}
+    suggerees = [s for s in suggestions() if s.casefold() not in noms]
     return {
         "etiquettes_du_dossier": existantes,
         "etiquettes_cochees": cochees,
         "nouvelles_etiquettes": nouvelles,
-        "suggestions_etiquettes": [s for s in suggestions() if s.casefold() not in noms],
+        "suggestions_etiquettes": suggerees,
+        # L'autocomplétion du champ : d'abord les étiquettes du dossier, puis les
+        # suggestions qu'il n'a pas encore.
+        "propositions_etiquettes": [e.nom for e in existantes] + suggerees,
     }

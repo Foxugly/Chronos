@@ -142,6 +142,11 @@ number of `DossierAccess` rows granting another user `Role.READ` or `Role.WRITE`
    can add evidence; they cannot widen the circle that reads it. The owner also chooses a share
    link's role and its validity (unlimited is allowed) — `events/share_views.py` is a separate
    path that never reads `request.user` and bounds every query to `lien.dossier`.
+   After « Créer un lien » the share page opens with `?nouveau=<pk>` and shows that link first,
+   with a copy button (`_lien_tout_juste_cree`: bounded to the dossier, active links only). A
+   refused form re-renders with its errors (400), never silently — until 2026-10-11 the page did
+   not render the required `role` field, so every click was refused without a word. A test now
+   submits exactly what the page renders.
 
 **`events/permissions.py` is the single gate.** Six helpers — `get_dossier_for_read` /
 `_for_write`, `get_event_for_read` / `_for_write`, `get_document_for_read` / `_for_write` — each
@@ -529,7 +534,12 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   are expected. `UniqueConstraint(dossier, numero)`. Migration `0017` numbered the existing 77 in
   chronological order. The export uses these numbers (`pieces/012-…`), so a partial export has gaps.
 - **Tags** (`Etiquette`, per dossier, many-to-many with `Event`, `events/etiquettes.py`): ticked or
-  typed in the event form (case-insensitive reuse), filter `etiquette` in every view, shown in list,
+  typed in the event form (case-insensitive reuse), right after the description. The input
+  autocompletes the dossier's tags then the suggestions (`propositions_etiquettes`, a `datalist`);
+  with JavaScript (`equiperEtiquettes`) Enter, a comma or a pick adds it — an existing tag gets
+  ticked, a new one becomes a removable pill sent in a hidden `nouvelles_etiquettes` (also flushed
+  on submit, in capture phase, before the modal reads the form); without it, the comma-separated
+  text field, filter `etiquette` in every view, shown in list,
   detail and PDF export, renamed/deleted by the owner in Paramètres. The form posts a marker
   `etiquettes_presentes`; without it (direct POST) an event's tags are left untouched. Tags are part of
   `instantane()`, so tag changes are journaled like any field. Merging duplicates unions them.
@@ -711,7 +721,7 @@ left out — read `backlog.md` first, it is the most current of the four.
 « Relever les courriels » button, alias suffix), and on 2026-10-10 better reply/forward linking
 (Exchange `ATT` suites, every quoted block, content match for a forward whose header was lost) and
 `Event.destinataires`, back-filled in production by `relier_courriels --recalculer --appliquer`
-(26 replies and 4 forwards linked, 47 events with recipients). The suite is at **742 tests**, green,
+(26 replies and 4 forwards linked, 47 events with recipients). The suite is at **766 tests**, green,
 with no pending migrations (latest: `0023_cite_destinataires`). Delivered: a shared `base.html` with navbar and logout,
 `404.html` / `500.html`, the event form as a modal (page version kept as the no-JavaScript
 fallback), a Quill rich-text editor sanitised server-side by nh3 (`events/sanitize.py`), four views

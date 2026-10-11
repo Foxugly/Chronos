@@ -79,29 +79,58 @@ seul endroit où cela se décide.
                     Toute personne qui détient le lien consulte le dossier, sans
                     compte et sans que vous sachiez qui elle est. Un lien se
                     retransfère, se copie, se retrouve dans un historique de
-                    navigation. Il donne un accès en <strong>lecture seule</strong>
-                    et vous pouvez le couper à tout moment — mais vous ne pouvez
-                    pas reprendre ce qui a déjà été lu.
+                    navigation. Il donne le droit que vous choisissez — lecture, ou
+                    lecture et écriture — et vous pouvez le couper à tout moment, mais
+                    vous ne pouvez pas reprendre ce qui a déjà été lu.
                     {% endblocktranslate %}
                 </div>
 
+                {% if lien_cree %}
+                    {# Le lien tout juste créé, en tête : c'est lui qu'on vient chercher. #}
+                    {% url 'share_timeline' lien_cree.token as chemin_du_lien %}
+                    <div class="alert alert-success" data-lien-cree>
+                        <p class="mb-2">
+                            <i class="bi bi-check-circle me-1" aria-hidden="true"></i>
+                            <strong>{% translate "Votre lien est prêt." %}</strong>
+                            {% translate "Copiez-le et transmettez-le à son destinataire (par courriel, par exemple). Vous le retrouverez aussi plus bas, dans « Liens existants »." %}
+                        </p>
+                        <div class="input-group">
+                            <input type="text" readonly class="form-control font-monospace" aria-label="{% translate "Lien de consultation" %}"
+                                   value="{{ request.scheme }}://{{ request.get_host }}{{ chemin_du_lien }}">
+                            <button type="button" class="btn btn-success" data-copier="{{ request.scheme }}://{{ request.get_host }}{{ chemin_du_lien }}"
+                                    title="{% translate "Copier le lien" %}" aria-label="{% translate "Copier le lien" %}"><i class="bi bi-clipboard" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                {% endif %}
+
                 <form method="post" action="{% url 'share_link_create' dossier.pk %}">
                     {% csrf_token %}
+                    {% if share_link_form.non_field_errors %}
+                        <div class="alert alert-danger">{{ share_link_form.non_field_errors }}</div>
+                    {% endif %}
                     <div class="row g-3 align-items-end">
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <label class="form-label" for="{{ share_link_form.label.id_for_label }}">
                                 {{ share_link_form.label.label }}
                             </label>
                             {{ share_link_form.label }}
-                            <span class="form-text">{{ share_link_form.label.help_text }}</span>
+                            {{ share_link_form.label.errors }}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <label class="form-label" for="{{ share_link_form.role.id_for_label }}">
+                                {{ share_link_form.role.label }}
+                            </label>
+                            {{ share_link_form.role }}
+                            {{ share_link_form.role.errors }}
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label" for="{{ share_link_form.duree.id_for_label }}">
                                 {{ share_link_form.duree.label }}
                             </label>
                             {{ share_link_form.duree }}
+                            {{ share_link_form.duree.errors }}
                         </div>
-                        <div class="col-md-3 d-grid">
+                        <div class="col-md-2 d-grid">
                             <button type="submit" class="btn btn-outline-warning">
                                 <i class="bi bi-link-45deg me-1" aria-hidden="true"></i>{% translate "Créer un lien" %}
                             </button>
@@ -129,9 +158,14 @@ seul endroit où cela se décide.
                                             {% endif %}
                                         </span>
                                         {% if lien.is_active %}
-                                            <input type="text" readonly
-                                                   class="form-control form-control-sm font-monospace mt-2"
-                                                   value="{{ request.scheme }}://{{ request.get_host }}{% url 'share_timeline' lien.token %}">
+                                            {% url 'share_timeline' lien.token as chemin_du_lien %}
+                                            <div class="input-group input-group-sm mt-2">
+                                                <input type="text" readonly class="form-control font-monospace"
+                                                       aria-label="{% translate "Lien de consultation" %}"
+                                                       value="{{ request.scheme }}://{{ request.get_host }}{{ chemin_du_lien }}">
+                                                <button type="button" class="btn btn-outline-secondary" data-copier="{{ request.scheme }}://{{ request.get_host }}{{ chemin_du_lien }}"
+                                                        title="{% translate "Copier le lien" %}" aria-label="{% translate "Copier le lien" %}"><i class="bi bi-clipboard" aria-hidden="true"></i></button>
+                                            </div>
                                         {% endif %}
                                         <span class="d-block text-body-secondary small mt-1">
                                             {% blocktranslate with quand=lien.created_at|date:"SHORT_DATE_FORMAT" %}Créé le {{ quand }}{% endblocktranslate %}

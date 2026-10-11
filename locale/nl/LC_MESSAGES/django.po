@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 14:38+0200\n"
+"POT-Creation-Date: 2026-10-11 15:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -360,12 +360,12 @@ msgstr "E-mails"
 msgid "Bureautique"
 msgstr "Kantoordocumenten"
 
-#: .\events\filtres.py:308 .\events\models.py:49 .\events\models.py:164
+#: .\events\filtres.py:315 .\events\models.py:49 .\events\models.py:164
 #: .\events\models.py:959
 msgid "nom"
 msgstr "naam"
 
-#: .\events\filtres.py:310
+#: .\events\filtres.py:317
 msgid "texte"
 msgstr "tekst"
 
@@ -399,8 +399,8 @@ msgstr ""
 msgid "Par défaut"
 msgstr "Standaard"
 
-#: .\events\forms.py:124 .\events\templates\events\_event_form.html:105
-#: .\events\templates\events\_event_form.html:116
+#: .\events\forms.py:124 .\events\templates\events\_event_form.html:136
+#: .\events\templates\events\_event_form.html:147
 msgid "Couleur"
 msgstr "Kleur"
 
@@ -541,12 +541,12 @@ msgstr "dossier"
 msgid "dossiers"
 msgstr "dossiers"
 
-#: .\events\models.py:90 .\events\views\dossiers.py:255
+#: .\events\models.py:90 .\events\views\dossiers.py:254
 msgid "Lecture"
 msgstr "Lezen"
 
 #: .\events\models.py:91 .\events\templates\events\dossier_share.html:46
-#: .\events\templates\events\dossier_share.html:308
+#: .\events\templates\events\dossier_share.html:342
 #: .\events\templates\events\invitation_accept.html:36
 msgid "Lecture et écriture"
 msgstr "Lezen en schrijven"
@@ -698,11 +698,11 @@ msgstr "document"
 msgid "documents"
 msgstr "documenten"
 
-#: .\events\models.py:598 .\events\templates\events\dossier_share.html:231
+#: .\events\models.py:598 .\events\templates\events\dossier_share.html:265
 msgid "En attente"
 msgstr "In afwachting"
 
-#: .\events\models.py:599 .\events\templates\events\dossier_share.html:225
+#: .\events\models.py:599 .\events\templates\events\dossier_share.html:259
 msgid "Acceptée"
 msgstr "Aanvaard"
 
@@ -992,70 +992,69 @@ msgstr "Naam of tekst van het stuk…"
 msgid "Titre, description, pièce, texte d'un courriel…"
 msgstr "Titel, beschrijving, stuk, tekst van een e-mail…"
 
-#: .\events\templates\events\_barre_filtres.html:26
+#: .\events\templates\events\_barre_filtres.html:28
 msgid "Type"
 msgstr "Type"
 
-#: .\events\templates\events\_barre_filtres.html:28
 #: .\events\templates\events\_barre_filtres.html:38
-msgid "Tous"
-msgstr "Alle"
-
-#: .\events\templates\events\_barre_filtres.html:36
 #: .\events\templates\events\manquants.html:34
 msgid "Expéditeur"
 msgstr "Afzender"
 
-#: .\events\templates\events\_barre_filtres.html:42
+#: .\events\templates\events\_barre_filtres.html:40
+msgid "Tous"
+msgstr "Alle"
+
+#: .\events\templates\events\_barre_filtres.html:44
 #: .\events\templates\events\timeline.html:56
 msgid "Saisis à la main"
 msgstr "Handmatig ingevoerd"
 
-#: .\events\templates\events\_barre_filtres.html:47
+#: .\events\templates\events\_barre_filtres.html:49
 msgid "Étiquette"
 msgstr "Label"
 
-#: .\events\templates\events\_barre_filtres.html:49
+#: .\events\templates\events\_barre_filtres.html:51
 msgid "Toutes"
 msgstr "Alle"
 
-#: .\events\templates\events\_barre_filtres.html:57
+#: .\events\templates\events\_barre_filtres.html:59
 msgid "Depuis"
 msgstr "Vanaf"
 
-#: .\events\templates\events\_barre_filtres.html:66
+#: .\events\templates\events\_barre_filtres.html:68
 msgid "Jusqu'à"
 msgstr "Tot"
 
-#: .\events\templates\events\_barre_filtres.html:75
-#: .\events\templates\events\_barre_filtres.html:76
+#: .\events\templates\events\_barre_filtres.html:77
+#: .\events\templates\events\_barre_filtres.html:78
 msgid "Filtrer"
 msgstr "Filteren"
 
-#: .\events\templates\events\_barre_filtres.html:83
+#: .\events\templates\events\_barre_filtres.html:85
 #, python-format
 msgid "%(n)s pièce sur %(total)s"
 msgid_plural "%(n)s pièces sur %(total)s"
 msgstr[0] "%(n)s stuk van %(total)s"
 msgstr[1] "%(n)s stukken van %(total)s"
 
-#: .\events\templates\events\_barre_filtres.html:91
-#: .\events\templates\events\_barre_filtres.html:108
+#: .\events\templates\events\_barre_filtres.html:93
+#: .\events\templates\events\_barre_filtres.html:110
 msgid "Effacer les filtres"
 msgstr "Filters wissen"
 
-#: .\events\templates\events\_barre_filtres.html:95
+#: .\events\templates\events\_barre_filtres.html:97
 msgid "Aucune pièce ne correspond à ces critères."
 msgstr "Geen enkel stuk voldoet aan deze criteria."
 
-#: .\events\templates\events\_barre_filtres.html:100
+#: .\events\templates\events\_barre_filtres.html:102
 #, python-format
 msgid "%(n)s évènement sur %(total)s"
 msgid_plural "%(n)s évènements sur %(total)s"
 msgstr[0] "%(n)s gebeurtenis van %(total)s"
 msgstr[1] "%(n)s gebeurtenissen van %(total)s"
 
-#: .\events\templates\events\_barre_filtres.html:112
+#: .\events\templates\events\_barre_filtres.html:114
 msgid "Aucun évènement ne correspond à ces critères."
 msgstr "Geen enkele gebeurtenis voldoet aan deze criteria."
 
@@ -1115,15 +1114,15 @@ msgstr ""
 "vingerafdruk van elk verwijderd stuk."
 
 #: .\events\templates\events\_confirmer_suppression.html:53
-#: .\events\templates\events\_event_form.html:230
-#: .\events\templates\events\dossier_share.html:251
+#: .\events\templates\events\_event_form.html:232
+#: .\events\templates\events\dossier_share.html:285
 msgid "Annuler"
 msgstr "Annuleren"
 
 #: .\events\templates\events\_confirmer_suppression.html:54
 #: .\events\templates\events\_detail_evenement.html:49
 #: .\events\templates\events\parametres.html:70
-#: .\events\templates\events\vue_liste.html:86
+#: .\events\templates\events\vue_liste.html:159
 msgid "Supprimer"
 msgstr "Verwijderen"
 
@@ -1133,7 +1132,7 @@ msgid "Importé par courriel — de %(nom)s (%(adresse)s)"
 msgstr "Geïmporteerd per e-mail — van %(nom)s (%(adresse)s)"
 
 #: .\events\templates\events\_detail_evenement.html:33
-#: .\events\templates\events\vue_liste.html:93
+#: .\events\templates\events\vue_liste.html:94
 msgid "Destinataires :"
 msgstr "Geadresseerden:"
 
@@ -1142,27 +1141,27 @@ msgid "Afficher en pleine page"
 msgstr "Op volledige pagina tonen"
 
 #: .\events\templates\events\_detail_evenement.html:47
-#: .\events\templates\events\vue_liste.html:82
+#: .\events\templates\events\vue_liste.html:155
 msgid "Modifier"
 msgstr "Bewerken"
 
 #: .\events\templates\events\_detail_evenement.html:58
-#: .\events\templates\events\vue_liste.html:100
+#: .\events\templates\events\vue_liste.html:101
 msgid "Transfert de :"
 msgstr "Doorgestuurd van:"
 
 #: .\events\templates\events\_detail_evenement.html:63
-#: .\events\templates\events\vue_liste.html:106
+#: .\events\templates\events\vue_liste.html:107
 msgid "Transféré ensuite :"
 msgstr "Later doorgestuurd:"
 
 #: .\events\templates\events\_detail_evenement.html:68
-#: .\events\templates\events\vue_liste.html:112
+#: .\events\templates\events\vue_liste.html:113
 msgid "En réponse à :"
 msgstr "Antwoord op:"
 
 #: .\events\templates\events\_detail_evenement.html:73
-#: .\events\templates\events\vue_liste.html:118
+#: .\events\templates\events\vue_liste.html:119
 msgid "Réponse :"
 msgstr "Antwoord:"
 
@@ -1264,6 +1263,7 @@ msgid "Importé par courriel — de %(nom)s"
 msgstr "Geïmporteerd per e-mail — van %(nom)s"
 
 #: .\events\templates\events\_doublon_cote.html:20
+#: .\events\templates\events\vue_liste.html:83
 msgid "Saisi à la main"
 msgstr "Handmatig ingevoerd"
 
@@ -1379,60 +1379,57 @@ msgstr "Einduur"
 msgid "Description"
 msgstr "Beschrijving"
 
-#: .\events\templates\events\_event_form.html:107
-#, python-format
-msgid "celle de l'expéditeur %(nom)s"
-msgstr "die van de afzender %(nom)s"
-
-#: .\events\templates\events\_event_form.html:111
-msgid "la changer"
-msgstr "wijzigen"
-
-#: .\events\templates\events\_event_form.html:136
-msgid "Documents existants"
-msgstr "Bestaande documenten"
-
-#: .\events\templates\events\_event_form.html:142
+#: .\events\templates\events\_event_form.html:109
 #: .\events\templates\events\parametres.html:47
 msgid "Étiquettes"
 msgstr "Labels"
 
-#: .\events\templates\events\_event_form.html:158
+#: .\events\templates\events\_event_form.html:123
 msgid "Ajouter des étiquettes, séparées par des virgules"
 msgstr "Labels toevoegen, gescheiden door komma's"
 
-#: .\events\templates\events\_event_form.html:159
-msgid "Nouvelles étiquettes"
-msgstr "Nieuwe labels"
-
-#: .\events\templates\events\_event_form.html:164
+#: .\events\templates\events\_event_form.html:128
 msgid "Par exemple :"
 msgstr "Bijvoorbeeld:"
 
-#: .\events\templates\events\_event_form.html:178
+#: .\events\templates\events\_event_form.html:138
+#, python-format
+msgid "celle de l'expéditeur %(nom)s"
+msgstr "die van de afzender %(nom)s"
+
+#: .\events\templates\events\_event_form.html:142
+msgid "la changer"
+msgstr "wijzigen"
+
+#: .\events\templates\events\_event_form.html:167
+msgid "Documents existants"
+msgstr "Bestaande documenten"
+
+#: .\events\templates\events\_event_form.html:180
 #: .\events\templates\events\_event_form_js.html:29
+#: .\events\templates\events\_event_form_js.html:671
 msgid "Retirer"
 msgstr "Verwijderen"
 
-#: .\events\templates\events\_event_form.html:184
+#: .\events\templates\events\_event_form.html:186
 msgid "Aucun document."
 msgstr "Geen documenten."
 
-#: .\events\templates\events\_event_form.html:198
+#: .\events\templates\events\_event_form.html:200
 msgid "Ajouter des documents"
 msgstr "Documenten toevoegen"
 
-#: .\events\templates\events\_event_form.html:215
+#: .\events\templates\events\_event_form.html:217
 #, python-format
 msgid "Glissez les fichiers ici, ou %(debut)sparcourez%(fin)s."
 msgstr "Sleep de bestanden hierheen, of %(debut)sblader%(fin)s."
 
-#: .\events\templates\events\_event_form.html:219
+#: .\events\templates\events\_event_form.html:221
 #, python-format
 msgid "%(extensions)s — %(taille)s Mo maximum par fichier."
 msgstr "%(extensions)s — maximaal %(taille)s MB per bestand."
 
-#: .\events\templates\events\_event_form.html:231
+#: .\events\templates\events\_event_form.html:233
 #: .\events\templates\events\_expediteurs.html:40
 #: .\events\templates\events\parametres.html:38
 msgid "Enregistrer"
@@ -1490,6 +1487,10 @@ msgstr "Het loskoppelen is mislukt. Het stuk is er nog."
 #: .\events\templates\events\_event_form_js.html:38
 msgid "Décrivez l'évènement…"
 msgstr "Beschrijf de gebeurtenis…"
+
+#: .\events\templates\events\_event_form_js.html:630
+msgid "Ajouter une étiquette…"
+msgstr "Label toevoegen…"
 
 #: .\events\templates\events\_expediteurs.html:9
 msgid ""
@@ -1615,7 +1616,7 @@ msgid "Personnes ayant accès"
 msgstr "Personen met toegang"
 
 #: .\events\templates\events\dossier_share.html:34
-#: .\events\views\dossiers.py:254
+#: .\events\views\dossiers.py:253
 msgid "Propriétaire"
 msgstr "Eigenaar"
 
@@ -1624,7 +1625,7 @@ msgid "Ne peut pas être retiré"
 msgstr "Kan niet worden verwijderd"
 
 #: .\events\templates\events\dossier_share.html:48
-#: .\events\templates\events\dossier_share.html:300
+#: .\events\templates\events\dossier_share.html:334
 #: .\events\templates\events\invitation_accept.html:45
 msgid "Lecture seule"
 msgstr "Alleen lezen"
@@ -1635,7 +1636,7 @@ msgid "Accordé le %(quand)s"
 msgstr "Toegekend op %(quand)s"
 
 #: .\events\templates\events\dossier_share.html:52
-#: .\events\templates\events\dossier_share.html:236
+#: .\events\templates\events\dossier_share.html:270
 #: .\events\templates\events\journal.html:63
 #, python-format
 msgid "par %(nom)s"
@@ -1661,75 +1662,97 @@ msgstr "Dit is de enige anonieme toegang van de toepassing."
 msgid ""
 "Toute personne qui détient le lien consulte le dossier, sans compte et sans "
 "que vous sachiez qui elle est. Un lien se retransfère, se copie, se retrouve "
-"dans un historique de navigation. Il donne un accès en <strong>lecture "
-"seule</strong> et vous pouvez le couper à tout moment — mais vous ne pouvez "
-"pas reprendre ce qui a déjà été lu."
+"dans un historique de navigation. Il donne le droit que vous choisissez — "
+"lecture, ou lecture et écriture — et vous pouvez le couper à tout moment, "
+"mais vous ne pouvez pas reprendre ce qui a déjà été lu."
 msgstr ""
 "Iedereen die de link heeft, kan het dossier raadplegen, zonder account en "
 "zonder dat u weet wie het is. Een link kan worden doorgestuurd of gekopieerd "
-"en kan in een browsergeschiedenis belanden. Hij geeft enkel "
-"<strong>leestoegang</strong> en u kunt hem op elk moment intrekken — maar "
+"en kan in een browsergeschiedenis belanden. Hij geeft het recht dat u kiest "
+"— lezen, of lezen en schrijven — en u kunt hem op elk moment intrekken, maar "
 "wat al gelezen is, kunt u niet terugnemen."
 
-#: .\events\templates\events\dossier_share.html:106
+#: .\events\templates\events\dossier_share.html:94
+msgid "Votre lien est prêt."
+msgstr "Uw link is klaar."
+
+#: .\events\templates\events\dossier_share.html:95
+msgid ""
+"Copiez-le et transmettez-le à son destinataire (par courriel, par exemple). "
+"Vous le retrouverez aussi plus bas, dans « Liens existants »."
+msgstr ""
+"Kopieer hem en bezorg hem aan de ontvanger (bijvoorbeeld per e-mail). U "
+"vindt hem ook hieronder terug, bij ‘Bestaande links’."
+
+#: .\events\templates\events\dossier_share.html:98
+#: .\events\templates\events\dossier_share.html:164
+msgid "Lien de consultation"
+msgstr "Raadplegingslink"
+
+#: .\events\templates\events\dossier_share.html:101
+#: .\events\templates\events\dossier_share.html:167
+msgid "Copier le lien"
+msgstr "Link kopiëren"
+
+#: .\events\templates\events\dossier_share.html:135
 msgid "Créer un lien"
 msgstr "Link aanmaken"
 
-#: .\events\templates\events\dossier_share.html:114
+#: .\events\templates\events\dossier_share.html:143
 msgid "Liens existants"
 msgstr "Bestaande links"
 
-#: .\events\templates\events\dossier_share.html:121
+#: .\events\templates\events\dossier_share.html:150
 msgid "Sans destinataire noté"
 msgstr "Geen ontvanger genoteerd"
 
-#: .\events\templates\events\dossier_share.html:124
+#: .\events\templates\events\dossier_share.html:153
 msgid "Révoqué"
 msgstr "Ingetrokken"
 
-#: .\events\templates\events\dossier_share.html:126
+#: .\events\templates\events\dossier_share.html:155
 msgid "Expiré"
 msgstr "Vervallen"
 
-#: .\events\templates\events\dossier_share.html:128
+#: .\events\templates\events\dossier_share.html:157
 msgid "Actif"
 msgstr "Actief"
 
-#: .\events\templates\events\dossier_share.html:137
+#: .\events\templates\events\dossier_share.html:171
 #, python-format
 msgid "Créé le %(quand)s"
 msgstr "Aangemaakt op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:139
+#: .\events\templates\events\dossier_share.html:173
 #, python-format
 msgid "expire le %(quand)s"
 msgstr "vervalt op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:141
+#: .\events\templates\events\dossier_share.html:175
 msgid "sans expiration"
 msgstr "zonder vervaldatum"
 
-#: .\events\templates\events\dossier_share.html:143
+#: .\events\templates\events\dossier_share.html:177
 #, python-format
 msgid "consulté %(n)s fois"
 msgid_plural "consulté %(n)s fois"
 msgstr[0] "%(n)s keer geraadpleegd"
 msgstr[1] "%(n)s keer geraadpleegd"
 
-#: .\events\templates\events\dossier_share.html:145
+#: .\events\templates\events\dossier_share.html:179
 #, python-format
 msgid "dernier accès le %(quand)s"
 msgstr "laatste toegang op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:155
+#: .\events\templates\events\dossier_share.html:189
 msgid "Révoquer"
 msgstr "Intrekken"
 
-#: .\events\templates\events\dossier_share.html:169
+#: .\events\templates\events\dossier_share.html:203
 msgid "Inviter par courriel"
 msgstr "Uitnodigen per e-mail"
 
-#: .\events\templates\events\dossier_share.html:172
+#: .\events\templates\events\dossier_share.html:206
 msgid ""
 "L'invitation part par courriel et contient un lien. <strong>Qui détient ce "
 "lien peut s'en servir</strong>, avec le compte sous lequel il est connecté : "
@@ -1741,45 +1764,45 @@ msgstr ""
 "aangemeld: een e-mail kan worden doorgestuurd. Voor iemand van wie u het "
 "account al kent, is de rechtstreekse toekenning hieronder veiliger."
 
-#: .\events\templates\events\dossier_share.html:211
+#: .\events\templates\events\dossier_share.html:245
 msgid "Inviter"
 msgstr "Uitnodigen"
 
-#: .\events\templates\events\dossier_share.html:218
+#: .\events\templates\events\dossier_share.html:252
 msgid "Invitations émises"
 msgstr "Verstuurde uitnodigingen"
 
-#: .\events\templates\events\dossier_share.html:227
+#: .\events\templates\events\dossier_share.html:261
 msgid "Annulée"
 msgstr "Geannuleerd"
 
-#: .\events\templates\events\dossier_share.html:229
+#: .\events\templates\events\dossier_share.html:263
 msgid "Expirée"
 msgstr "Vervallen"
 
-#: .\events\templates\events\dossier_share.html:235
+#: .\events\templates\events\dossier_share.html:269
 #, python-format
 msgid "Acceptée le %(quand)s"
 msgstr "Aanvaard op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:238
+#: .\events\templates\events\dossier_share.html:272
 #, python-format
 msgid "Émise le %(emise)s, expire le %(expire)s"
 msgstr "Verstuurd op %(emise)s, vervalt op %(expire)s"
 
-#: .\events\templates\events\dossier_share.html:264
+#: .\events\templates\events\dossier_share.html:298
 msgid "Donner accès à un compte existant"
 msgstr "Toegang geven aan een bestaand account"
 
-#: .\events\templates\events\dossier_share.html:290
+#: .\events\templates\events\dossier_share.html:324
 msgid "Accorder"
 msgstr "Toekennen"
 
-#: .\events\templates\events\dossier_share.html:297
+#: .\events\templates\events\dossier_share.html:331
 msgid "Ce que chaque droit permet"
 msgstr "Wat elk recht toelaat"
 
-#: .\events\templates\events\dossier_share.html:301
+#: .\events\templates\events\dossier_share.html:335
 msgid ""
 "consulter la chronologie, les évènements et les pièces. Aucune modification, "
 "aucun retrait, aucun ajout."
@@ -1787,7 +1810,7 @@ msgstr ""
 "de chronologie, de gebeurtenissen en de stukken raadplegen. Geen wijziging, "
 "geen verwijdering, geen toevoeging."
 
-#: .\events\templates\events\dossier_share.html:309
+#: .\events\templates\events\dossier_share.html:343
 msgid ""
 "tout ce qui précède, plus créer et modifier des évènements, ajouter des "
 "pièces et en retirer. Ne permet pas de partager le dossier : vous seul "
@@ -1797,7 +1820,7 @@ msgstr ""
 "en verwijderen. Het dossier delen kan niet: alleen u beslist wie er toegang "
 "toe heeft."
 
-#: .\events\templates\events\dossier_share.html:319
+#: .\events\templates\events\dossier_share.html:353
 msgid ""
 "Tous les comptes existants ont déjà accès à ce dossier. Les comptes se "
 "créent dans l'administration."
@@ -2199,13 +2222,13 @@ msgid "Documents — %(nom)s"
 msgstr "Stukken — %(nom)s"
 
 #: .\events\templates\events\vue_documents.html:29
-#: .\events\templates\events\vue_liste.html:49
+#: .\events\templates\events\vue_liste.html:56
 #, python-format
 msgid "Imprimé le %(quand)s."
 msgstr "Afgedrukt op %(quand)s."
 
 #: .\events\templates\events\vue_documents.html:31
-#: .\events\templates\events\vue_liste.html:51
+#: .\events\templates\events\vue_liste.html:58
 #, python-format
 msgid "Sélection : %(criteres)s."
 msgstr "Selectie: %(criteres)s."
@@ -2223,23 +2246,23 @@ msgid "Déposée le"
 msgstr "Toegevoegd op"
 
 #: .\events\templates\events\vue_documents.html:58
-#: .\events\templates\events\vue_liste.html:126
+#: .\events\templates\events\vue_liste.html:127
 msgid "Trouvé dans :"
 msgstr "Gevonden in:"
 
-#: .\events\templates\events\vue_documents.html:70
+#: .\events\templates\events\vue_documents.html:72
 msgid "aucun évènement"
 msgstr "geen gebeurtenis"
 
-#: .\events\templates\events\vue_documents.html:83
+#: .\events\templates\events\vue_documents.html:85
 msgid "Ce dossier ne contient encore aucune pièce."
 msgstr "Dit dossier bevat nog geen enkel stuk."
 
-#: .\events\templates\events\vue_liste.html:78
+#: .\events\templates\events\vue_liste.html:151
 msgid "Voir"
 msgstr "Bekijken"
 
-#: .\events\templates\events\vue_liste.html:151
+#: .\events\templates\events\vue_liste.html:167
 msgid "Ce dossier ne contient encore aucun évènement."
 msgstr "Dit dossier bevat nog geen gebeurtenissen."
 
@@ -2282,7 +2305,7 @@ msgstr "Stukken"
 msgid "Semaine du %(date)s"
 msgstr "Week van %(date)s"
 
-#: .\events\views\dossiers.py:255
+#: .\events\views\dossiers.py:254
 msgid "Écriture"
 msgstr "Schrijven"
 
@@ -2418,17 +2441,17 @@ msgstr "Ongeldige kleur voor %(nom)s."
 msgid "Accès accordé à %(compte)s (%(droit)s)."
 msgstr "Toegang toegekend aan %(compte)s (%(droit)s)."
 
-#: .\events\views\partage.py:84
+#: .\events\views\partage.py:101
 #, python-format
 msgid "Accès retiré à %(compte)s."
 msgstr "Toegang ingetrokken voor %(compte)s."
 
-#: .\events\views\partage.py:111
+#: .\events\views\partage.py:128
 #, python-format
 msgid "Accès au dossier « %(dossier)s »"
 msgstr "Toegang tot het dossier ‘%(dossier)s’"
 
-#: .\events\views\partage.py:115
+#: .\events\views\partage.py:132
 #, python-format
 msgid ""
 "%(auteur)s vous donne accès au dossier « %(dossier)s ».\n"
@@ -2449,30 +2472,22 @@ msgstr ""
 "\n"
 "Deze link vervalt op %(date)s. Hij kan maar één keer worden gebruikt.\n"
 
-#: .\events\views\partage.py:155
+#: .\events\views\partage.py:172
 #, python-format
 msgid "Invitation envoyée à %(email)s. Elle expire le %(date)s."
 msgstr "Uitnodiging verstuurd naar %(email)s. Ze vervalt op %(date)s."
 
-#: .\events\views\partage.py:195
+#: .\events\views\partage.py:200
 #, python-format
 msgid "Invitation annulée pour %(email)s."
 msgstr "Uitnodiging geannuleerd voor %(email)s."
 
-#: .\events\views\partage.py:235
+#: .\events\views\partage.py:240
 #, python-format
 msgid "Vous avez désormais accès au dossier « %(dossier)s »."
 msgstr "U hebt nu toegang tot het dossier ‘%(dossier)s’."
 
-#: .\events\views\partage.py:272
-msgid ""
-"Lien créé. Toute personne qui le détient pourra consulter ce dossier, sans "
-"compte et sans trace nominative."
-msgstr ""
-"Link aangemaakt. Iedereen die hem heeft, kan dit dossier raadplegen, zonder "
-"account en zonder dat zijn naam wordt geregistreerd."
-
-#: .\events\views\partage.py:293
+#: .\events\views\partage.py:300
 msgid "Lien révoqué. Il ne donne plus accès à rien."
 msgstr "Link ingetrokken. Hij geeft geen toegang meer."
 

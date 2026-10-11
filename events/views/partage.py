@@ -49,21 +49,38 @@ def dossier_share(request, dossier_id):
     else:
         form = DossierAccessForm(dossier=dossier)
 
-    return render(
-        request,
-        "events/dossier_share.html",
-        {
-            "dossier": dossier,
-            "form": form,
-            "invitation_form": InvitationForm(dossier=dossier),
-            "accesses": dossier.accesses.select_related(
-                "user", "granted_by"
-            ).order_by("user__username"),
-            "invitations": dossier.invitations.select_related("created_by"),
-            "share_link_form": ShareLinkForm(),
-            "share_links": dossier.share_links.all(),
-        },
-    )
+    return render(request, "events/dossier_share.html", _contexte_du_partage(
+        request, dossier, form=form, lien_cree=_lien_tout_juste_cree(request, dossier)))
+
+
+def _contexte_du_partage(request, dossier, **surcharges):
+    """Ce que montre l'écran de partage ; `surcharges` remplace un formulaire
+    (celui qui revient avec ses erreurs) ou ajoute le lien tout juste créé."""
+    contexte = {
+        "dossier": dossier,
+        "form": DossierAccessForm(dossier=dossier),
+        "invitation_form": InvitationForm(dossier=dossier),
+        "accesses": dossier.accesses.select_related(
+            "user", "granted_by"
+        ).order_by("user__username"),
+        "invitations": dossier.invitations.select_related("created_by"),
+        "share_link_form": ShareLinkForm(),
+        "share_links": dossier.share_links.all(),
+    }
+    contexte.update(surcharges)
+    return contexte
+
+
+def _lien_tout_juste_cree(request, dossier):
+    """Le lien que `share_link_create` vient d'émettre (`?nouveau=<pk>`), pour le
+    montrer en tête avec son bouton « Copier ». Borné au dossier, et seulement
+    s'il est encore actif : un identifiant d'ailleurs, ou d'un lien coupé, ne
+    montre rien."""
+    valeur = request.GET.get("nouveau", "")
+    if not valeur.isdigit():
+        return None
+    lien = dossier.share_links.filter(pk=int(valeur)).first()
+    return lien if lien is not None and lien.is_active else None
 
 
 def dossier_access_revoke(request, dossier_id, access_id):
@@ -160,20 +177,8 @@ def dossier_invite(request, dossier_id):
         )
         return redirect("dossier_share", dossier_id=dossier.pk)
 
-    return render(
-        request,
-        "events/dossier_share.html",
-        {
-            "dossier": dossier,
-            "form": DossierAccessForm(dossier=dossier),
-            "invitation_form": form,
-            "accesses": dossier.accesses.select_related(
-                "user", "granted_by"
-            ).order_by("user__username"),
-            "invitations": dossier.invitations.select_related("created_by"),
-        },
-        status=400,
-    )
+    return render(request, "events/dossier_share.html",
+                  _contexte_du_partage(request, dossier, invitation_form=form), status=400)
 
 
 def invitation_revoke(request, dossier_id, invitation_id):
@@ -252,28 +257,30 @@ def share_link_create(request, dossier_id):
         return redirect("dossier_share", dossier_id=dossier.pk)
 
     form = ShareLinkForm(request.POST)
-    if form.is_valid():
-        lien = form.save(commit=False)
-        lien.dossier = dossier
-        lien.created_by = request.user
-        lien.expires_at = form.expiration()
-        lien.save()
-        consigner(
-            dossier, Journal.Action.LIEN_CREE, request=request, lien=lien,
-            objet=lien.label,
-            details={
-                "role": lien.role,
-                "expire": lien.expires_at.isoformat() if lien.expires_at else None,
-            },
-        )
-        messages.success(
-            request,
-            _(
-                "Lien créé. Toute personne qui le détient pourra consulter ce "
-                "dossier, sans compte et sans trace nominative."
-            ),
-        )
-    return redirect("dossier_share", dossier_id=dossier.pk)
+    if not form.is_valid():
+        # Jamais en silence : avant, un champ manquant renvoyait sur la page
+        # sans un mot, et l'on croyait le lien créé.
+        for nom in form.errors:
+            if nom in form.fields:
+                classes = form.fields[nom].widget.attrs.get("class", "")
+                form.fields[nom].widget.attrs["class"] = (classes + " is-invalid").strip()
+        return render(request, "events/dossier_share.html",
+                      _contexte_du_partage(request, dossier, share_link_form=form), status=400)
+    lien = form.save(commit=False)
+    lien.dossier = dossier
+    lien.created_by = request.user
+    lien.expires_at = form.expiration()
+    lien.save()
+    consigner(
+        dossier, Journal.Action.LIEN_CREE, request=request, lien=lien,
+        objet=lien.label,
+        details={
+            "role": lien.role,
+            "expire": lien.expires_at.isoformat() if lien.expires_at else None,
+        },
+    )
+    # Le lien s'affiche en tête de la page, prêt à copier (`_lien_tout_juste_cree`).
+    return redirect("%s?nouveau=%d" % (reverse("dossier_share", args=[dossier.pk]), lien.pk))
 
 
 def share_link_revoke(request, dossier_id, link_id):

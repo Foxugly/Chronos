@@ -610,10 +610,113 @@ regarde le moins qui garderait le défaut.
         });
     }
 
+    // Étiquettes : le champ propose celles du dossier (liste `datalist`). Entrée,
+    // une virgule ou un choix dans la liste ajoute l'étiquette : celle du dossier
+    // de même nom (sans tenir compte des majuscules) est cochée ; sinon une
+    // pastille « nouvelle » apparaît, que l'on peut retirer. Les nouvelles partent
+    // dans un champ caché `nouvelles_etiquettes`, séparées par des virgules — ce
+    // que le serveur lit déjà sans JavaScript. Tout passe par `textContent`.
+    function equiperEtiquettes(formulaire) {
+        const bloc = formulaire.querySelector("[data-etiquettes]");
+        const champ = bloc && bloc.querySelector("[data-saisie-etiquette]");
+        const pastilles = bloc && bloc.querySelector("[data-pastilles-etiquettes]");
+        if (!champ || !pastilles) {
+            return;
+        }
+        const cache = document.createElement("input");
+        cache.type = "hidden";
+        cache.name = "nouvelles_etiquettes";
+        champ.removeAttribute("name");
+        champ.placeholder = "{{ _("Ajouter une étiquette…")|escapejs }}";
+        champ.after(cache);
+        const nouvelles = [];
+
+        function cle(texte) {
+            return texte.toLocaleLowerCase();
+        }
+        function normaliser(texte) {
+            return texte.split(/\s+/).filter(Boolean).join(" ").slice(0, 60);
+        }
+        function synchroniser() {
+            cache.value = nouvelles.join(",");
+        }
+        function ajouter(texte) {
+            const nom = normaliser(texte || "");
+            if (!nom) {
+                return;
+            }
+            const existante = Array.from(bloc.querySelectorAll("input[name=etiquettes]")).find(function (c) {
+                return cle(c.dataset.nom || "") === cle(nom);
+            });
+            if (existante) {
+                existante.checked = true;
+                return;
+            }
+            if (nouvelles.some(function (n) { return cle(n) === cle(nom); })) {
+                return;
+            }
+            nouvelles.push(nom);
+            synchroniser();
+            const pastille = document.createElement("span");
+            pastille.className = "btn btn-sm btn-secondary rounded-pill d-inline-flex align-items-center gap-1";
+            const icone = document.createElement("i");
+            icone.className = "bi bi-tag";
+            icone.setAttribute("aria-hidden", "true");
+            const libelle = document.createElement("span");
+            libelle.textContent = nom;
+            const retirer = document.createElement("button");
+            retirer.type = "button";
+            retirer.className = "btn-close btn-close-white ms-1";
+            retirer.style.fontSize = ".6rem";
+            retirer.setAttribute("aria-label", "{{ _("Retirer")|escapejs }} " + nom);
+            retirer.addEventListener("click", function () {
+                const rang = nouvelles.findIndex(function (n) { return cle(n) === cle(nom); });
+                if (rang >= 0) {
+                    nouvelles.splice(rang, 1);
+                }
+                synchroniser();
+                pastille.remove();
+                champ.focus();
+            });
+            pastille.append(icone, libelle, retirer);
+            pastilles.append(pastille);
+        }
+        function valider() {
+            champ.value.split(",").forEach(ajouter);
+            champ.value = "";
+        }
+
+        // Ce que le serveur a renvoyé (formulaire refusé) redevient des pastilles.
+        valider();
+        champ.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === ",") {
+                e.preventDefault();
+                valider();
+            } else if (e.key === "Backspace" && !champ.value && nouvelles.length) {
+                const derniere = pastilles.lastElementChild;
+                if (derniere && derniere.tagName === "SPAN") {
+                    derniere.querySelector("button").click();
+                }
+            }
+        });
+        // Un choix dans la liste proposée arrive en un seul « input » complet.
+        champ.addEventListener("input", function (e) {
+            if (!e.inputType || e.inputType === "insertReplacementText") {
+                valider();
+            }
+        });
+        // Ce qui reste tapé quand on quitte le champ compte aussi…
+        champ.addEventListener("change", valider);
+        // … et quand on enregistre : en phase de capture, donc avant l'envoi du
+        // modal (`_formulaire_modal_js.html`), qui lit le formulaire à ce moment-là.
+        formulaire.addEventListener("submit", valider, true);
+    }
+
     function equiperFormulaire(formulaire) {
         if (!formulaire) {
             return;
         }
+        equiperEtiquettes(formulaire);
         equiperDates(formulaire);
         equiperPrecision(formulaire);
         equiperEditeurRiche(formulaire);
