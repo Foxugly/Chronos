@@ -28,8 +28,16 @@ def _sans_accents(texte):
     return "".join(c for c in unicodedata.normalize("NFKD", texte or "") if not unicodedata.combining(c))
 
 
+#: Le titre que l'import donne à un courriel sans objet (`courriels.nettoyer_titre`).
+#: Le bloc cité par une réponse, lui, a une ligne « Objet : » vide : comparés, les
+#: deux sont le même objet — vide. Sans cela, aucune réponse ne se reliait à un
+#: courriel sans objet, compté de plus comme manquant.
+SANS_OBJET = "(sans objet)"
+
+
 def objet_normalise(objet):
-    return " ".join(_sans_accents(PREFIXES.sub("", objet or "")).lower().split())
+    objet = " ".join(_sans_accents(PREFIXES.sub("", objet or "")).lower().split())
+    return "" if objet == SANS_OBJET else objet
 
 
 def adresse_de(texte):

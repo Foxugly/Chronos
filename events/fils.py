@@ -21,10 +21,6 @@ from .import_courriels import citation_de_trace, empreinte_de_trace
 from .liens import objet_normalise
 from .models import CourrielImporte, Event
 
-#: Ce que l'import met à la place d'un objet vide : pas un fil.
-SANS_OBJET = objet_normalise("(sans objet)")
-
-
 def _traces(dossier_id):
     return list(
         CourrielImporte.objects.filter(dossier_id=dossier_id, evenement__isnull=False)
@@ -40,7 +36,8 @@ def fil_de_discussion(event):
         .values_list("evenement_id", flat=True)
     )
     objet = objet_normalise(event.title)
-    if event.pk not in importes or not objet or objet == SANS_OBJET:
+    # Un objet vide — « (sans objet) » compris — ne fait pas un fil.
+    if event.pk not in importes or not objet:
         return []
     return [
         autre for autre in Event.objects.filter(dossier_id=event.dossier_id, pk__in=importes)

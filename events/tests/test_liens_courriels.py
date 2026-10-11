@@ -403,3 +403,56 @@ class TransfertSansEnTeteTests(MediaMixin, TestCase):
             recu="Thu, 27 Aug 2026 12:00:00 +0000", message_id="<fw2@x>").as_bytes()))
         self.assertIsNone(transfere_par_contenu(transfert, "Merci, bien reçu."))
         self.assertNotEqual(court, transfert)
+
+
+def photos_sans_objet():
+    """Un courriel envoyé sans objet : l'import l'intitule « (sans objet) »."""
+    return courriel("", "Voici les photos du carrelage.", de=MOI, a=ACME_BAT,
+                    recu="Wed, 07 Oct 2026 08:02:00 +0000", message_id="<photos@exemple.be>").as_bytes()
+
+
+def reponse_aux_photos_sans_objet():
+    """Sa réponse : le bloc cité a une ligne « Objet : » vide."""
+    texte = ("Bien reçu, je passe demain.\n\n"
+             "De : Jean <jdupont@exemple.be>\n"
+             "Envoyé : mercredi 7 octobre 2026 10:00\n"
+             "À : ACME Bat <contact@acme-bat.example>\n"
+             "Objet : \n\n"
+             "Voici les photos du carrelage.\n")
+    return courriel("RE: ", texte, de=ACME_BAT, a=MOI,
+                    recu="Wed, 07 Oct 2026 12:30:00 +0000", message_id="<rep-photos@acme-bat.example>").as_bytes()
+
+
+class CourrielSansObjetTests(MediaMixin, TestCase):
+    """« (sans objet) » est le titre que l'import donne à un objet vide : pour les
+    comparer, les deux sont le même objet — vide."""
+
+    def setUp(self):
+        self.dossier = make_dossier(make_user("owner"), name="ACMEBAT")
+        self.dossier.alias_courriel = ALIAS
+        self.dossier.save()
+
+    def importer(self, octets):
+        return importer_couches(self.dossier, analyser_en_couches(octets, ignorer=[ALIAS]))
+
+    def test_objet_normalise(self):
+        self.assertEqual(objet_normalise("(sans objet)"), "")
+        self.assertEqual(objet_normalise("RE: (sans objet)"), "")
+
+    def test_la_reponse_se_relie_au_courriel_sans_objet(self):
+        (photos,) = self.importer(photos_sans_objet())
+        self.assertEqual(photos.title, "(sans objet)")
+        (reponse,) = self.importer(reponse_aux_photos_sans_objet())
+        self.assertEqual(reponse.reponse_a, photos)
+
+    def test_dans_l_autre_ordre_aussi(self):
+        (reponse,) = self.importer(reponse_aux_photos_sans_objet())
+        (photos,) = self.importer(photos_sans_objet())
+        reponse.refresh_from_db()
+        self.assertEqual(reponse.reponse_a, photos)
+
+    def test_il_ne_manque_pas(self):
+        from events.fils import courriels_manquants
+        self.importer(photos_sans_objet())
+        self.importer(reponse_aux_photos_sans_objet())
+        self.assertEqual(courriels_manquants(self.dossier), [])
