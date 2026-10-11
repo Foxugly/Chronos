@@ -130,7 +130,7 @@ number of `DossierAccess` rows granting another user `Role.READ` or `Role.WRITE`
    explicitly. (Four unreferenced `.jpg` files from before this work still sit in `media/`.)
 
    Deleting an event (`event_delete`, `share_event_delete`, both through `supprimer_evenement`
-   in `events/views.py`) applies the same rule to each of its documents: kept if another event
+   in `events/views/evenements.py`) applies the same rule to each of its documents: kept if another event
    still uses it, deleted with its file otherwise. Files are removed in `transaction.on_commit`,
    never before the rows are gone for good. GET only shows the confirmation (it lists which
    documents go and which stay); the deletion is POST. The journal keeps the whole event
@@ -148,6 +148,12 @@ number of `DossierAccess` rows granting another user `Role.READ` or `Role.WRITE`
 returning the object or raising `Http404`. Views call these; views do not build rights queries
 themselves. When adding a view, route it through one of these six or extend that module; do not
 inline a filter.
+
+The account views live in the **`events/views/` package**, one module per subject (`dossiers`,
+`evenements`, `pieces`, `doublons`, `journal`, `parametres`, `partage`; split from a 1 756-line
+`views.py` on 2026-10-11). `events/views/__init__.py` exposes only what `urls.py` routes; anything
+else is imported from its module — and `mock.patch` targets the module that *uses* the name
+(`events.views.parametres.relever_la_boite`). Share-link views stay in `events/share_views.py`.
 
 Each helper makes **one** rights-filtered query, and this is not cosmetic. Loading the object and
 then checking rights reports `No Document matches…` for an id that does not exist and
@@ -210,7 +216,7 @@ No npm, no bundler, no build step. Bootstrap 5.3.8, Bootstrap Icons, vis-timelin
 Font Awesome, glightbox, Quill and flatpickr all load from CDNs. No jQuery.
 
 **Four tabs per dossier** (owner's decision, 2026-10-09; `onglets` / `ONGLET_DE_LA_VUE` in
-`events/views.py`, rendered by `_entete_dossier.html`): *Chronologie* (vis-timeline, `timeline.html`),
+`events/views/dossiers.py`, rendered by `_entete_dossier.html`): *Chronologie* (vis-timeline, `timeline.html`),
 *Calendrier* (FullCalendar, `calendrier.html` — month / week / list / timeline are chosen in **its own
 toolbar**, and `history.replaceState` keeps `?vue=calendrier-…` in the URL), *Liste* (server-rendered,
 `vue_liste.html`) and *Documents*. The server-rendered month and week views (`?vue=mois`, `?vue=semaine`)
@@ -242,7 +248,7 @@ The theme is `themeSystem: "bootstrap5"` (plugin `@fullcalendar/bootstrap5`), wh
 Icons. 7.x exists but was two days old when this was written; moving to it changes the theme API.
 
 **Coming back to where you were.** Links to the form and to the detail page carry
-`?retour=<current view>`; `adresse_de_retour()` (`events/views.py`) follows it only if it is a URL
+`?retour=<current view>`; `adresse_de_retour()` (`events/views/evenements.py`) follows it only if it is a URL
 of this site (`url_has_allowed_host_and_scheme`) and, on a share link, only under that link's own
 prefix. The form keeps it in a hidden `retour` field; Cancel and the redirect after saving use it.
 
@@ -467,7 +473,7 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   `.md` documents), `expediteur` (a sender **of this dossier**, or `aucun`), `du` / `au` (months
   `AAAA-MM`; an interval touching the period is kept). Invalid parameters are ignored, never an
   error. Matching is done in Python, not SQL — SQLite cannot fold accents, and `.md` text is in files.
-  `vue_du_dossier` (`events/views.py`) applies them for both the account and share-link paths; tab and
+  `vue_du_dossier` (`events/views/dossiers.py`) applies them for both the account and share-link paths; tab and
   navigation links carry them (`suffixe_filtres`).
 - **The export exports what is shown**: the header's export button posts the current filters
   (`_bouton_export.html`); a filtered export contains only those events and their documents, and says
@@ -527,12 +533,12 @@ deletes them with the owner's own CSRF token — defeating from the inside the c
 permission model enforces from the outside. Three rules, all currently enforced by tests:
 
 1. **The timeline payload goes through `json_script`, never `json.dumps` + `|safe`.**
-   `events/views.py` puts the *list* in the context; `timeline.html` renders
+   `events/views/dossiers.py` puts the *list* in the context; `timeline.html` renders
    `{{ timeline_items|json_script:"timeline-items" }}` and the page reads it with
    `JSON.parse(…textContent)`. `json.dumps` escapes neither `<`, `>` nor `/`, so a title containing
    `</script>` closed the tag and opened its own.
 2. **An event's detail is rendered by Django, never assembled in JavaScript.**
-   `rendre_detail` (`events/views.py`, shared with `share_views.py`) renders
+   `rendre_detail` (`events/views/evenements.py`, shared with `share_views.py`) renders
    `_detail_evenement.html`: the page for a plain request, the fragment alone for an
    `X-Requested-With: XMLHttpRequest` one. Autoescape covers the title, each document's title and
    the image `alt`; the only `|safe` is the description, re-sanitised by `nettoyer` at output. The
@@ -598,7 +604,7 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   fallback to a SQLite file. HTTPS/HSTS/secure cookies, Sentry (`SENTRY_DSN`, no PII), `/health/`
   (`config/sante.py`, real `SELECT 1`, 503 when down, public).
 - **Evidence is never served publicly.** No `/media/` location (nginx answers 404). `reponse_de_piece`
-  (`events/views.py`, both paths) checks rights, then — when `PIECES_X_ACCEL_PREFIX` is set — answers
+  (`events/views/pieces.py`, both paths) checks rights, then — when `PIECES_X_ACCEL_PREFIX` is set — answers
   `X-Accel-Redirect` to an nginx `location internal;` whose `types {}` only keep pdf/jpeg/png and send
   everything else as `application/octet-stream`. The first X-Accel use in the fleet.
 - **CSP with nonces** (Django's built-in `SECURE_CSP`): every inline `<script>` carries

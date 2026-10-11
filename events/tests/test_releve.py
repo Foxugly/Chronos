@@ -44,8 +44,8 @@ class ReleverTests(TestCase):
         self.url = reverse("dossier_relever", args=[self.dossier.pk])
 
     def poster(self, resultat=None, libre=True, **donnees):
-        with mock.patch("events.views.verrou_de_releve", return_value=verrou(libre)), \
-             mock.patch("events.views.relever_la_boite", return_value=resultat or releve()) as relever:
+        with mock.patch("events.views.parametres.verrou_de_releve", return_value=verrou(libre)), \
+             mock.patch("events.views.parametres.relever_la_boite", return_value=resultat or releve()) as relever:
             reponse = self.client.post(self.url, donnees)
         return reponse, relever
 
@@ -81,7 +81,7 @@ class ReleverTests(TestCase):
         relever.assert_not_called()
 
     def test_get_ne_releve_rien(self):
-        with mock.patch("events.views.relever_la_boite") as relever:
+        with mock.patch("events.views.parametres.relever_la_boite") as relever:
             reponse = self.client.get(self.url)
         self.assertEqual(reponse.status_code, 302)
         relever.assert_not_called()
@@ -126,8 +126,8 @@ class ReleverTests(TestCase):
         self.assertEqual(reponse.status_code, 302)
 
     def test_une_erreur_graph_s_affiche(self):
-        with mock.patch("events.views.verrou_de_releve", return_value=verrou(True)), \
-             mock.patch("events.views.relever_la_boite", side_effect=ErreurGraph("HTTP 403")):
+        with mock.patch("events.views.parametres.verrou_de_releve", return_value=verrou(True)), \
+             mock.patch("events.views.parametres.relever_la_boite", side_effect=ErreurGraph("HTTP 403")):
             reponse = self.client.post(self.url)
         self.assertEqual(reponse.status_code, 302)
         self.assertTrue(any("HTTP 403" in m for m in self.messages(reponse)))

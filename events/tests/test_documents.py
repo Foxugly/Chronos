@@ -250,7 +250,7 @@ class DocumentContentTypeTests(DocumentFixtureMixin, TestCase):
     def test_the_inline_list_never_contains_an_executable_format(self):
         """Garde structurelle : si quelqu'un ajoute svg, html ou xhtml à
         INLINE_DOCUMENT_EXTENSIONS, ce test tombe avant toute mise en ligne."""
-        from events.views import INLINE_DOCUMENT_EXTENSIONS
+        from events.views.pieces import INLINE_DOCUMENT_EXTENSIONS
 
         for dangereux in ("svg", "html", "xhtml", "htm", "xml"):
             self.assertNotIn(dangereux, INLINE_DOCUMENT_EXTENSIONS)
@@ -572,7 +572,7 @@ class ChampDePiecesTests(TestCase):
         return self.client.get(reverse("event_add", args=[self.dossier.pk])).content.decode()
 
     def test_les_extensions_viennent_du_serveur(self):
-        from events.views import ALLOWED_DOCUMENT_EXTENSIONS
+        from events.views.pieces import ALLOWED_DOCUMENT_EXTENSIONS
 
         page = self.page()
         attendues = sorted(ALLOWED_DOCUMENT_EXTENSIONS)

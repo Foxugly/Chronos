@@ -261,7 +261,7 @@ def importer_couches(dossier, couches):
 def importer(dossier, analyse, transfert_de=None):
     """Crée l'évènement et ses pièces. Rend l'évènement, ou `None` s'il existait déjà."""
     # Import local : `views` importe ce module indirectement via les modèles.
-    from .views import _attach_document, _verifier_fichier
+    from .views.pieces import _attach_document, _verifier_fichier
 
     if deja_importe(dossier, analyse):
         return None

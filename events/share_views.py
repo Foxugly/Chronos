@@ -14,8 +14,6 @@ aucune vue ici ne permet de partager le dossier ni d'en voir un autre —
 cela reste l'affaire du propriétaire, authentifié.
 """
 
-import json
-
 from django.contrib.auth.decorators import login_not_required
 from django.http import FileResponse, Http404, JsonResponse
 from django.core.exceptions import ValidationError
@@ -32,22 +30,21 @@ from .etiquettes import contexte_du_formulaire as contexte_des_etiquettes
 from .forms import EventForm
 from .models import Document, DossierAccess, Journal, ShareLink
 from .journal import consigner, consigner_pieces, differences, instantane
-from .views import (
-    rendre_confirmation_de_suppression,
-    supprimer_evenement,
-    retirer_piece,
-    adresse_de_retour,
-    rendre_detail,
-    contexte_des_pieces,
-    preparer_export,
-    reponse_de_piece,
-    vue_du_dossier,
-    ALLOWED_DOCUMENT_EXTENSIONS,
-    INLINE_DOCUMENT_EXTENSIONS,
+from .views.dossiers import vue_du_dossier
+from .views.evenements import (
     _est_ajax,
     _evenement_en_json,
-    _extension_of,
+    adresse_de_retour,
+    rendre_confirmation_de_suppression,
+    rendre_detail,
+    supprimer_evenement,
+)
+from .views.journal import preparer_export
+from .views.pieces import (
     _save_documents,
+    contexte_des_pieces,
+    reponse_de_piece,
+    retirer_piece,
 )
 
 
