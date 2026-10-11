@@ -33,8 +33,15 @@ l'est en connaissance de cause.
         .fait-liste__chevron { transition: transform .15s ease; }
         .fait-liste details[open] > summary .fait-liste__chevron { transform: rotate(90deg); }
         .fait-liste__actions { position: absolute; top: .35rem; right: .75rem; }
+        /* Le titre prend la place qui reste et se coupe le premier ; la source garde
+           sa largeur, au plus 14 rem. */
+        .fait-liste__titre { flex: 1 1 auto; min-width: 0; }
+        .fait-liste__source { flex: 0 0 auto; max-width: 14rem; }
+        /* Déployé, le titre se lit en entier, à sa place : il passe à la ligne. */
+        .fait-liste details[open] > summary .fait-liste__titre { white-space: normal; }
         @media print {
-            .fait-liste summary { padding-right: 1rem !important; }
+            .fait-liste summary { padding-right: 1rem !important; flex-wrap: wrap !important; }
+            .fait-liste__titre { white-space: normal !important; }
             .fait-liste__chevron { display: none; }
         }
     </style>
@@ -65,13 +72,20 @@ l'est en connaissance de cause.
                 {# résumé est mal annoncé et ouvrirait le volet à chaque clic.            #}
                 <div class="list-group-item p-0 position-relative fait-liste" data-fait-ligne{% if evenement.couleur_affichee %} style="border-left: 6px solid {{ evenement.couleur_affichee }};"{% endif %}>
                 <details data-fait{% if filtres.mots %} open{% endif %}>
-                    <summary class="d-flex flex-wrap align-items-center gap-2 px-3 py-2">
-                        <i class="bi bi-chevron-right fait-liste__chevron" aria-hidden="true"></i>
-                        <span class="badge text-bg-secondary">{{ evenement.periode_affichee }}</span>
-                        <span class="fw-semibold text-break">{{ evenement.title }}</span>
-                        {% for etiquette in evenement.etiquettes.all %}<span class="badge rounded-pill text-bg-light border"><i class="bi bi-tag me-1" aria-hidden="true"></i>{{ etiquette.nom }}</span>{% endfor %}
+                    {# Une seule ligne : date, source, titre coupé (entier au survol et une fois #}
+                    {# le volet déployé), étiquettes, nombre de pièces.                         #}
+                    <summary class="d-flex flex-nowrap align-items-center gap-2 px-3 py-2">
+                        <i class="bi bi-chevron-right fait-liste__chevron flex-shrink-0" aria-hidden="true"></i>
+                        <span class="badge text-bg-secondary flex-shrink-0">{{ evenement.periode_affichee }}</span>
+                        {% if evenement.expediteur %}
+                            <span class="small text-body-secondary text-truncate fait-liste__source" title="{{ evenement.expediteur.adresse }}"><i class="bi bi-envelope me-1" aria-hidden="true"></i>{{ evenement.expediteur }}</span>
+                        {% else %}
+                            <span class="small text-body-secondary text-truncate fait-liste__source"><i class="bi bi-pencil me-1" aria-hidden="true"></i>{% translate "Saisi à la main" %}</span>
+                        {% endif %}
+                        <span class="fw-semibold text-truncate fait-liste__titre" title="{{ evenement.title }}">{{ evenement.title }}</span>
+                        {% for etiquette in evenement.etiquettes.all %}<span class="badge rounded-pill text-bg-light border flex-shrink-0 d-none d-md-inline-block"><i class="bi bi-tag me-1" aria-hidden="true"></i>{{ etiquette.nom }}</span>{% endfor %}
                         {% if pieces %}
-                            <span class="badge text-bg-light border text-body-secondary"><i class="bi bi-paperclip" aria-hidden="true"></i> {{ pieces|length }}</span>
+                            <span class="badge text-bg-light border text-body-secondary flex-shrink-0"><i class="bi bi-paperclip" aria-hidden="true"></i> {{ pieces|length }}</span>
                         {% endif %}
                     </summary>
                     <div class="px-3 pb-3">

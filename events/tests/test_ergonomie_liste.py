@@ -133,3 +133,32 @@ class ExpediteursEnModalTests(Base):
         self.assertNotIn('type="color"', html)
         reponse = self.client.post(self.url, {"couleur-%d" % self.expediteur.pk: "#dc2626"}, **self.AJAX)
         self.assertEqual(reponse.status_code, 404)
+
+
+class ResumeSurUneLigneTests(Base):
+    def resume(self, html, titre):
+        for bloc in re.findall(r"<summary.*?</summary>", html, re.S):
+            if titre in bloc:
+                return bloc
+        self.fail("résumé introuvable : %s" % titre)
+
+    def test_l_expediteur_d_un_courriel(self):
+        expediteur = Expediteur.objects.create(
+            dossier=self.dossier, adresse="acme@bat.example", nom="ACME Bat", couleur="#2563eb")
+        Event.objects.filter(pk=self.evenement.pk).update(expediteur=expediteur)
+        resume = self.resume(self.page(vue="liste"), "Devis signé")
+        self.assertIn("ACME Bat", resume)
+        self.assertIn('title="acme@bat.example"', resume)
+        self.assertIn("bi-envelope", resume)
+
+    def test_la_source_d_un_fait_saisi_a_la_main(self):
+        resume = self.resume(self.page(vue="liste"), "Devis signé")
+        self.assertIn("Saisi à la main", resume)
+        self.assertIn("bi-pencil", resume)
+
+    def test_le_titre_tient_sur_une_ligne_et_se_lit_en_entier_au_survol(self):
+        long = "Mise en demeure – paiement des travaux réalisés et indemnisation du préjudice subi " * 2
+        Event.objects.filter(pk=self.evenement.pk).update(title=long.strip())
+        resume = self.resume(self.page(vue="liste"), "Mise en demeure")
+        self.assertRegex(resume, r'<span class="[^"]*text-truncate[^"]*"[^>]*title="Mise en demeure')
+        self.assertRegex(resume, r'<summary class="[^"]*flex-nowrap')
