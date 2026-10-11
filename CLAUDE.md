@@ -682,7 +682,10 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   Off-box copy (S3) is not set up — the fleet has no convention yet.
 - **CI runs on PostgreSQL 16 / Python 3.12** with production settings (`.github/workflows/ci.yml`),
   image pulled from `public.ecr.aws/docker/library/postgres:16` — Docker Hub's anonymous rate limit
-  failed the CI before any test on 2026-10-09;
+  failed the CI before any test on 2026-10-09, and ECR's « Data limit exceeded » on 2026-10-11.
+  PostgreSQL is therefore **not a service container** but plain steps: the image lives in the
+  Actions cache (key `postgres-16-<YYYY-MM>`: one pull a month at most, three tries, last month's
+  image as fallback), then `docker load` + `docker run`;
   deploy is the fleet's OIDC → SSM model (`deploy.yml`), units and nginx installed from the committed
   git blob. `.gitattributes` forces LF for everything under `deploy/` and `.github/`.
 - `manage.py verifier_integrite`: counts + SHA-256 of every document; run on both sides of a transfer.
