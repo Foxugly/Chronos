@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 15:36+0200\n"
+"POT-Creation-Date: 2026-10-11 15:51+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -963,12 +963,12 @@ msgstr "label"
 msgid "étiquettes"
 msgstr "labels"
 
-#: .\events\share_views.py:273
+#: .\events\share_views.py:274
 #, python-format
 msgid "le lien de partage « %(nom)s »"
 msgstr "de deellink ‘%(nom)s’"
 
-#: .\events\share_views.py:275
+#: .\events\share_views.py:276
 msgid "un lien de partage"
 msgstr "een deellink"
 
@@ -1006,7 +1006,7 @@ msgid "Tous"
 msgstr "Alle"
 
 #: .\events\templates\events\_barre_filtres.html:44
-#: .\events\templates\events\timeline.html:56
+#: .\events\templates\events\timeline.html:59
 msgid "Saisis à la main"
 msgstr "Handmatig ingevoerd"
 
@@ -1307,6 +1307,7 @@ msgstr "Sneltoets: N"
 
 #: .\events\templates\events\_entete_dossier.html:36
 #: .\events\templates\events\_formulaire_modal_js.html:125
+#: .\events\templates\events\calendrier.html:166
 #: .\events\templates\events\event_form.html:13
 #: .\events\templates\events\event_form.html:30
 msgid "Nouvel évènement"
@@ -1534,26 +1535,34 @@ msgid "Fermer"
 msgstr "Sluiten"
 
 #: .\events\templates\events\calendrier.html:64
+msgid ""
+"Double-cliquez sur un jour, ou sur une heure en vue semaine, pour y créer un "
+"évènement."
+msgstr ""
+"Dubbelklik op een dag, of op een uur in de weekweergave, om er een "
+"gebeurtenis aan te maken."
+
+#: .\events\templates\events\calendrier.html:69
 msgid "Ce calendrier demande JavaScript. Les mêmes faits, sans JavaScript :"
 msgstr "Deze kalender vereist JavaScript. Dezelfde feiten, zonder JavaScript:"
 
-#: .\events\templates\events\calendrier.html:65
+#: .\events\templates\events\calendrier.html:70
 msgid "par mois"
 msgstr "per maand"
 
-#: .\events\templates\events\calendrier.html:66
+#: .\events\templates\events\calendrier.html:71
 msgid "par semaine"
 msgstr "per week"
 
-#: .\events\templates\events\calendrier.html:67
+#: .\events\templates\events\calendrier.html:72
 msgid "en liste"
 msgstr "als lijst"
 
-#: .\events\templates\events\calendrier.html:173
+#: .\events\templates\events\calendrier.html:216
 msgid "Frise"
 msgstr "Tijdlijn"
 
-#: .\events\templates\events\calendrier.html:180 .\events\views\dossiers.py:92
+#: .\events\templates\events\calendrier.html:223 .\events\views\dossiers.py:92
 msgid "Liste"
 msgstr "Lijst"
 
@@ -2184,35 +2193,35 @@ msgstr ""
 msgid "Échange avec Exchange en cours…"
 msgstr "Bezig met Exchange…"
 
-#: .\events\templates\events\timeline.html:34
+#: .\events\templates\events\timeline.html:37
 msgid "Zoom"
 msgstr "Zoom"
 
-#: .\events\templates\events\timeline.html:36
+#: .\events\templates\events\timeline.html:39
 msgid "Rapprocher (+)"
 msgstr "Inzoomen (+)"
 
-#: .\events\templates\events\timeline.html:36
+#: .\events\templates\events\timeline.html:39
 msgid "Rapprocher"
 msgstr "Inzoomen"
 
-#: .\events\templates\events\timeline.html:38
+#: .\events\templates\events\timeline.html:41
 msgid "Éloigner (−)"
 msgstr "Uitzoomen (−)"
 
-#: .\events\templates\events\timeline.html:38
+#: .\events\templates\events\timeline.html:41
 msgid "Éloigner"
 msgstr "Uitzoomen"
 
-#: .\events\templates\events\timeline.html:41
+#: .\events\templates\events\timeline.html:44
 msgid "Tout voir"
 msgstr "Alles tonen"
 
-#: .\events\templates\events\timeline.html:44
+#: .\events\templates\events\timeline.html:47
 msgid "Aujourd'hui"
 msgstr "Vandaag"
 
-#: .\events\templates\events\timeline.html:47
+#: .\events\templates\events\timeline.html:50
 msgid "Légende des couleurs"
 msgstr "Kleurenlegende"
 
@@ -2318,7 +2327,7 @@ msgstr "‘%(absorbe)s’ is samengevoegd in ‘%(garde)s’."
 msgid "Ces deux évènements ne seront plus proposés comme doublons."
 msgstr "Deze twee gebeurtenissen worden niet meer als dubbels voorgesteld."
 
-#: .\events\views\evenements.py:412
+#: .\events\views\evenements.py:435
 #, python-format
 msgid "Évènement « %(titre)s » supprimé."
 msgstr "Gebeurtenis ‘%(titre)s’ verwijderd."

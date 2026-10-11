@@ -260,6 +260,12 @@ Commercial use would need a paid licence or the removal of that tab; month, week
 The theme is `themeSystem: "bootstrap5"` (plugin `@fullcalendar/bootstrap5`), which needs Bootstrap
 Icons. 7.x exists but was two days old when this was written; moving to it changes the theme API.
 
+**Double-click to create** (2026-10-11): in the calendar, writers (account or write share link)
+double-click an empty day or time slot → the creation form in the modal, prefilled through
+`?date=AAAA-MM-JJ[&heure=HH:MM]` (`valeurs_initiales`, shared by `event_add` and `share_event_add`;
+malformed values are ignored). A timed slot sets « une date et une heure », a day « une date ».
+FullCalendar only reports single clicks (`dateClick`): two on the same cell within 450 ms count.
+
 **Coming back to where you were.** Links to the form and to the detail page carry
 `?retour=<current view>`; `adresse_de_retour()` (`events/views/evenements.py`) follows it only if it is a URL
 of this site (`url_has_allowed_host_and_scheme`) and, on a share link, only under that link's own
@@ -722,7 +728,7 @@ left out — read `backlog.md` first, it is the most current of the four.
 « Relever les courriels » button, alias suffix), and on 2026-10-10 better reply/forward linking
 (Exchange `ATT` suites, every quoted block, content match for a forward whose header was lost) and
 `Event.destinataires`, back-filled in production by `relier_courriels --recalculer --appliquer`
-(26 replies and 4 forwards linked, 47 events with recipients). The suite is at **766 tests**, green,
+(26 replies and 4 forwards linked, 47 events with recipients). The suite is at **774 tests**, green,
 with no pending migrations (latest: `0023_cite_destinataires`). Delivered: a shared `base.html` with navbar and logout,
 `404.html` / `500.html`, the event form as a modal (page version kept as the no-JavaScript
 fallback), a Quill rich-text editor sanitised server-side by nh3 (`events/sanitize.py`), four views

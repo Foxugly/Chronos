@@ -38,6 +38,7 @@ from .views.evenements import (
     rendre_confirmation_de_suppression,
     rendre_detail,
     supprimer_evenement,
+    valeurs_initiales,
 )
 from .views.journal import preparer_export
 from .views.pieces import (
@@ -188,7 +189,7 @@ def share_event_add(request, token):
         if _est_ajax(request):
             return _rendre_formulaire_partage(request, lien, form, None, status=400)
     else:
-        form = EventForm()
+        form = EventForm(initial=valeurs_initiales(request))
 
     return _rendre_formulaire_partage(request, lien, form, None)
 

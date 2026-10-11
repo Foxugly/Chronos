@@ -1,5 +1,7 @@
 """Un évènement : détail, formulaire (ajout, modification), suppression."""
 
+import datetime
+import re
 from urllib.parse import urlencode
 
 from django.contrib import messages
@@ -279,9 +281,30 @@ def event_add(request, dossier_id):
         if _est_ajax(request):
             return _rendre_formulaire(request, form, None, dossier, status=400)
     else:
-        form = EventForm()
+        form = EventForm(initial=valeurs_initiales(request))
 
     return _rendre_formulaire(request, form, None, dossier)
+
+
+def valeurs_initiales(request):
+    """La date (et l'heure) d'une case du calendrier double-cliquée :
+    `?date=AAAA-MM-JJ[&heure=HH:MM]`. Avec une heure, le mode « une date et une
+    heure » ; sans, « une date ». Une valeur mal formée est ignorée, jamais une
+    erreur : le formulaire s'ouvre alors vide, comme d'habitude."""
+    texte = request.GET.get("date", "")
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", texte):
+        return {}
+    try:
+        initial = {"date": datetime.date.fromisoformat(texte), "precision": "date"}
+    except ValueError:
+        return {}
+    heure = request.GET.get("heure", "")
+    if re.fullmatch(r"\d{2}:\d{2}", heure):
+        try:
+            initial.update(heure=datetime.time.fromisoformat(heure), precision="instant")
+        except ValueError:
+            pass
+    return initial
 
 
 def event_edit(request, event_id):

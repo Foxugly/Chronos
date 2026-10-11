@@ -59,6 +59,11 @@ commun, rendu et échappé par Django.
     {% include "events/_entete_dossier.html" %}
 
     <div id="calendrier" class="bg-body border rounded p-2"></div>
+    {% if peut_ecrire %}
+        <p class="small text-body-secondary mt-2 mb-0 d-print-none">
+            <i class="bi bi-hand-index me-1" aria-hidden="true"></i>{% translate "Double-cliquez sur un jour, ou sur une heure en vue semaine, pour y créer un évènement." %}
+        </p>
+    {% endif %}
     <noscript>
         <p class="alert alert-warning mt-3">
             {% translate "Ce calendrier demande JavaScript. Les mêmes faits, sans JavaScript :" %}
@@ -97,6 +102,8 @@ commun, rendu et échappé par Django.
     (function () {
         const EVENT_DETAIL_URL = "{% if lien_partage %}{% url 'share_event_detail' lien_partage.token 999999999 %}{% else %}{% url 'event_detail' 999999999 %}{% endif %}";
         const EVENT_ID_PLACEHOLDER = "999999999";
+        // La création au double-clic, pour qui peut écrire (compte ou lien en écriture).
+        const URL_AJOUT = {% if peut_ecrire %}"{% if lien_partage %}{% url 'share_event_add' lien_partage.token %}{% else %}{% url 'event_add' dossier.pk %}{% endif %}"{% else %}null{% endif %};
 
         const items = JSON.parse(document.getElementById("calendrier-items").textContent);
         const bornes = JSON.parse(document.getElementById("calendrier-bornes").textContent);
@@ -124,6 +131,42 @@ commun, rendu et échappé par Django.
             setTimeout(function () {
                 calendrier.scrollToTime({days: ecart});
             }, 0);
+        }
+
+        function deuxChiffres(n) {
+            return String(n).padStart(2, "0");
+        }
+
+        // Double-clic sur une case vide : le formulaire de création, à cette date
+        // — et à cette heure dans une vue horaire (mode « une date et une heure »).
+        // FullCalendar ne signale que des clics simples (`dateClick`) : deux sur
+        // la même case à moins de 450 ms font un double-clic.
+        let dernierClic = null;
+        function surClicDeCase(info) {
+            if (!URL_AJOUT) {
+                return;
+            }
+            const maintenant = Date.now();
+            const cle = info.dateStr;
+            if (!dernierClic || dernierClic.cle !== cle || maintenant - dernierClic.quand > 450) {
+                dernierClic = {cle: cle, quand: maintenant};
+                return;
+            }
+            dernierClic = null;
+            const d = info.date;
+            const parametres = new URLSearchParams({
+                date: d.getFullYear() + "-" + deuxChiffres(d.getMonth() + 1) + "-" + deuxChiffres(d.getDate()),
+                retour: window.location.pathname + window.location.search
+            });
+            if (!info.allDay) {
+                parametres.set("heure", deuxChiffres(d.getHours()) + ":" + deuxChiffres(d.getMinutes()));
+            }
+            const url = URL_AJOUT + "?" + parametres.toString();
+            if (window.FormulaireModal) {
+                FormulaireModal.charger(url, "{{ _("Nouvel évènement")|escapejs }}");
+            } else {
+                window.location.href = url;
+            }
         }
 
         const calendrier = new FullCalendar.Calendar(document.getElementById("calendrier"), {
@@ -184,6 +227,7 @@ commun, rendu et échappé par Django.
                 // Attribut posé en propriété DOM : du texte, jamais du balisage.
                 info.el.title = info.event.title;
             },
+            dateClick: surClicDeCase,
             eventClick: function (info) {
                 info.jsEvent.preventDefault();
                 DetailEvenement.ouvrir(
