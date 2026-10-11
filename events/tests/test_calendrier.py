@@ -127,6 +127,13 @@ class VueCalendrierTests(TestCase):
             {"debut": "2026-05-26", "fin": "2026-10-05", "initiale": "2026-08-18"},
         )
 
+    def test_la_navigation_reste_dans_les_bornes_du_dossier(self):
+        """Les flèches et « aujourd'hui » s'arrêtent aux dates des évènements :
+        hors de cette période, le calendrier n'a rien à montrer."""
+        self.assertContains(
+            self.page(), "validRange: bornes ? {start: bornes.debut, end: bornes.fin} : undefined"
+        )
+
     def test_un_dossier_vide_n_a_pas_de_bornes(self):
         vide = make_dossier(self.owner, name="Vide")
         self.client.force_login(self.owner)

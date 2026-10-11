@@ -144,6 +144,11 @@ commun, rendu et échappé par Django.
             eventDisplay: "block",
             initialView: vue,
             initialDate: bornes ? bornes.initiale : undefined,
+            // On ne navigue qu'entre le premier et le dernier fait (à une
+            // semaine près) : au-delà, le calendrier n'a rien à montrer. Les
+            // flèches et « aujourd'hui » se désactivent au bord ; les jours
+            // hors période restent visibles, grisés, dans un mois entamé.
+            validRange: bornes ? {start: bornes.debut, end: bornes.fin} : undefined,
             // Un seul onglet « Calendrier » : ses quatre vues se choisissent
             // ici, dans sa barre.
             headerToolbar: {
