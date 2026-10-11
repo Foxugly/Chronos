@@ -219,7 +219,8 @@ before render by an inline `<head>` script **with the CSP nonce** (sets `data-bs
 allauth pages share one `auth-card`, opened/closed by the `avant_contenu` / `apres_contenu`
 blocks of `base.html`. `/confidentialite/` is public (owner to review the wording).
 
-No npm, no bundler, no build step. Bootstrap 5.3.8, Bootstrap Icons, vis-timeline, FullCalendar,
+No npm, no bundler, no build step. Bootstrap 5.3.8, Bootstrap Icons, vis-timeline (the **standalone**
+UMD build from jsdelivr, which bundles vis-data — the root build on cdnjs is deprecated), FullCalendar,
 Font Awesome, glightbox, Quill and flatpickr all load from CDNs. No jQuery.
 
 **Four tabs per dossier** (owner's decision, 2026-10-09; `onglets` / `ONGLET_DE_LA_VUE` in

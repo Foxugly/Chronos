@@ -13,8 +13,11 @@
 
 {% block extra_css %}
     {% if peut_ecrire %}{% include "events/_formulaire_css.html" %}{% endif %}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/8.5.4/vis-timeline-graph2d.min.css"
-          integrity="sha512-KQvP81PiLLSehDxMeRLv58g78+Vtvecl6pCLFwkTi1Iz9UlkgjuHxWZsVAkS9fRuj/GN4E2iYlaj1iWWG6J8ig=="
+    {# Le build autonome (`standalone`), que vis-timeline recommande : l'ancien, à #}
+    {# la racine du paquet, est déprécié et annoncé en 404. cdnjs ne le sert pas, #}
+    {# jsdelivr si (déjà autorisé par la CSP). Sa feuille de style est à part.     #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vis-timeline@8.5.4/styles/vis-timeline-graph2d.min.css"
+          integrity="sha384-rqOvtv7HP0SS6x5gQkKkYTZIE/PBx1yjW61YRVdsq1lYJzXBhR/aEqp5iM9sn8P5"
           crossorigin="anonymous" referrerpolicy="no-referrer">
     {% include "events/_detail_evenement_css.html" %}
 
@@ -70,11 +73,9 @@
     {# `textContent`, et analysé par `JSON.parse` — jamais évalué. #}
     {{ timeline_items|json_script:"timeline-items" }}
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-data/8.0.5/peer/umd/vis-data.min.js"
-            integrity="sha512-P3MDf2JdWXaFYyE2N/iD/4EZ6t4SxysdEANZ5BxMiHK0JJbgSn/WTI73DY+bgAslDMkmuuWigjpqbTcyml70qw=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/8.5.4/vis-timeline-graph2d.min.js"
-            integrity="sha512-eeITpKWVe3C1a75I4XId8OEzwHO75bvak4Z+WTiYQj2pOH+CNOyzUz0vzBo/8RBNf4aMHawK5Rutih0z8LLmew=="
+    {# Autonome : il embarque vis-data (`vis.DataSet`), plus de script à part. #}
+    <script src="https://cdn.jsdelivr.net/npm/vis-timeline@8.5.4/standalone/umd/vis-timeline-graph2d.min.js"
+            integrity="sha384-cC2AABVwe6K5nvoFjIHFkBI+2NIdEo39w+eIC/lrdsTO9FA+Lz/OHeh6dRMeMf4U"
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/js/fontawesome.min.js"
             integrity="sha512-WgR61jcssTjrH2a2vWm5JiWaEy1kmFIE5G0ybjKB0UEDzygVCebYW4eP2p96XmJWXA0zk/sNhbCfb09Wx39t4A=="
