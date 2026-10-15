@@ -410,7 +410,7 @@ else; the same page renames the dossier, journaled). `AliasCourrielForm` normali
 page suggests a hard-to-guess alias on that mailbox's domain and shows the `Set-Mailbox` command.
 Mail forwarded to that alias lands in an Exchange Online mailbox (`hello@foxugly.com` in production,
 an everyday mailbox — hence the 24 h window below); `manage.py importer_courriels` (every 10 min:
-`chronos-courriels.timer` in production, `scripts/importer_courriels.ps1` on the PC) reads it through **Microsoft Graph**
+`chronos-mail-import.timer` in production, `scripts/importer_courriels.ps1` on the PC) reads it through **Microsoft Graph**
 (`events/graph.py`, client credentials, stdlib only — Exchange Online refuses password IMAP) and turns
 each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-courriels.md`.
 
@@ -668,7 +668,7 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   (`github-chronos` host alias in `~django/.ssh/config`). IAM and SSM were set up from CloudShell
   (`deploy/iam-cloudshell.sh`, `deploy/ssm-cloudshell.sh`). Units are installed by each deploy but
   were **enabled by hand once** (`chronos-env-fetch`, `chronos-gunicorn`,
-  `chronos-courriels.timer`).
+  `chronos-mail-import.timer`).
 - **A failed deploy step fails the deploy.** SSM runs the command list as one script and keeps only
   the last exit code; `set -eu` comes first (`deploy.yml`), and `ssm-deploy.sh` refuses to run
   without `/run/chronos/.env`. The first deploy reported success without migrating before this

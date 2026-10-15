@@ -165,7 +165,7 @@ Le site est en FR / NL / EN (voir « Fait »). Restent :
   transférés ; le dossier ACMEBAT se remplit par l'import de courriels.
 - IAM (`deploy/iam-cloudshell.sh`) et SSM (`deploy/ssm-cloudshell.sh`) depuis CloudShell ;
   Microsoft 365 par `deploy/m365-setup.ps1` (boîte `hello@foxugly.com`, droits Exchange limités à
-  elle). Import toutes les 10 minutes (`chronos-courriels.timer`).
+  elle). Import toutes les 10 minutes (`chronos-mail-import.timer`).
 - Corrigé en chemin : le contrôle de déploiement en CI (`GRAPH_SENDER`), le refus de sauvegarder
   dans une transaction ouvert à PostgreSQL, et un déploiement qui se disait réussi sans avoir
   migré (`set -eu` en tête des commandes SSM).
