@@ -62,8 +62,6 @@ jobs:
               "$G:deploy/chronos-gunicorn.service > /etc/systemd/system/chronos-gunicorn.service",
               "$G:deploy/chronos-courriels.service > /etc/systemd/system/chronos-courriels.service",
               "$G:deploy/chronos-courriels.timer > /etc/systemd/system/chronos-courriels.timer",
-              "$G:deploy/chronos-sauvegarde.service > /etc/systemd/system/chronos-sauvegarde.service",
-              "$G:deploy/chronos-sauvegarde.timer > /etc/systemd/system/chronos-sauvegarde.timer",
               "$G:deploy/fetch-env-from-ssm.sh > /usr/local/sbin/chronos-env-fetch.sh && chmod 0755 /usr/local/sbin/chronos-env-fetch.sh && chown root:root /usr/local/sbin/chronos-env-fetch.sh",
               "systemctl daemon-reload",
               "bash -c 'set -e; $G:deploy/nginx/chronos.foxugly.com.conf > /etc/nginx/sites-available/chronos.foxugly.com.new; cp -a /etc/nginx/sites-available/chronos.foxugly.com /etc/nginx/sites-available/chronos.foxugly.com.deploybak; mv /etc/nginx/sites-available/chronos.foxugly.com.new /etc/nginx/sites-available/chronos.foxugly.com; nginx -t || { mv /etc/nginx/sites-available/chronos.foxugly.com.deploybak /etc/nginx/sites-available/chronos.foxugly.com; exit 1; }; systemctl reload nginx'",

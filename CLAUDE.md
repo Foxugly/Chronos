@@ -667,7 +667,7 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   **private** — the only one in the fleet — so the box pulls it with a read-only deploy key
   (`github-chronos` host alias in `~django/.ssh/config`). IAM and SSM were set up from CloudShell
   (`deploy/iam-cloudshell.sh`, `deploy/ssm-cloudshell.sh`). Units are installed by each deploy but
-  were **enabled by hand once** (`chronos-env-fetch`, `chronos-gunicorn`, `chronos-sauvegarde.timer`,
+  were **enabled by hand once** (`chronos-env-fetch`, `chronos-gunicorn`,
   `chronos-courriels.timer`).
 - **A failed deploy step fails the deploy.** SSM runs the command list as one script and keeps only
   the last exit code; `set -eu` comes first (`deploy.yml`), and `ssm-deploy.sh` refuses to run
@@ -678,8 +678,10 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   Certificate: PFX in SSM (`EXCHANGE_CERT_PFX_B64`), decoded by the env-fetch script into
   `/run/chronos/exchange.pfx` — never on disk in the app tree.
 - **Backups**: `manage.py sauvegarder` handles PostgreSQL too (`pg_dump --format=custom`, read back with
-  `pg_restore --list`, password via `PGPASSWORD` env only), run by `chronos-sauvegarde.timer`.
-  Off-box copy (S3) is not set up — the fleet has no convention yet.
+  `pg_restore --list`, password via `PGPASSWORD` env only) — run it **by hand** before a risky
+  migration. The scheduled backup is fleet-wide since 2026-10-15 (`OPERATIONS.md §3.23`): weekly
+  `pg_dump` of every database to a locked S3 bucket + weekly EBS snapshot of the whole disk, which
+  is what covers `media/` (the evidence files). `chronos-sauvegarde.timer` was retired that day.
 - **CI runs on PostgreSQL 16 / Python 3.12** with production settings (`.github/workflows/ci.yml`),
   image pulled from `public.ecr.aws/docker/library/postgres:16` — Docker Hub's anonymous rate limit
   failed the CI before any test on 2026-10-09, and ECR's « Data limit exceeded » on 2026-10-11.

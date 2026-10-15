@@ -19,7 +19,9 @@ l'historique de ce qui a été tranché, et pourquoi.
   Facilitation y figurent).
 - **Sauvegardes : décision du propriétaire (2026-10-09), ne plus en parler.** L'hébergement AWS est jugé
   suffisant pour un usage non commercial : pas de copie hors machine, pas de vérification de la
-  première sauvegarde PostgreSQL. `chronos-sauvegarde.timer` tourne quand même chaque nuit.
+  première sauvegarde PostgreSQL. **Remplacé le 2026-10-15** par la sauvegarde de flotte
+  (`OPERATIONS.md §3.23`) : `pg_dump` hebdomadaire vers un bucket S3 verrouillé + snapshot EBS
+  hebdomadaire (qui couvre `media/`). `chronos-sauvegarde.timer` est retiré.
 - ~~HSTS envoyé deux fois~~ **fait le 2026-10-11** (avec `nosniff` et `Referrer-Policy`, doublés eux
   aussi : Django pose ceux des pages qu'il sert, nginx ceux des statiques et des pièces).
 - **Échéances** : secret de l'application « Chronos » et certificat « Chronos Exchange »

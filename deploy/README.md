@@ -129,14 +129,13 @@ nginx -t && systemctl reload nginx
 
 # Unités (le déploiement les réinstalle à chaque fois depuis git)
 for u in chronos-env-fetch.service chronos-gunicorn.service chronos-courriels.service \
-         chronos-courriels.timer chronos-sauvegarde.service chronos-sauvegarde.timer; do
+         chronos-courriels.timer; do
   git -c safe.directory=$PWD show HEAD:deploy/$u > /etc/systemd/system/$u
 done
 git -c safe.directory=$PWD show HEAD:deploy/fetch-env-from-ssm.sh > /usr/local/sbin/chronos-env-fetch.sh
 chown root:root /usr/local/sbin/chronos-env-fetch.sh && chmod 0755 /usr/local/sbin/chronos-env-fetch.sh
 systemctl daemon-reload
 systemctl enable --now chronos-env-fetch.service chronos-gunicorn.service
-systemctl enable --now chronos-sauvegarde.timer
 # L'import des courriels seulement une fois la boîte et l'application Entra prêtes :
 # systemctl enable --now chronos-courriels.timer
 ```
