@@ -244,9 +244,12 @@ class CommandeTests(MediaMixin, TestCase):
     def test_un_courriel_en_echec_reste_dans_la_boite_de_reception(self):
         boite = FausseBoite({"1": courriel("TR: x", "y", joint=original()).as_bytes()})
         with mock.patch("events.import_courriels.importer",
-                        side_effect=ValueError("illisible")):
+                        side_effect=ValueError("illisible")), \
+                self.assertLogs("events.import_courriels", level="ERROR") as journaux:
             sortie = self.lancer(boite)
         self.assertEqual(boite.ranges, {})
+        # Journalisé en ERROR avec la trace : Sentry le reçoit (rien ne remontait le 17/10).
+        self.assertIn("illisible", "\n".join(journaux.output))
         self.assertIn("0 importé(s), 0 déjà importé(s), 0 sans alias, 1 en échec", sortie)
 
     def test_depuis_un_fichier_eml(self):

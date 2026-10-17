@@ -12,6 +12,7 @@ elle est nommée dans le journal et dans la version texte du courriel.
 
 import datetime
 import hashlib
+import logging
 import re
 from collections import Counter
 from contextlib import contextmanager
@@ -28,7 +29,7 @@ from .courriels import _bloc_de_transfert, adresses, analyser_en_couches, en_mar
 from .graph import ClientGraph
 from .courriels import BRUXELLES
 from .liens import (
-    adresse_de, citation, citations, empreinte, empreinte_d_evenement, empreinte_de_couche,
+    A_ECRIT, adresse_de, citation, citations, empreinte, empreinte_d_evenement, empreinte_de_couche,
 )
 from .journal import consigner, consigner_pieces, instantane
 from .models import CourrielImporte, Dossier, Event, Expediteur, Journal
@@ -203,7 +204,14 @@ def champs_cites(analyse):
     cite = citation(analyse)
     if cite is None:
         return "", None, "", ""
-    champs = _bloc_de_transfert(analyse.texte or "")[1]
+    bloc = _bloc_de_transfert(analyse.texte or "")
+    if bloc is None:
+        # Citée par une ligne « Le …, X a écrit : » (Gmail, Apple Mail) : pas de bloc
+        # d'en-tête. L'objet est celui de la réponse, comme dans `citations`.
+        ligne = A_ECRIT.search(analyse.texte or "")
+        return ((ligne.group("de").strip() if ligne else "")[:255], cite.moment,
+                (analyse.titre or "")[:255], "")
+    champs = bloc[1]
     return (champs.get("de", "")[:255], cite.moment, champs.get("objet", "")[:255],
             champs.get("a", ""))
 
@@ -328,6 +336,8 @@ def importer(dossier, analyse, transfert_de=None):
 #: Les en-têtes où peut figurer l'alias d'un courriel transféré.
 ENTETES_DESTINATAIRES = ("To", "Cc", "Delivered-To", "X-Original-To", "Resent-To")
 
+logger = logging.getLogger(__name__)
+
 #: Clé du verrou consultatif PostgreSQL commun aux deux chemins (« Chron » en hexadécimal).
 CLE_VERROU = 0x4368726F6E
 
@@ -423,4 +433,8 @@ def relever_la_boite(*, essai=False, decrire=None, signaler=None):
         except Exception as erreur:  # un courriel illisible ne bloque pas les suivants
             bilan.erreurs += 1
             signaler("  ÉCHEC : %s" % erreur)
+            # Intercepté, donc invisible pour Sentry sans ce signalement explicite.
+            # Identifiants opaques seulement : ni objet ni adresse vers un outil tiers.
+            logger.exception("Import d'un courriel en échec (dossier %s, Graph %s)",
+                             dossier.pk, message["id"])
     return bilan

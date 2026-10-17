@@ -92,6 +92,22 @@ class ImportReliéTests(MediaMixin, TestCase):
         self.assertTrue(Journal.objects.filter(action=Journal.Action.EVENEMENT_MODIFIE,
                                                evenement=reponse).exists())
 
+    def test_une_reponse_qui_cite_en_forme_a_ecrit_s_importe(self):
+        """Prod 17/10 : une réponse d'avocate citant « Le …, X a écrit : » (sans bloc
+        « De : … Envoyé : … ») faisait échouer l'import (`champs_cites`)."""
+        texte = ("Bien reçu.\n\nLe lun. 28 sept. 2026 à 20:29, ACME Bat <contact@acme-bat.example> a écrit :\n"
+                 "> Nous vous mettons en demeure.")
+        octets = courriel("Re: Mise en demeure", texte, de=MOI, a=ACME_BAT,
+                          recu="Tue, 29 Sep 2026 07:10:00 +0000", message_id="<a-ecrit@exemple.be>").as_bytes()
+        (reponse,) = self.importer(octets)
+        trace = CourrielImporte.objects.get(evenement=reponse)
+        self.assertIn("contact@acme-bat.example", trace.cite_de)
+        self.assertEqual(trace.cite_le, datetime.datetime(2026, 9, 28, 20, 29, tzinfo=BRUXELLES))
+        # Le courriel cité arrive ensuite : la réponse s'y relie.
+        (origine,) = self.importer(mise_en_demeure_directe())
+        reponse.refresh_from_db()
+        self.assertEqual(reponse.reponse_a, origine)
+
     def test_le_courriel_cite_arrive_apres_sa_reponse(self):
         """En aval : la réponse était là, le courriel qu'elle cite arrive ensuite."""
         (reponse,) = self.importer(reponse_a_la_mise_en_demeure())
