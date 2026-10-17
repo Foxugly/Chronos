@@ -356,21 +356,20 @@ if SENTRY_DSN:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
 
-    def _ignorer_hotes_refuses(evenement, indice):
-        # Les robots qui appellent l'IP du serveur : pas une erreur de l'application.
-        from django.core.exceptions import DisallowedHost
-        erreur = (indice or {}).get("exc_info", (None, None))[1]
-        return None if isinstance(erreur, DisallowedHost) else evenement
+    from config.sentry_filtres import avant_envoi
 
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         environment=os.environ.get("SENTRY_ENVIRONMENT", "production"),
         release=os.environ.get("SENTRY_RELEASE", "") or None,
         integrations=[DjangoIntegration()],
-        before_send=_ignorer_hotes_refuses,
+        before_send=avant_envoi,
         traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0")),
         profiles_sample_rate=float(os.environ.get("SENTRY_PROFILES_SAMPLE_RATE", "0")),
         send_default_pii=False,
+        # Les variables locales d'une pile d'appels contiennent les courriels et les
+        # dossiers (octets, analyses, requêtes) : jamais envoyées.
+        include_local_variables=False,
     )
 
 
