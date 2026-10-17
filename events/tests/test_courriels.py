@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest import mock
 from zoneinfo import ZoneInfo
 
+from django.core import mail
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -173,10 +174,17 @@ class FausseBoite:
         self.messages = messages  # {id: octets}
         self.ranges = {}
         self.depuis = None
+        self.categories = {}  # {id: [catégories Outlook]}
 
     def messages_recus(self, depuis):
         self.depuis = depuis
-        return [{"id": i, "subject": "x"} for i in list(self.messages)]
+        return [{"id": i, "subject": "x", "receivedDateTime": "2026-10-14T13:14:00Z",
+                 "from": {"emailAddress": {"name": "Avocate", "address": "avocate@exemple.be"}},
+                 "categories": list(self.categories.get(i, []))}
+                for i in list(self.messages)]
+
+    def categoriser(self, identifiant, categories):
+        self.categories[identifiant] = list(categories)
 
     def mime(self, identifiant):
         return self.messages[identifiant]
@@ -251,6 +259,58 @@ class CommandeTests(MediaMixin, TestCase):
         # Journalisé en ERROR avec la trace : Sentry le reçoit (rien ne remontait le 17/10).
         self.assertIn("illisible", "\n".join(journaux.output))
         self.assertIn("0 importé(s), 0 déjà importé(s), 0 sans alias, 1 en échec", sortie)
+
+    def echouer(self, boite, *args):
+        with mock.patch("events.import_courriels.importer", side_effect=ValueError("illisible")), \
+                self.assertLogs("events.import_courriels", level="ERROR"):
+            return self.lancer(boite, *args)
+
+    def test_un_echec_previent_le_proprietaire_une_seule_fois(self):
+        from events.alertes import CATEGORIE_ECHEC
+        boite = FausseBoite({"1": courriel("TR: x", "y", joint=original()).as_bytes()})
+        self.echouer(boite)
+        (alerte,) = mail.outbox
+        self.assertEqual(alerte.to, ["owner@example.test"])
+        self.assertIn("Litige SDB", alerte.subject)
+        self.assertIn("Avocate <avocate@exemple.be>", alerte.body)
+        self.assertIn("ValueError", alerte.body)
+        self.assertNotIn("illisible", alerte.body)  # le type, pas le message de l'exception
+        self.assertEqual(boite.categories["1"], [CATEGORIE_ECHEC])
+        self.echouer(boite)  # relève suivante : la catégorie retient que c'est signalé
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_retirer_la_categorie_redemande_une_alerte(self):
+        boite = FausseBoite({"1": courriel("TR: x", "y", joint=original()).as_bytes()})
+        self.echouer(boite)
+        boite.categories["1"] = ["Rouge"]  # retirée à la main ; une autre catégorie reste
+        self.echouer(boite)
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertIn("Rouge", boite.categories["1"])
+
+    def test_une_alerte_non_partie_n_est_pas_retenue(self):
+        boite = FausseBoite({"1": courriel("TR: x", "y", joint=original()).as_bytes()})
+        with mock.patch("events.alertes.send_mail", side_effect=OSError("smtp")), \
+                self.assertLogs("events.alertes", level="ERROR"):
+            self.echouer(boite)
+        self.assertNotIn("1", boite.categories)  # réessayée à la relève suivante
+
+    def test_l_essai_ne_previent_personne(self):
+        boite = FausseBoite({"1": courriel("TR: x", "y", joint=original()).as_bytes()})
+        # En essai rien n'est importé : l'échec doit venir de l'analyse.
+        with mock.patch("events.import_courriels.analyser_en_couches", side_effect=ValueError("illisible")), \
+                self.assertLogs("events.import_courriels", level="ERROR"):
+            self.lancer(boite, "--essai")
+        self.assertEqual(mail.outbox, [])
+        self.assertEqual(boite.categories, {})
+
+    def test_importe_apres_coup_le_courriel_perd_la_categorie(self):
+        from events.alertes import CATEGORIE_ECHEC
+        boite = FausseBoite({"1": courriel("TR: x", "y", joint=original()).as_bytes()})
+        boite.categories["1"] = [CATEGORIE_ECHEC, "Rouge"]
+        self.lancer(boite)
+        self.assertEqual(boite.categories["1"], ["Rouge"])
+        self.assertEqual(boite.ranges, {"1": "Litige SDB"})
+        self.assertEqual(mail.outbox, [])
 
     def test_depuis_un_fichier_eml(self):
         chemin = Path(self.media_root) / "exemple.eml"

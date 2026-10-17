@@ -24,6 +24,7 @@ from django.core.files.base import ContentFile
 from django.db import connection, transaction
 from django.utils import timezone
 
+from .alertes import CATEGORIE_ECHEC, alerter_echec_import
 from .couleurs import prochaine_couleur
 from .courriels import _bloc_de_transfert, adresses, analyser_en_couches, en_markdown, lire, texte_en_html
 from .graph import ClientGraph
@@ -427,6 +428,9 @@ def relever_la_boite(*, essai=False, decrire=None, signaler=None):
             else:
                 bilan.deja[dossier.pk] += 1
                 signaler("  déjà importé : rangé sans rien créer.")
+            categories = message.get("categories") or []
+            if CATEGORIE_ECHEC in categories:  # signalé en échec, importé depuis
+                client.categoriser(message["id"], [c for c in categories if c != CATEGORIE_ECHEC])
             if dossier.name not in dossiers_outlook:
                 dossiers_outlook[dossier.name] = client.dossier(dossier.name)
             client.deplacer(message["id"], dossiers_outlook[dossier.name])
@@ -437,4 +441,20 @@ def relever_la_boite(*, essai=False, decrire=None, signaler=None):
             # Identifiants opaques seulement : ni objet ni adresse vers un outil tiers.
             logger.exception("Import d'un courriel en échec (dossier %s, Graph %s)",
                              dossier.pk, message["id"])
+            if not essai:
+                _signaler_l_echec(client, dossier, message, erreur)
     return bilan
+
+
+def _signaler_l_echec(client, dossier, message, erreur):
+    """Prévient le propriétaire du dossier, une fois par courriel : la catégorie
+    `CATEGORIE_ECHEC` posée sur le courriel retient que c'est fait (rien en base).
+    Elle n'est posée qu'une fois l'alerte partie — sinon on réessaie au passage
+    suivant. La retirer dans Outlook demande une nouvelle alerte."""
+    categories = message.get("categories") or []
+    if CATEGORIE_ECHEC in categories or not alerter_echec_import(dossier, message, erreur):
+        return
+    try:
+        client.categoriser(message["id"], [*categories, CATEGORIE_ECHEC])
+    except Exception:
+        logger.exception("Catégorie d'échec non posée (dossier %s, Graph %s)", dossier.pk, message["id"])

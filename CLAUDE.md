@@ -414,6 +414,13 @@ an everyday mailbox — hence the 24 h window below); `manage.py importer_courri
 (`events/graph.py`, client credentials, stdlib only — Exchange Online refuses password IMAP) and turns
 each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-courriels.md`.
 
+- **A mail that fails to import alerts the dossier owner — once** (`events/alertes.py`, 2026-10-17).
+  The failure is logged (`logger.exception` → Sentry, scrubbed by `config/sentry_filtres.py`: no
+  local variables, no exception message) and the owner gets an email (subject, sender, date, error
+  *type*). "Already alerted" is stored **in Outlook, not in the database**: the category
+  `CATEGORIE_ECHEC` is set on the mail once the alert has gone (a failed alert is retried next run);
+  removing it by hand asks for a new alert; a later successful import removes it. `--essai` alerts
+  nobody. `alerter()` is the single channel point (Pushover / PushIT later).
 - **Aliases end with a fixed suffix** (`acmebat-a1b2.chronos@foxugly.com`, owner's decision
   2026-10-09): `forms.suffixe_des_alias()` = `COURRIEL_ALIAS_SUFFIXE` if set, else
   `.chronos@<domain of COURRIEL_BOITE>`, else none (old behaviour: full address). The form takes

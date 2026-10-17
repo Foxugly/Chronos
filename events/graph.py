@@ -104,7 +104,7 @@ class ClientGraph:
         borne = depuis.astimezone(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         url = "/mailFolders/inbox/messages?%s" % urllib.parse.urlencode({
             "$filter": "receivedDateTime ge %s" % borne,
-            "$select": "id,internetMessageId,receivedDateTime,subject",
+            "$select": "id,internetMessageId,receivedDateTime,subject,from,categories",
             "$orderby": "receivedDateTime asc",
             "$top": "50",
         })
@@ -124,6 +124,10 @@ class ClientGraph:
         if trouves:
             return trouves[0]["id"]
         return self._appel("POST", "/mailFolders", {"displayName": nom})["id"]
+
+    def categoriser(self, identifiant, categories):
+        """Remplace les catégories Outlook du courriel (`Mail.ReadWrite`)."""
+        self._appel("PATCH", "/messages/%s" % identifiant, {"categories": list(categories)})
 
     def deplacer(self, identifiant, dossier_id):
         self._appel("POST", "/messages/%s/move" % identifiant, {"destinationId": dossier_id})

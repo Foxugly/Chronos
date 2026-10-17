@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 15:51+0200\n"
+"POT-Creation-Date: 2026-10-17 16:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,6 +29,39 @@ msgstr "gekoppelde stukken"
 #: .\events\admin.py:238 .\events\models.py:503 .\events\models.py:961
 msgid "évènements"
 msgstr "gebeurtenissen"
+
+#: .\events\alertes.py:51
+#, python-format
+msgid "Chronos — un courriel n'a pas pu être importé (%(dossier)s)"
+msgstr "Chronos — een e-mail kon niet worden geïmporteerd (%(dossier)s)"
+
+#: .\events\alertes.py:53
+#, python-format
+msgid ""
+"Un courriel adressé au dossier « %(dossier)s » n'a pas pu être importé.\n"
+"\n"
+"Expéditeur : %(expediteur)s\n"
+"Objet : %(objet)s\n"
+"Reçu le : %(recu)s\n"
+"Erreur : %(erreur)s\n"
+"\n"
+"Le courriel reste dans la boîte de réception de %(boite)s, marqué de la "
+"catégorie « %(categorie)s ». Il est retenté à chaque relève pendant 24 "
+"heures ; vous ne serez pas prévenu une seconde fois tant qu'il porte cette "
+"catégorie.\n"
+msgstr ""
+"Een e-mail gericht aan het dossier « %(dossier)s » kon niet worden geïmporteerd.\n"
+"\n"
+"Afzender: %(expediteur)s\n"
+"Onderwerp: %(objet)s\n"
+"Ontvangen op: %(recu)s\n"
+"Fout: %(erreur)s\n"
+"\n"
+"De e-mail blijft in het Postvak IN van %(boite)s, gemarkeerd met de categorie « %(categorie)s ». Hij wordt bij elke ophaling gedurende 24 uur opnieuw geprobeerd; u wordt geen tweede keer verwittigd zolang hij die categorie draagt.\n"
+
+#: .\events\alertes.py:64
+msgid "(sans objet)"
+msgstr "(geen onderwerp)"
 
 #: .\events\couleurs.py:34
 msgid "Couleur invalide : attendu #rrggbb."
