@@ -200,3 +200,32 @@ class AdminLoginIsShadowedTests(TestCase):
         self.client.login(username="admin-du-site", password="a-good-password")
         response = self.client.get("/admin/")
         self.assertEqual(response.status_code, 200)
+
+
+class ClientIpBehindNginxTests(TestCase):
+    """Les limites d'allauth comptent par adresse du client vue par nginx.
+
+    nginx est le seul proxy et ajoute l'adresse qu'il voit en fin de
+    X-Forwarded-For. Sans `ALLAUTH_TRUSTED_PROXY_COUNT`, allauth prenait
+    REMOTE_ADDR (127.0.0.1 pour tous) : un seul compteur partagé.
+    """
+
+    def ip(self, xff=None):
+        from allauth.account.adapter import get_adapter
+        from django.test import RequestFactory
+
+        extra = {"REMOTE_ADDR": "127.0.0.1"}
+        if xff is not None:
+            extra["HTTP_X_FORWARDED_FOR"] = xff
+        return get_adapter().get_client_ip(RequestFactory().post("/accounts/login/", **extra))
+
+    def test_two_clients_do_not_share_a_counter(self):
+        self.assertEqual(self.ip("203.0.113.7"), "203.0.113.7")
+        self.assertEqual(self.ip("198.51.100.9"), "198.51.100.9")
+
+    def test_a_forged_x_forwarded_for_does_not_change_the_address(self):
+        self.assertEqual(self.ip("1.2.3.4, 203.0.113.7"), "203.0.113.7")
+        self.assertEqual(self.ip("5.6.7.8, 9.9.9.9, 203.0.113.7"), "203.0.113.7")
+
+    def test_without_header_the_socket_address_is_used(self):
+        self.assertEqual(self.ip(), "127.0.0.1")

@@ -295,6 +295,13 @@ ACCOUNT_SIGNUP_FIELDS = ["username*", "email*", "password1*", "password2*"]
 # messagerie est la console, donc exiger la confirmation empêcherait
 # toute inscription réelle tant que SMTP n'est pas configuré.
 ACCOUNT_EMAIL_VERIFICATION = "optional"
+# Limites de débit d'allauth (connexion, inscription, réinitialisation) : par
+# défaut (0 proxy de confiance) allauth prend REMOTE_ADDR, soit 127.0.0.1 pour
+# tout le monde derrière nginx — un seul compteur « par IP » partagé, qu'un
+# inconnu peut épuiser pour bloquer tous les utilisateurs. nginx est le seul
+# proxy et AJOUTE l'adresse vue en fin de X-Forwarded-For : on prend celle-là,
+# jamais les valeurs précédentes, écrites par le client.
+ALLAUTH_TRUSTED_PROXY_COUNT = 1
 
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
