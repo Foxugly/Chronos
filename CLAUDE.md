@@ -421,6 +421,9 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   `CATEGORIE_ECHEC` is set on the mail once the alert has gone (a failed alert is retried next run);
   removing it by hand asks for a new alert; a later successful import removes it. `--essai` alerts
   nobody. `alerter()` is the single channel point (Pushover / PushIT later).
+  A mail that fails **before** it is sorted (Graph `mime`, unreadable header) is skipped and
+  counted (`Releve.illisibles`, opaque Graph ids only), never stops the run; no owner is known,
+  so no alert (audit 2026-10-18, M3).
 - **Aliases end with a fixed suffix** (`acmebat-a1b2.chronos@foxugly.com`, owner's decision
   2026-10-09): `forms.suffixe_des_alias()` = `COURRIEL_ALIAS_SUFFIXE` if set, else
   `.chronos@<domain of COURRIEL_BOITE>`, else none (old behaviour: full address). The form takes
@@ -652,8 +655,18 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
 
 - **Settings fail closed outside DEBUG**: `SECRET_KEY` (bare fleet name; `DJANGO_SECRET_KEY` still
   read locally), `ALLOWED_HOSTS` (never `*`), and `DB_ENGINE=postgresql` are required — no silent
-  fallback to a SQLite file. HTTPS/HSTS/secure cookies, Sentry (`SENTRY_DSN`, no PII), `/health/`
+  fallback to a SQLite file. HTTPS/HSTS/secure cookies, Sentry (`SENTRY_DSN`), `/health/`
   (`config/sante.py`, real `SELECT 1`, 503 when down, public).
+- **Owner's standing rule: no personal data and no e-mail content ever reaches Sentry.**
+  `send_default_pii=False` is not enough (sentry-sdk still sends the request body, the full URL
+  with its share token, headers and breadcrumbs — proven by probe, audit 2026-10-18). All options
+  live in `config/sentry_filtres.reglages_sentry()`: body never read, no local variables, and
+  allow-list filters on events, transactions and breadcrumbs (token path segments → `[token]`,
+  no query string, user = opaque id, no `extra`, anything from `events.*` keeps type + stack only).
+  A test walks every URL route with `token`/`key` and a probe goes through the real WSGI handler.
+- **Logs keep no token and no search**: gunicorn has no access log; nginx logs with
+  `chronos_sans_jeton` (path without query string, tokens masked, no Referer); Django's console
+  goes through `config/journaux.MasquerJetons`. Unicode digits (`²`) in ids → `filtres.identifiant()`.
 - **Evidence is never served publicly.** No `/media/` location (nginx answers 404). `reponse_de_piece`
   (`events/views/pieces.py`, both paths) checks rights, then — when `PIECES_X_ACCEL_PREFIX` is set — answers
   `X-Accel-Redirect` to an nginx `location internal;` whose `types {}` only keep pdf/jpeg/png and send

@@ -312,6 +312,62 @@ class CommandeTests(MediaMixin, TestCase):
         self.assertEqual(boite.ranges, {"1": "Litige SDB"})
         self.assertEqual(mail.outbox, [])
 
+    def lancer_avec_erreurs(self, boite):
+        sortie, erreurs = StringIO(), StringIO()
+        with mock.patch("events.import_courriels.ClientGraph", return_value=boite), \
+                self.assertLogs("events.import_courriels", level="ERROR") as journaux:
+            call_command("importer_courriels", stdout=sortie, stderr=erreurs)
+        return sortie.getvalue(), erreurs.getvalue(), "\n".join(journaux.output)
+
+    def test_un_courriel_illisible_avant_le_tri_ne_bloque_pas_la_releve(self):
+        """Audit du 2026-10-18 (M3) : un échec avant le tri (lecture Graph,
+        en-tête tordu) arrêtait toute la relève, à chaque passage pendant 24 h."""
+        boite = FausseBoite({
+            "0": courriel("Facture privée", "rien", a="inconnu@exemple.be", message_id="<pub@x>").as_bytes(),
+            "1": courriel("TR: x", "y", joint=original()).as_bytes(),
+        })
+        mime = boite.mime
+
+        def mime_qui_echoue(identifiant):
+            if identifiant == "0":
+                raise ValueError("Facture privée de inconnu@exemple.be")
+            return mime(identifiant)
+
+        boite.mime = mime_qui_echoue
+        sortie, erreurs, journaux = self.lancer_avec_erreurs(boite)
+        self.assertEqual(boite.ranges, {"1": "Litige SDB"})
+        self.assertEqual(Event.objects.count(), 1)
+        self.assertIn("1 importé(s), 0 déjà importé(s), 0 sans alias, 1 en échec", sortie)
+        # Ni objet ni adresse d'un courriel qui ne vise peut-être aucun dossier :
+        # l'identifiant Graph (opaque) et le type de l'erreur seulement.
+        for texte in (sortie, erreurs, journaux.split("Traceback")[0]):
+            self.assertNotIn("Facture privée", texte)
+            self.assertNotIn("inconnu@exemple.be", texte)
+        self.assertIn("ValueError", erreurs)
+        self.assertIn("Graph 0", erreurs)
+        self.assertEqual(mail.outbox, [])  # aucun dossier connu : personne à prévenir
+
+    def test_un_en_tete_illisible_ne_bloque_pas_la_releve(self):
+        from events import import_courriels
+
+        boite = FausseBoite({
+            "0": courriel("TR: x", "y", joint=original(), message_id="<a@x>").as_bytes(),
+            "1": courriel("TR: x", "y", joint=original()).as_bytes(),
+        })
+        adresses = import_courriels.adresses
+        appels = []
+
+        def adresses_qui_echouent(*args, **kwargs):
+            appels.append(1)
+            if len(appels) == 1:
+                raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, "en-tête tordu")
+            return adresses(*args, **kwargs)
+
+        with mock.patch("events.import_courriels.adresses", side_effect=adresses_qui_echouent):
+            sortie, _, _ = self.lancer_avec_erreurs(boite)
+        self.assertIn("1 en échec", sortie)
+        self.assertEqual(list(boite.ranges), ["1"])
+
     def test_depuis_un_fichier_eml(self):
         chemin = Path(self.media_root) / "exemple.eml"
         chemin.write_bytes(courriel("TR: x", "y", joint=original()).as_bytes())

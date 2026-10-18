@@ -9,6 +9,7 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 
 from .. import doublons as dedoublonnage
+from ..filtres import identifiant
 from ..permissions import get_dossier_for_write, get_event_for_write
 
 
@@ -35,11 +36,8 @@ def dossier_doublons(request, dossier_id):
 
 def _paire_postee(request, dossier):
     """Les deux évènements de la paire postée, du dossier, en écriture — ou 404."""
-    try:
-        ids = {int(request.POST.get("a", "")), int(request.POST.get("b", ""))}
-    except ValueError:
-        raise Http404
-    if len(ids) != 2:
+    ids = {identifiant(request.POST.get("a")), identifiant(request.POST.get("b"))}
+    if None in ids or len(ids) != 2:
         raise Http404
     evenements = {e.pk: e for e in (get_event_for_write(request.user, pk) for pk in ids)}
     if any(e.dossier_id != dossier.pk for e in evenements.values()):
@@ -52,9 +50,8 @@ def doublons_fusionner(request, dossier_id):
     if request.method != "POST":
         return redirect("dossier_doublons", dossier_id=dossier.pk)
     evenements = _paire_postee(request, dossier)
-    try:
-        garde = evenements[int(request.POST.get("garder", ""))]
-    except (KeyError, ValueError):
+    garde = evenements.get(identifiant(request.POST.get("garder")))
+    if garde is None:
         raise Http404
     absorbe = next(e for pk, e in evenements.items() if pk != garde.pk)
     titre_absorbe = absorbe.title

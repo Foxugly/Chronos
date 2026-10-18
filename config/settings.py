@@ -351,32 +351,32 @@ CSRF_TRUSTED_ORIGINS = hotes_autorises(os.environ.get("CSRF_TRUSTED_ORIGINS"))
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    # Ni jeton de partage ni recherche dans journald (config/journaux.py).
+    "filters": {"masquer_jetons": {"()": "config.journaux.MasquerJetons"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "filters": ["masquer_jetons"]}},
     "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "WARNING")},
 }
 
 # Sentry (org foxugly-srl, projet chronos-backend). Rien n'est envoyé sans DSN.
-# Pas de données personnelles (`send_default_pii=False`) : un dossier de litige
-# n'a rien à faire dans un outil tiers de suivi d'erreurs.
+# Règle du propriétaire : aucune donnée personnelle, aucun contenu de courriel
+# chez Sentry. `send_default_pii=False` ne suffit pas (corps de requête, URL
+# avec jeton, fils d'Ariane) : `reglages_sentry()` coupe le corps, retire les
+# variables locales et filtre tout ce qui part (config/sentry_filtres.py).
 SENTRY_DSN = os.environ.get("SENTRY_DSN", "").strip()
 if SENTRY_DSN:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
 
-    from config.sentry_filtres import avant_envoi
+    from config.sentry_filtres import reglages_sentry
 
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         environment=os.environ.get("SENTRY_ENVIRONMENT", "production"),
         release=os.environ.get("SENTRY_RELEASE", "") or None,
         integrations=[DjangoIntegration()],
-        before_send=avant_envoi,
         traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0")),
         profiles_sample_rate=float(os.environ.get("SENTRY_PROFILES_SAMPLE_RATE", "0")),
-        send_default_pii=False,
-        # Les variables locales d'une pile d'appels contiennent les courriels et les
-        # dossiers (octets, analyses, requêtes) : jamais envoyées.
-        include_local_variables=False,
+        **reglages_sentry(),
     )
 
 

@@ -11,6 +11,7 @@ pas touchées — on ne vide pas ce qu'on n'a pas montré.
 
 from django.utils.translation import gettext as _
 
+from .filtres import identifiant
 from .models import Etiquette
 
 LONGUEUR_MAX = 60
@@ -33,7 +34,7 @@ def appliquer(evenement, donnees):
     if not donnees.get("etiquettes_presentes"):
         return False
     dossier = evenement.dossier
-    ids = [int(v) for v in donnees.getlist("etiquettes") if str(v).isdigit()]
+    ids = [i for i in map(identifiant, donnees.getlist("etiquettes")) if i is not None]
     choisies = list(dossier.etiquettes.filter(pk__in=ids))
     for nom in (donnees.get("nouvelles_etiquettes") or "").split(","):
         nom = " ".join(nom.split())[:LONGUEUR_MAX]
@@ -51,7 +52,7 @@ def contexte_du_formulaire(dossier, evenement, donnees=None):
     des suggestions pour celles qui n'existent pas encore."""
     existantes = list(dossier.etiquettes.all()) if dossier is not None else []
     if donnees is not None and donnees.get("etiquettes_presentes"):
-        cochees = {int(v) for v in donnees.getlist("etiquettes") if str(v).isdigit()}
+        cochees = {i for i in map(identifiant, donnees.getlist("etiquettes")) if i is not None}
         nouvelles = donnees.get("nouvelles_etiquettes", "")
     else:
         cochees = set(evenement.etiquettes.values_list("pk", flat=True)) if evenement and evenement.pk else set()

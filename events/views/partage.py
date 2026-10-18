@@ -10,6 +10,7 @@ from django.utils.formats import date_format
 from django.utils import translation
 from django.utils.translation import gettext as _
 
+from ..filtres import identifiant
 from ..forms import DossierAccessForm, InvitationForm, ShareLinkForm
 from ..journal import consigner
 from ..models import DossierAccess, Invitation, Journal
@@ -76,10 +77,10 @@ def _lien_tout_juste_cree(request, dossier):
     montrer en tête avec son bouton « Copier ». Borné au dossier, et seulement
     s'il est encore actif : un identifiant d'ailleurs, ou d'un lien coupé, ne
     montre rien."""
-    valeur = request.GET.get("nouveau", "")
-    if not valeur.isdigit():
+    valeur = identifiant(request.GET.get("nouveau"))
+    if valeur is None:
         return None
-    lien = dossier.share_links.filter(pk=int(valeur)).first()
+    lien = dossier.share_links.filter(pk=valeur).first()
     return lien if lien is not None and lien.is_active else None
 
 

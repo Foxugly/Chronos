@@ -13,9 +13,11 @@ EnvironmentFile=/run/chronos/.env
 Environment="PYTHONUNBUFFERED=1"
 # --timeout 120 : changer un alias Exchange enchaîne deux connexions
 # PowerShell (ajout puis retrait), une dizaine de secondes chacune.
+# Pas de log d'accès : nginx journalise déjà chaque requête (sans query string
+# ni jeton, voir deploy/nginx), et celui de gunicorn gardait jetons de partage,
+# invitations et recherches `q=`, sans rotation (audit du 2026-10-18, I2).
 ExecStart=/var/www/django_websites/Chronos/.venv/bin/gunicorn --workers 2 --timeout 120 \
     --bind 127.0.0.1:8010 \
-    --access-logfile /var/log/chronos/gunicorn-access.log \
     --error-logfile /var/log/chronos/gunicorn-error.log \
     config.wsgi:application
 # Durcissement (OPERATIONS.md §3.22) : pas d'élévation de privilèges, /tmp privé, système en

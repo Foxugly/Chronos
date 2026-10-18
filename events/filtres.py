@@ -37,6 +37,20 @@ MOIS = re.compile(r"^(\d{4})-(\d{2})$")
 #: Au-delà, le texte d'une pièce `.md` n'est pas lu : une pièce démesurée ne
 #: doit pas rendre la recherche lente pour tout le monde.
 TAILLE_MAX_TEXTE = 2 * 1024 * 1024
+#: Un identifiant venu d'une URL ou d'un formulaire : chiffres ASCII seulement
+#: (`"²".isdigit()` est vrai, `int("²")` lève), et assez court pour tenir dans
+#: un `bigint` PostgreSQL.
+IDENTIFIANT = re.compile(r"[0-9]{1,18}")
+
+
+def identifiant(valeur):
+    """L'entier qu'écrit `valeur`, ou None si ce n'est pas un identifiant
+    bien formé. Un paramètre invalide est ignoré, jamais une erreur 500."""
+    if isinstance(valeur, int) and not isinstance(valeur, bool):
+        valeur = str(valeur)
+    if isinstance(valeur, str) and IDENTIFIANT.fullmatch(valeur):
+        return int(valeur)
+    return None
 
 
 def normaliser(texte):
@@ -119,15 +133,15 @@ def lire_filtres(parametres, dossier):
     if expediteur == SANS_EXPEDITEUR:
         filtres.expediteur = SANS_EXPEDITEUR
         filtres.expediteur_libelle = _("saisis à la main")
-    elif expediteur.isdigit():
-        trouve = dossier.expediteurs.filter(pk=int(expediteur)).first()
+    elif identifiant(expediteur) is not None:
+        trouve = dossier.expediteurs.filter(pk=identifiant(expediteur)).first()
         if trouve is not None:
             filtres.expediteur = str(trouve.pk)
             filtres.expediteur_libelle = str(trouve)
 
     etiquette = (parametres.get("etiquette") or "").strip()
-    if etiquette.isdigit():
-        trouvee = dossier.etiquettes.filter(pk=int(etiquette)).first()
+    if identifiant(etiquette) is not None:
+        trouvee = dossier.etiquettes.filter(pk=identifiant(etiquette)).first()
         if trouvee is not None:
             filtres.etiquette = str(trouvee.pk)
             filtres.etiquette_libelle = trouvee.nom
@@ -185,7 +199,7 @@ def appliquer(evenements, filtres):
     for evenement in evenements:
         if filtres.expediteur == SANS_EXPEDITEUR and evenement.expediteur_id is not None:
             continue
-        if filtres.expediteur.isdigit() and str(evenement.expediteur_id) != filtres.expediteur:
+        if filtres.expediteur not in ("", SANS_EXPEDITEUR) and str(evenement.expediteur_id) != filtres.expediteur:
             continue
         if filtres.etiquette and int(filtres.etiquette) not in {e.pk for e in evenement.etiquettes.all()}:
             continue

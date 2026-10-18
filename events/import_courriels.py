@@ -391,6 +391,7 @@ class Releve:
         self.deja = Counter()       # identifiant de dossier → déjà importés, rangés
         self.ignores = 0            # sans alias : ni déplacés ni cités
         self.erreurs = 0
+        self.illisibles = []        # identifiants Graph (opaques) illisibles avant le tri
 
 
 def relever_la_boite(*, essai=False, decrire=None, signaler=None):
@@ -412,8 +413,19 @@ def relever_la_boite(*, essai=False, decrire=None, signaler=None):
 
     ignorer = adresses_de_la_boite()
     for message in client.messages_recus(timezone.now() - settings.COURRIEL_FENETRE):
-        octets = client.mime(message["id"])
-        dossier = dossier_destinataire(adresses(lire(octets), *ENTETES_DESTINATAIRES))
+        try:
+            octets = client.mime(message["id"])
+            dossier = dossier_destinataire(adresses(lire(octets), *ENTETES_DESTINATAIRES))
+        except Exception as erreur:  # illisible avant le tri : on passe au suivant
+            # Rien ne dit encore que ce courriel vise un dossier : ni objet, ni
+            # adresse, ni message d'erreur (qui peut en citer) — l'identifiant
+            # Graph, opaque, et le type de l'erreur. Il reste dans la boîte de
+            # réception et sera retenté ; aucun propriétaire à prévenir.
+            bilan.erreurs += 1
+            bilan.illisibles.append(message["id"])
+            signaler("  ÉCHEC avant le tri (Graph %s) : %s" % (message["id"], type(erreur).__name__))
+            logger.exception("Courriel illisible avant le tri (Graph %s)", message["id"])
+            continue
         if dossier is None:
             bilan.ignores += 1  # ce courriel ne regarde pas Chronos
             continue
