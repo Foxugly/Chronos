@@ -46,18 +46,28 @@ jobs:
           #   1. chown de l'arborescence (répare des objets git laissés root) ;
           #   2. en django, umask 027 : fetch + reset --hard sur origin/main ;
           #   3. en root : unités systemd, script de configuration et nginx
-          #      installés depuis le BLOB GIT VALIDÉ, jamais depuis l'arbre
+          #      installés depuis le BLOB GIT VALIDÉ (miroir de root, au SHA), jamais depuis l'arbre
           #      modifiable par django (§3.10) ; nginx -t, sinon retour arrière ;
           #   4. en django : ssm-deploy.sh (pip, migrate, collectstatic, restart) ;
           #   5. normalisation finale des droits : 750 / 640, groupe www-data.
           A=/var/www/django_websites/Chronos
-          G="git -C $A -c safe.directory=$A show origin/main"
+          # Les blobs installés par root viennent du MIROIR NU DE ROOT
+          # (/var/lib/fleet-deploy, root:root 700), alimenté depuis GitHub au SHA
+          # déployé avec une clé de déploiement lecture seule possédée par root —
+          # jamais du .git de l'arbre django (refs, config, hooks réécrivables par
+          # django → escalade vers root).
+          M=/var/lib/fleet-deploy/Chronos.git
+          G="git --git-dir=$M show $SHA"
           cat > /tmp/ssm-params.json <<EOF
           {
             "commands": [
               "set -eu",
               "chown -R django:www-data $A",
               "sudo -u django bash -c 'umask 027; cd $A && git fetch --quiet && git reset --hard --quiet origin/main'",
+              "install -d -m 700 -o root -g root /var/lib/fleet-deploy",
+              "[ -d $M ] || git init --quiet --bare $M",
+              "GIT_SSH_COMMAND='ssh -i /root/.ssh/github-chronos -o IdentitiesOnly=yes -o UserKnownHostsFile=/root/.ssh/known_hosts_github -o StrictHostKeyChecking=yes' git --git-dir=$M fetch --quiet --depth=1 git@github.com:Foxugly/Chronos.git $SHA",
+              "git --git-dir=$M cat-file -e $SHA^{commit}",
               "$G:deploy/chronos-env-fetch.service > /etc/systemd/system/chronos-env-fetch.service",
               "$G:deploy/chronos-gunicorn.service > /etc/systemd/system/chronos-gunicorn.service",
               "$G:deploy/chronos-mail-import.service > /etc/systemd/system/chronos-mail-import.service",
