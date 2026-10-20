@@ -1,7 +1,7 @@
 Django>=6.1.2,<6.2
-django-allauth>=65.19.7,<66
+django-allauth>=65.20.0,<66
 nh3>=0.3.7,<0.4
 reportlab>=5.0.1,<6
 psycopg[binary]>=3.3.6,<3.4
 gunicorn==23.0.0
-sentry-sdk[django]==2.71.0
+sentry-sdk[django]==2.72.0
