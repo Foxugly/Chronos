@@ -50,6 +50,8 @@ jobs:
           #      modifiable par django (§3.10) ; nginx -t, sinon retour arrière ;
           #   4. en django : ssm-deploy.sh (pip, migrate, collectstatic, restart) ;
           #   5. normalisation finale des droits : 750 / 640, groupe www-data.
+          #      chown -R -h ne suit aucun lien planté par django ; le chmod tourne
+          #      EN DJANGO (root n'écrit jamais à travers l'arbre de django, §3.10).
           A=/var/www/django_websites/Chronos
           # Les blobs installés par root viennent du MIROIR NU DE ROOT
           # (/var/lib/fleet-deploy, root:root 700), alimenté depuis GitHub au SHA
@@ -62,7 +64,7 @@ jobs:
           {
             "commands": [
               "set -eu",
-              "chown -R django:www-data $A",
+              "chown -R -h django:www-data $A",
               "sudo -u django bash -c 'umask 027; cd $A && git fetch --quiet && git reset --hard --quiet origin/main'",
               "install -d -m 700 -o root -g root /var/lib/fleet-deploy",
               "[ -d $M ] || git init --quiet --bare $M",
@@ -76,7 +78,7 @@ jobs:
               "systemctl daemon-reload",
               "bash -c 'set -e; $G:deploy/nginx/chronos.foxugly.com.conf > /etc/nginx/sites-available/chronos.foxugly.com.new; cp -a /etc/nginx/sites-available/chronos.foxugly.com /etc/nginx/sites-available/chronos.foxugly.com.deploybak; mv /etc/nginx/sites-available/chronos.foxugly.com.new /etc/nginx/sites-available/chronos.foxugly.com; nginx -t || { mv /etc/nginx/sites-available/chronos.foxugly.com.deploybak /etc/nginx/sites-available/chronos.foxugly.com; exit 1; }; systemctl reload nginx'",
               "sudo -u django bash $A/deploy/ssm-deploy.sh",
-              "chown -R django:www-data $A && chmod -R g-w,o-rwx $A"
+              "chown -R -h django:www-data $A && sudo -u django chmod -R g-w,o-rwx $A"
             ],
             "executionTimeout": ["900"]
           }
