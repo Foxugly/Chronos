@@ -300,6 +300,12 @@ ACCOUNT_SIGNUP_FIELDS = ["username*", "email*", "password1*", "password2*"]
 # depuis l'administration doit en recevoir une là aussi (fiche « Adresses
 # e-mail »), sinon il ne pourra pas se connecter.
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+# Le clic sur le lien de confirmation connecte, mais seulement dans la session
+# qui s'est inscrite (allauth vérifie que le compte en attente est le même) et
+# reprend son `next` : la personne venue d'une invitation y revient au lieu
+# d'aboutir à l'accueil. Ouvert ailleurs, le lien ne connecte pas ; voir
+# `SdbAccountAdapter.get_email_verification_redirect_url`.
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 # Limites de débit d'allauth (connexion, inscription, réinitialisation) : par
 # défaut (0 proxy de confiance) allauth prend REMOTE_ADDR, soit 127.0.0.1 pour
 # tout le monde derrière nginx — un seul compteur « par IP » partagé, qu'un

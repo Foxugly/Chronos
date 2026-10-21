@@ -114,7 +114,7 @@ reprendre le gabarit d'allauth comme base.
             <hr class="my-4">
             <p class="text-center mb-0">
                 {% translate "Pas encore de compte ?" %}
-                <a class="fw-medium text-decoration-none" href="{% url 'account_signup' %}">{% translate "Créer un compte" %}</a>
+                <a class="fw-medium text-decoration-none" href="{{ signup_url }}">{% translate "Créer un compte" %}</a>
             </p>
     </div>
 {% endblock content %}

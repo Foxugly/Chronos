@@ -205,6 +205,13 @@ older allauth the login page would redirect to itself.
   owner was not locked out. **An account created in the admin needs a verified `EmailAddress` too.**
   `templates/account/email_confirm.html` overrides allauth's only to drop its link to the shadowed
   `/accounts/email/` on an expired link.
+  **An invitation survives signup + verification** (`events/tests/test_invitation_inscription.py`):
+  the login page's « Créer un compte » uses allauth's `signup_url` (it carries `next`, validated),
+  `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True` logs in on confirmation **in the signing-up session
+  only** and resumes that `next`, and when the link is opened elsewhere
+  `SdbAccountAdapter.get_email_verification_redirect_url` sends the anonymous visitor to
+  `/accounts/login/?next=<invitation>` if a usable invitation awaits the address just proven. Tests
+  that send two confirmation mails to one address must `cache.clear()` (allauth's rate limits).
 - **Dossier quota** (`events/quotas.py`, 2026-10-21): `Profil.max_dossiers` (one-to-one with the user,
   default 0, edited on the user's admin page) caps the dossiers a user **owns**; shared ones do not
   count, superusers get no bypass, no profile = 0. `dossier_creer` (`/dossiers/nouveau/`, « Ajouter un
