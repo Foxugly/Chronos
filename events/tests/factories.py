@@ -8,6 +8,15 @@ def make_user(username, password="pw-for-tests", **kwargs):
         username=username, email=f"{username}@example.test", password=password, **kwargs
     )
 
+def verifier_adresse(user):
+    """Donne au compte une adresse principale vérifiée, comme après le clic sur
+    le lien de confirmation : la vérification est obligatoire (2026-10-21), et
+    un compte sans elle ne se connecte pas par le formulaire d'allauth."""
+    from allauth.account.models import EmailAddress
+
+    return EmailAddress.objects.create(user=user, email=user.email, primary=True, verified=True)
+
+
 
 def make_dossier(owner, name="Dossier de test"):
     return Dossier.objects.create(name=name, owner=owner)

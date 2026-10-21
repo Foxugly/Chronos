@@ -2839,3 +2839,55 @@ msgid ""
 "Les invitations et les liens de partage qui ne servent plus (acceptés, "
 "annulés, révoqués ou expirés) sont effacés %(jours)s jours après leur fin."
 msgstr "Uitnodigingen en deellinks die niet meer dienen (aanvaard, geannuleerd, ingetrokken of verlopen) worden %(jours)s dagen na hun einde gewist."
+
+msgid "profil"
+msgstr "profiel"
+
+msgid "profils"
+msgstr "profielen"
+
+msgid "Nombre maximum de dossiers"
+msgstr "Maximumaantal dossiers"
+
+msgid "Nombre de dossiers dont ce compte peut être propriétaire. 0 : il ne peut pas en créer."
+msgstr "Aantal dossiers waarvan dit account eigenaar mag zijn. 0: het kan er geen aanmaken."
+
+msgid "La création de dossiers n'est pas activée pour votre compte."
+msgstr "Het aanmaken van dossiers is niet geactiveerd voor uw account."
+
+#, python-format
+msgid "Vous avez atteint le nombre maximum de dossiers (%(maximum)d)."
+msgstr "U hebt het maximumaantal dossiers bereikt (%(maximum)d)."
+
+msgid "Nouveau dossier"
+msgstr "Nieuw dossier"
+
+#, python-format
+msgid "%(n)s / %(maximum)s dossiers"
+msgstr "%(n)s / %(maximum)s dossiers"
+
+msgid "Créer le dossier"
+msgstr "Dossier aanmaken"
+
+msgid "Ajouter un dossier"
+msgstr "Dossier toevoegen"
+
+msgid "Dossier créé."
+msgstr "Dossier aangemaakt."
+
+msgid "Ce lien de confirmation a expiré ou n'est pas valide. Connectez-vous : un nouveau lien vous sera envoyé."
+msgstr "Deze bevestigingslink is verlopen of ongeldig. Meld u aan: u ontvangt een nieuwe link."
+
+msgid "Confirm Email Address"
+msgstr "Bevestig e-mailadres"
+
+msgid "Confirm"
+msgstr "Bevestigen"
+
+#, python-format
+msgid "Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an email address for user %(user_display)s."
+msgstr "Bevestig dat <a href=\"mailto:%(email)s\">%(email)s</a> een e-mailadres is voor gebruiker %(user_display)s."
+
+#, python-format
+msgid "Unable to confirm %(email)s because it is already confirmed by a different account."
+msgstr "Het e-mail adres %(email)s kon niet worden geverifieerd omdat het gekoppeld is aan een ander account."

@@ -199,6 +199,18 @@ older allauth the login page would redirect to itself.
   which counts failures. The shadow redirects to `/accounts/login/?next=/admin/`. Like
   `/accounts/email/`, **it depends on declaration order**: move `admin.site.urls` above it and the
   door reopens. Tests in `events/tests/test_auth.py` guard it.
+- **E-mail verification is mandatory** (`ACCOUNT_EMAIL_VERIFICATION = "mandatory"`, owner's decision
+  2026-10-21): an account with no verified address cannot sign in; each attempt re-sends the link.
+  Migration `0026` gave every superuser a primary verified `EmailAddress` (from `user.email`) so the
+  owner was not locked out. **An account created in the admin needs a verified `EmailAddress` too.**
+  `templates/account/email_confirm.html` overrides allauth's only to drop its link to the shadowed
+  `/accounts/email/` on an expired link.
+- **Dossier quota** (`events/quotas.py`, 2026-10-21): `Profil.max_dossiers` (one-to-one with the user,
+  default 0, edited on the user's admin page) caps the dossiers a user **owns**; shared ones do not
+  count, superusers get no bypass, no profile = 0. `dossier_creer` (`/dossiers/nouveau/`, « Ajouter un
+  dossier » on the home page, disabled at the limit) creates through `creer_un_dossier`, which re-checks
+  under a row lock — any future creation path (API, copy, import) must go through it too. The admin is
+  exempt. Migration `0025` set 5 for `rvilain@foxugly.com`.
 - allauth does **not** use `templates/base.html` — its templates go through its self-contained
   `allauth/layouts/*` chain. Changing the project base will not restyle the login pages.
 

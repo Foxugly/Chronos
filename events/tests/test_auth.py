@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from events.tests.factories import make_user
+from events.tests.factories import make_user, verifier_adresse
 
 
 class LoginRequiredTests(TestCase):
@@ -69,6 +69,13 @@ class OpenSignupTests(TestCase):
                 "password2": "a-really-good-password1",
             },
         )
+        # La vérification est obligatoire : l'adresse confirmée, on se connecte.
+        nouveau = get_user_model().objects.get(username="curieux")
+        nouveau.emailaddress_set.update(verified=True)
+        self.client.post(
+            reverse("account_login"),
+            {"login": "curieux", "password": "a-really-good-password1"},
+        )
 
         accueil = self.client.get(reverse("dossier_list"))
         self.assertEqual(accueil.status_code, 200)
@@ -97,6 +104,7 @@ class ClosedEmailManagementTests(TestCase):
 class LoginMethodTests(TestCase):
     def setUp(self):
         self.user = make_user("someone", password="a-good-password")
+        verifier_adresse(self.user)
 
     def test_login_with_username(self):
         self.assertTrue(

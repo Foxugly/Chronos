@@ -4,16 +4,19 @@ from datetime import timedelta
 from urllib.parse import urlencode
 
 from django.db.models import Count, Q
-from django.shortcuts import render
+from django.contrib import messages
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 
 from .. import calendrier, doublons as dedoublonnage, filtres as filtrage
 from ..fils import courriels_manquants
+from ..forms import DossierNomForm
 from ..import_courriels import import_configure
 from ..models import CourrielImporte, Dossier
 from ..permissions import get_dossier_for_read
+from ..quotas import QuotaAtteint, creer_un_dossier, quota_de
 from .evenements import ICONES_DE_PIECE, IMAGE_EXTENSIONS
 
 
@@ -262,7 +265,32 @@ def dossier_list(request):
                 len(dedoublonnage.doublons_possibles(dossier, evenements)) if peut_ecrire else 0
             ),
         })
-    return render(request, "events/dossier_list.html", {"cartes": cartes})
+    return render(request, "events/dossier_list.html", {
+        "cartes": cartes, "quota": quota_de(request.user),
+    })
+
+
+def dossier_creer(request):
+    """Créer un dossier dont on est le propriétaire, dans la limite de son quota.
+
+    Le quota (`events/quotas.py`) est vérifié à l'affichage et de nouveau,
+    sous verrou, à l'enregistrement. Quota atteint : 403 avec l'explication,
+    rien n'est créé.
+    """
+    quota = quota_de(request.user)
+    form = DossierNomForm(request.POST or None)
+    if request.method == "POST" and not quota.atteint and form.is_valid():
+        try:
+            dossier = creer_un_dossier(request.user, form.cleaned_data["name"], request=request)
+        except QuotaAtteint as refus:
+            quota = refus.quota
+        else:
+            messages.success(request, _("Dossier créé."))
+            return redirect("timeline", dossier_id=dossier.pk)
+    return render(
+        request, "events/dossier_creer.html", {"form": form, "quota": quota},
+        status=403 if quota.atteint else (400 if form.is_bound else 200),
+    )
 
 
 def timeline(request, dossier_id):

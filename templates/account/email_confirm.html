@@ -1,0 +1,43 @@
+{% extends "account/base_entrance.html" %}
+{% comment %}
+Surcharge de la confirmation d'adresse d'allauth (vérification obligatoire depuis le
+2026-10-21). Identique à celle d'allauth, sauf le lien expiré : allauth renvoie vers
+`/accounts/email/`, masqué ici (404, `config/urls.py`). Se reconnecter renvoie un
+nouveau lien — c'est ce que la page dit.
+{% endcomment %}
+{% load i18n %}
+{% load account %}
+{% load allauth %}
+{% block head_title %}
+    {% trans "Confirm Email Address" %}
+{% endblock head_title %}
+{% block content %}
+    {% element h1 %}
+        {% trans "Confirm Email Address" %}
+    {% endelement %}
+    {% if confirmation %}
+        {% user_display confirmation.email_address.user as user_display %}
+        {% if can_confirm %}
+            {% element p %}
+                {% blocktrans with confirmation.email_address.email as email %}Please confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an email address for user {{ user_display }}.{% endblocktrans %}
+            {% endelement %}
+            {% url 'account_confirm_email' confirmation.key as action_url %}
+            {% element form method="post" action=action_url %}
+                {% slot actions %}
+                    {% csrf_token %}
+                    {{ redirect_field }}
+                    {% element button type="submit" %}
+                        {% trans 'Confirm' %}
+                    {% endelement %}
+                {% endslot %}
+            {% endelement %}
+        {% else %}
+            {% element p %}
+                {% blocktrans %}Unable to confirm {{ email }} because it is already confirmed by a different account.{% endblocktrans %}
+            {% endelement %}
+        {% endif %}
+    {% else %}
+        <p data-lien-expire>{% translate "Ce lien de confirmation a expiré ou n'est pas valide. Connectez-vous : un nouveau lien vous sera envoyé." %}</p>
+        <p><a class="btn btn-primary w-100" href="{% url 'account_login' %}">{% translate "Se connecter" %}</a></p>
+    {% endif %}
+{% endblock content %}

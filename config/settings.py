@@ -291,14 +291,15 @@ ACCOUNT_LOGIN_METHODS = {"username", "email"}
 ACCOUNT_SIGNUP_FIELDS = ["username*", "email*", "password1*", "password2*"]
 # L'inscription est ouverte : quelqu'un pourrait s'enregistrer avec l'adresse
 # d'un autre et la voir traitée comme sienne (la connexion par e-mail est
-# permise). « optional » envoie la confirmation sans bloquer la connexion.
-# Graph envoie bien les courriels en production : « mandatory » serait
-# possible, mais pas à l'aveugle (audit du 2026-10-18, M7) — un compte sans
-# adresse (créé par `createsuperuser` ou l'administration) serait bloqué sans
-# recours : allauth annonce un lien de confirmation qu'il n'a nulle part où
-# envoyer. Avant de passer à « mandatory », vérifier en production que chaque
-# compte a une adresse joignable.
-ACCOUNT_EMAIL_VERIFICATION = "optional"
+# permise). « mandatory » (décision du propriétaire, 2026-10-21) : pas de
+# connexion tant que l'adresse n'est pas confirmée ; allauth renvoie le lien à
+# chaque tentative. En production, Graph envoie bien les courriels
+# (`events/courrier_graph.py`) ; en local, le lien s'imprime sur la console.
+# Les superutilisateurs, créés sans `EmailAddress` (`createsuperuser`), ont
+# reçu une adresse vérifiée par la migration `events.0026` ; un compte créé
+# depuis l'administration doit en recevoir une là aussi (fiche « Adresses
+# e-mail »), sinon il ne pourra pas se connecter.
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # Limites de débit d'allauth (connexion, inscription, réinitialisation) : par
 # défaut (0 proxy de confiance) allauth prend REMOTE_ADDR, soit 127.0.0.1 pour
 # tout le monde derrière nginx — un seul compteur « par IP » partagé, qu'un

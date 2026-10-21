@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Créer un dossier. Le quota (`events/quotas.py`) se vérifie dans la vue ;
+ici, on ne fait qu'afficher le formulaire ou l'explication du refus.
+{% endcomment %}
+
+{% block title %}{% translate "Nouveau dossier" %} — Chronos{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <div class="page-header__left"><a class="btn btn-outline-secondary btn-sm" href="{% url 'dossier_list' %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Mes dossiers" %}</a></div>
+        <h1 class="page-header__title"><i class="bi bi-folder-plus" aria-hidden="true"></i>{% translate "Nouveau dossier" %}</h1>
+        <div class="page-header__right"></div>
+    </div>
+
+    <div class="card shadow-sm mx-auto" style="max-width: 40rem;">
+        <div class="card-body p-4">
+            {% if quota.atteint %}
+                <div class="alert alert-warning mb-0" data-quota-atteint>{{ quota.message }}</div>
+            {% else %}
+                <form method="post">
+                    {% csrf_token %}
+                    {% for erreur in form.non_field_errors %}
+                        <div class="alert alert-danger">{{ erreur }}</div>
+                    {% endfor %}
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.name.id_for_label }}">{% translate "Nom du dossier" %}</label>
+                        {{ form.name }}
+                        {% for erreur in form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ erreur }}</div>
+                        {% endfor %}
+                    </div>
+                    <p class="small text-body-secondary">
+                        {% blocktranslate trimmed with n=quota.possedes maximum=quota.maximum %}{{ n }} / {{ maximum }} dossiers{% endblocktranslate %}
+                    </p>
+                    <button type="submit" class="btn btn-success"><i class="bi bi-folder-plus me-1" aria-hidden="true"></i>{% translate "Créer le dossier" %}</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

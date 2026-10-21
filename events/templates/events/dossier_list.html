@@ -13,8 +13,22 @@ est dans `dossier_list` ; rien ici ne lit les droits.
     <div class="page-header">
         <div class="page-header__left"></div>
         <h1 class="page-header__title"><i class="bi bi-folder2-open" aria-hidden="true"></i>{% translate "Mes dossiers" %}</h1>
-        <div class="page-header__right"></div>
+        <div class="page-header__right">
+            {% if quota.atteint %}
+                <button type="button" class="btn btn-success" disabled aria-describedby="quota-dossiers" data-ajouter-dossier>
+                    <i class="bi bi-folder-plus me-1" aria-hidden="true"></i>{% translate "Ajouter un dossier" %}
+                </button>
+            {% else %}
+                <a class="btn btn-success" href="{% url 'dossier_creer' %}" aria-describedby="quota-dossiers" data-ajouter-dossier>
+                    <i class="bi bi-folder-plus me-1" aria-hidden="true"></i>{% translate "Ajouter un dossier" %}
+                </a>
+            {% endif %}
+        </div>
     </div>
+    <p class="small text-body-secondary text-end" id="quota-dossiers">
+        {% if quota.maximum %}{% blocktranslate trimmed with n=quota.possedes maximum=quota.maximum %}{{ n }} / {{ maximum }} dossiers{% endblocktranslate %}{% endif %}
+        {% if quota.atteint %}{% if quota.maximum %} — {% endif %}{{ quota.message }}{% endif %}
+    </p>
 
     {% if cartes %}
         <div class="row row-cols-1 row-cols-lg-2 g-4">

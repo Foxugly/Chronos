@@ -6,7 +6,7 @@ son module.
 
 from .compte import compte_supprimer
 from .courriels import dossier_manquants
-from .dossiers import dossier_list, timeline
+from .dossiers import dossier_creer, dossier_list, timeline
 from .doublons import dossier_doublons, doublons_ecarter, doublons_fusionner
 from .evenements import event_add, event_delete, event_detail, event_edit
 from .journal import dossier_export, dossier_journal
@@ -37,6 +37,7 @@ __all__ = [
     "dossier_access_revoke",
     "dossier_alias",
     "dossier_alias_verifier",
+    "dossier_creer",
     "dossier_doublons",
     "dossier_etiquette",
     "dossier_expediteurs",

@@ -971,3 +971,37 @@ class Etiquette(models.Model):
 
     def __str__(self):
         return self.nom
+
+
+class Profil(models.Model):
+    """Ce qui s'attache à un compte sans appartenir à `auth.User`.
+
+    Un profil est facultatif : un compte qui n'en a pas se lit comme un
+    profil aux valeurs par défaut (`events/quotas.py`). Il se crée depuis
+    l'administration (fiche de l'utilisateur), là où se règle le quota.
+    """
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        verbose_name=gettext_lazy("utilisateur"),
+        related_name="profil",
+        on_delete=models.CASCADE,
+    )
+    #: Le nombre de dossiers que le compte peut **posséder** (`Dossier.owner`) ;
+    #: les dossiers partagés avec lui ne comptent pas. 0 : il n'en crée aucun
+    #: (décision du propriétaire, 2026-10-21 — la facturation le pilotera).
+    max_dossiers = models.PositiveIntegerField(
+        gettext_lazy("Nombre maximum de dossiers"),
+        default=0,
+        help_text=gettext_lazy(
+            "Nombre de dossiers dont ce compte peut être propriétaire. "
+            "0 : il ne peut pas en créer."
+        ),
+    )
+
+    class Meta:
+        verbose_name = gettext_lazy("profil")
+        verbose_name_plural = gettext_lazy("profils")
+
+    def __str__(self):
+        return str(self.user)

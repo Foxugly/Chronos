@@ -1,7 +1,9 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy
 from .journal import consigner, differences, instantane
-from .models import Etiquette, Document, Dossier, DossierAccess, Event, Journal
+from .models import Etiquette, Document, Dossier, DossierAccess, Event, Journal, Profil
 
 
 def _journal_admin(request, dossier, action, **kwargs):
@@ -303,3 +305,25 @@ class JournalAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+class ProfilInline(admin.StackedInline):
+    """Le quota de dossiers, sur la fiche de l'utilisateur (`events/quotas.py`).
+
+    La facturation le pilotera plus tard ; pour l'instant, il se règle ici.
+    """
+
+    model = Profil
+    can_delete = False
+    fields = ("max_dossiers",)
+    verbose_name_plural = gettext_lazy("profil")
+
+
+Utilisateur = get_user_model()
+if admin.site.is_registered(Utilisateur):
+    admin.site.unregister(Utilisateur)
+
+
+@admin.register(Utilisateur)
+class UtilisateurAdmin(UserAdmin):
+    inlines = [*UserAdmin.inlines, ProfilInline]

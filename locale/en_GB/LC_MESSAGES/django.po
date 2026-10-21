@@ -2809,3 +2809,55 @@ msgid ""
 "Les invitations et les liens de partage qui ne servent plus (acceptés, "
 "annulés, révoqués ou expirés) sont effacés %(jours)s jours après leur fin."
 msgstr "Invitations and share links that are no longer in use (accepted, cancelled, revoked or expired) are erased %(jours)s days after they end."
+
+msgid "profil"
+msgstr "profile"
+
+msgid "profils"
+msgstr "profiles"
+
+msgid "Nombre maximum de dossiers"
+msgstr "Maximum number of dossiers"
+
+msgid "Nombre de dossiers dont ce compte peut être propriétaire. 0 : il ne peut pas en créer."
+msgstr "Number of dossiers this account may own. 0: it cannot create any."
+
+msgid "La création de dossiers n'est pas activée pour votre compte."
+msgstr "Creating dossiers is not enabled for your account."
+
+#, python-format
+msgid "Vous avez atteint le nombre maximum de dossiers (%(maximum)d)."
+msgstr "You have reached the maximum number of dossiers (%(maximum)d)."
+
+msgid "Nouveau dossier"
+msgstr "New dossier"
+
+#, python-format
+msgid "%(n)s / %(maximum)s dossiers"
+msgstr "%(n)s / %(maximum)s dossiers"
+
+msgid "Créer le dossier"
+msgstr "Create dossier"
+
+msgid "Ajouter un dossier"
+msgstr "Add a dossier"
+
+msgid "Dossier créé."
+msgstr "Dossier created."
+
+msgid "Ce lien de confirmation a expiré ou n'est pas valide. Connectez-vous : un nouveau lien vous sera envoyé."
+msgstr "This confirmation link has expired or is invalid. Sign in: a new link will be sent to you."
+
+msgid "Confirm Email Address"
+msgstr "Confirm Email Address"
+
+msgid "Confirm"
+msgstr "Confirm"
+
+#, python-format
+msgid "Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an email address for user %(user_display)s."
+msgstr "Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an email address for user %(user_display)s."
+
+#, python-format
+msgid "Unable to confirm %(email)s because it is already confirmed by a different account."
+msgstr "Unable to confirm %(email)s because it is already confirmed by a different account."
