@@ -1,0 +1,12 @@
+# ruff — introduit le 2026-10-21 (audit du 2026-10-18, M10).
+#
+# Même version que la flotte (ruff==0.16.10, requirements-dev.txt). Les règles
+# sont explicites : celles que ruff appliquait par défaut avant 0.16 (erreurs
+# de syntaxe, imports et noms inutilisés, comparaisons douteuses). La 0.16 en
+# active bien d'autres par défaut (UP031, RUF012…) — 300 constats de style
+# sur du code éprouvé ; les adopter est un chantier à part, pas un correctif.
+target-version = "py312"
+extend-exclude = ["docs"]
+
+[lint]
+select = ["E4", "E7", "E9", "F"]

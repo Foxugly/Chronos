@@ -129,13 +129,15 @@ nginx -t && systemctl reload nginx
 
 # Unités (le déploiement les réinstalle à chaque fois depuis git)
 for u in chronos-env-fetch.service chronos-gunicorn.service chronos-mail-import.service \
-         chronos-mail-import.timer; do
+         chronos-mail-import.timer chronos-purge.service chronos-purge.timer; do
   git -c safe.directory=$PWD show HEAD:deploy/$u > /etc/systemd/system/$u
 done
 git -c safe.directory=$PWD show HEAD:deploy/fetch-env-from-ssm.sh > /usr/local/sbin/chronos-env-fetch.sh
 chown root:root /usr/local/sbin/chronos-env-fetch.sh && chmod 0755 /usr/local/sbin/chronos-env-fetch.sh
 systemctl daemon-reload
 systemctl enable --now chronos-env-fetch.service chronos-gunicorn.service
+# Purge RGPD des invitations et liens morts (le déploiement l'active aussi, idempotent) :
+systemctl enable --now chronos-purge.timer
 # L'import des courriels seulement une fois la boîte et l'application Entra prêtes :
 # systemctl enable --now chronos-mail-import.timer
 ```

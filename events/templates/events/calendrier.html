@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% comment %}
 Le dossier dans FullCalendar. Un seul gabarit pour quatre onglets — mois,
@@ -84,14 +84,14 @@ commun, rendu et échappé par Django.
 
     {# Le bundle premium contient aussi tous les modules standard. FullCalendar 6 #}
     {# injecte lui-même sa feuille de style.                                       #}
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.21/index.global.min.js"
+    <script src="{% static 'vendor/fullcalendar-scheduler-6.1.21/index.global.min.js' %}"
             integrity="sha384-geAkYITTl+H4K2UmoTeT04F+COYPGRzd26cOUOpquYQ8hSE3YqHeMmpnPf4s+AnL"
             crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/bootstrap5@6.1.21/index.global.min.js"
+    <script src="{% static 'vendor/fullcalendar-bootstrap5-6.1.21/index.global.min.js' %}"
             integrity="sha384-ZewornoqBxxWVAySbXdd22ejYBEw+U9ZVlD6xG+m0XCefhY9Op0g18yv9ZqsrjvA"
             crossorigin="anonymous"></script>
     {# Toutes les langues de FullCalendar : `locale` choisit, selon la langue courante. #}
-    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.21/locales-all.global.min.js"
+    <script src="{% static 'vendor/fullcalendar-core-6.1.21/locales-all.global.min.js' %}"
             integrity="sha384-Fmkj29AQbNAmQbmrlIb+/MJFKUWxrEDAy3P7MxYGOXAnd/6N6eTTSek5+85fWMo3"
             crossorigin="anonymous"></script>
     {% include "events/_detail_evenement_js.html" %}

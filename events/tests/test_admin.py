@@ -3,7 +3,7 @@ import tempfile
 
 from django.test import TestCase, override_settings
 
-from events.models import Document, Dossier, DossierAccess, Event
+from events.models import Dossier, DossierAccess, Event
 from events.tests.factories import make_document, make_dossier, make_user
 
 

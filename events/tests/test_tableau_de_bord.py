@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from events.models import CourrielImporte, DossierAccess, Event
-from events.tests.factories import grant, make_document, make_dossier, make_user
+from events.tests.factories import grant, make_user
 from events.tests.test_documents import DocumentFixtureMixin
 
 

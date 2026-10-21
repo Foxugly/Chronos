@@ -15,3 +15,7 @@ deploy/** text eol=lf
 *.png binary
 *.eml binary
 *.pfx binary
+
+# Bibliothèques copiées des CDN (static/vendor) : octets intacts, sinon
+# l'empreinte SRI de la balise <script> ne correspond plus.
+static/vendor/** -text

@@ -1,7 +1,5 @@
 """Une couleur par évènement ; celle de l'expéditeur pour un évènement importé par courriel."""
 
-import json
-import re
 import shutil
 import tempfile
 

@@ -286,7 +286,6 @@ class StoredXssTests(TestCase):
         un autre chemin que le formulaire, l'admin par exemple, ne doit pas
         ressortir.
         """
-        from events.sanitize import nettoyer
 
         hostile = (
             '<p>Texte <strong>légitime</strong></p>'

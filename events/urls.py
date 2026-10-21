@@ -11,6 +11,7 @@ from .share_views import (
     share_timeline,
 )
 from .views import (
+    compte_supprimer,
     document_detach,
     document_download,
     dossier_access_revoke,
@@ -43,6 +44,7 @@ from .views import (
 urlpatterns = [
     path("partage/<str:token>/export/", share_dossier_export, name="share_dossier_export"),
     path("", dossier_list, name="dossier_list"),
+    path("compte/supprimer/", compte_supprimer, name="compte_supprimer"),
     path("dossiers/<int:dossier_id>/", timeline, name="timeline"),
     path("dossiers/<int:dossier_id>/events/add/", event_add, name="event_add"),
     path("dossiers/<int:dossier_id>/journal/", dossier_journal, name="dossier_journal"),

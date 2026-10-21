@@ -26,7 +26,10 @@ from django.utils import timezone
 
 from .alertes import CATEGORIE_ECHEC, alerter_echec_import
 from .couleurs import prochaine_couleur
-from .courriels import _bloc_de_transfert, adresses, analyser_en_couches, en_markdown, lire, texte_en_html
+from .courriels import (
+    _bloc_de_transfert, adresses, analyser_en_couches, en_markdown, lire, texte_en_html,
+    verdict_d_authentification,
+)
 from .graph import ClientGraph
 from .courriels import BRUXELLES
 from .liens import (
@@ -321,6 +324,8 @@ def importer(dossier, analyse, transfert_de=None):
                 "forme": analyse.forme,
                 "message_id": cle_du_courriel(analyse),
                 "date_approchee": analyse.date_approchee,
+                # SPF / DKIM / DMARC du courriel reçu (audit M4) ; « » : non authentifié.
+                "authentification": verdict_d_authentification(analyse.authentification),
                 "refusees": refusees,
                 "valeurs": instantane(evenement),
                 "source": "courriel",

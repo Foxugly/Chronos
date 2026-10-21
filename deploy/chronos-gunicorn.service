@@ -10,6 +10,8 @@ Group=www-data
 UMask=0027
 WorkingDirectory=/var/www/django_websites/Chronos
 EnvironmentFile=/run/chronos/.env
+# Le SHA déployé (SENTRY_RELEASE), écrit par root au déploiement ; absent avant le premier.
+EnvironmentFile=-/var/lib/fleet-deploy/Chronos.release.env
 Environment="PYTHONUNBUFFERED=1"
 # --timeout 120 : changer un alias Exchange enchaîne deux connexions
 # PowerShell (ajout puis retrait), une dizaine de secondes chacune.

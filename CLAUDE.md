@@ -68,8 +68,9 @@ Run one module, class, or single test:
 Tests use the MD5 password hasher (`config/settings.py`, only when `sys.argv[1] == "test"`): PBKDF2
 was 97 % of the suite's time (14 min → 13 s). A test checks it does not leak outside `manage.py test`.
 
-There is no linter, formatter, or front-end build configured. `requirements.txt` lists only the
-direct dependencies; everything else is transitive.
+Linter: **ruff 0.16.10** (`requirements-dev.txt`, rules in `ruff.toml` — the pre-0.16 default set),
+run by the CI `lint` job: `.\.venv\Scripts\python.exe -m ruff check .`. No formatter, no front-end
+build. `requirements.txt` lists only the direct dependencies; everything else is transitive.
 
 ### Backups
 
@@ -220,8 +221,12 @@ allauth pages share one `auth-card`, opened/closed by the `avant_contenu` / `apr
 blocks of `base.html`. `/confidentialite/` is public (owner to review the wording).
 
 No npm, no bundler, no build step. Bootstrap 5.3.8, Bootstrap Icons, vis-timeline (the **standalone**
-UMD build from jsdelivr, which bundles vis-data — the root build on cdnjs is deprecated), FullCalendar,
-Font Awesome, glightbox, Quill and flatpickr all load from CDNs. No jQuery.
+UMD build, which bundles vis-data — the root build on cdnjs is deprecated), FullCalendar,
+Font Awesome, glightbox, Quill and flatpickr. **Scripts are self-hosted** in `static/vendor/<lib>-<version>/`
+(audit 2026-10-18, M5; CSP `script-src` is `'self'` + nonce only), copied byte for byte from the CDN
+and still carrying their SRI `integrity` (a test re-hashes each copy; `.gitattributes` marks them
+`-text`). Stylesheets and fonts still come from the CDNs. To bump a library: download the new file,
+check its hash, new versioned directory, update the tag. No jQuery.
 
 **Four tabs per dossier** (owner's decision, 2026-10-09; `onglets` / `ONGLET_DE_LA_VUE` in
 `events/views/dossiers.py`, rendered by `_entete_dossier.html`): *Chronologie* (vis-timeline, `timeline.html`),
@@ -672,7 +677,8 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   `X-Accel-Redirect` to an nginx `location internal;` whose `types {}` only keep pdf/jpeg/png and send
   everything else as `application/octet-stream`. The first X-Accel use in the fleet.
 - **CSP with nonces** (Django's built-in `SECURE_CSP`): every inline `<script>` carries
-  `nonce="{{ csp_nonce }}"`; scripts only from self and the two CDNs; styles may be inline
+  `nonce="{{ csp_nonce }}"`; scripts only from self (`static/vendor`); attachments served by nginx carry
+  `Content-Security-Policy: sandbox` except PDFs (browsers refuse to render a sandboxed PDF); styles may be inline
   (FullCalendar, vis, Quill inject them). Adding an inline script without the nonce breaks it in every
   browser — a test checks every page's scripts against the header.
 - **Mail**: `events/courrier_graph.py` (Graph `/sendMail` through `events/graph.py`) when
@@ -711,6 +717,13 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   deploy is the fleet's OIDC → SSM model (`deploy.yml`), units and nginx installed from the committed
   git blob. `.gitattributes` forces LF for everything under `deploy/` and `.github/`.
 - `manage.py verifier_integrite`: counts + SHA-256 of every document; run on both sides of a transfer.
+- **Retention** (audit M8): `manage.py purger_partages` (nightly, `chronos-purge.timer`, enabled by the
+  deploy) erases invitations and share links dead for `RETENTION_PARTAGES_JOURS` (90) days — except a
+  link that acted in the journal (its entries read the link for their author). Self-service account
+  deletion at `/compte/supprimer/` (password-confirmed, refused while the account owns a dossier).
+- **Sentry release**: the deploy writes `SENTRY_RELEASE=<sha>` to `/var/lib/fleet-deploy/Chronos.release.env`
+  (root-only dir), read by the units as `EnvironmentFile=-…` after `.env`. No SSM parameter.
+- **No `workflow_dispatch`** on the deploy: it only runs after a green CI on `main`. To redeploy, re-run CI.
 - Local PostgreSQL 18 exists on the dev PC but its credentials are unknown; the PostgreSQL branch of
   the backup is tested with mocked `pg_dump`/`pg_restore`. The real check is CI and the server.
 

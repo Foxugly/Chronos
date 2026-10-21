@@ -123,12 +123,12 @@ class FormulaireTests(TestCase):
                 contexte = langue(RequestFactory().get("/"))
                 rendus[code] = render_to_string("events/_formulaire_js.html", contexte)
 
-        self.assertIn("flatpickr@4.6.13/dist/l10n/fr.js", rendus["fr"])
-        self.assertIn("flatpickr@4.6.13/dist/l10n/nl.js", rendus["nl"])
+        self.assertIn("flatpickr-4.6.13/l10n/fr.js", rendus["fr"])
+        self.assertIn("flatpickr-4.6.13/l10n/nl.js", rendus["nl"])
         self.assertNotIn("/l10n/", rendus["en-gb"])
         for code, html in rendus.items():
             with self.subTest(langue=code):
-                for balise in re.findall(r"<script [^>]*src=\"https://[^>]*>", html):
+                for balise in re.findall(r"<script [^>]*src=\"(?:https://|/static/vendor/)[^>]*>", html):
                     self.assertIn('integrity="sha', balise)
 
     def test_le_champ_envoye_reste_iso_quelle_que_soit_la_langue(self):

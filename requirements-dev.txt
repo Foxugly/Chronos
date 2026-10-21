@@ -1,0 +1,3 @@
+# Outils de développement et de CI, hors production. Même version de ruff que
+# la flotte (OPERATIONS.md §3.22) ; Dependabot la tient à jour.
+ruff==0.16.10

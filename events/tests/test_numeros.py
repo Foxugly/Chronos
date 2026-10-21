@@ -60,6 +60,6 @@ class NumerosTests(DocumentFixtureMixin, TestCase):
     def test_numero_affiche_et_cherchable(self):
         self.client.force_login(self.owner)
         reponse = self.client.get(reverse("timeline", args=[self.dossier.pk]), {"vue": "documents", "q": "1"})
-        self.assertEqual([l["document"].numero for l in reponse.context["pieces"]], [1])
+        self.assertEqual([p["document"].numero for p in reponse.context["pieces"]], [1])
         detail = self.client.get(reverse("event_detail", args=[self.event.pk]))
         self.assertContains(detail, "Pièce 1")

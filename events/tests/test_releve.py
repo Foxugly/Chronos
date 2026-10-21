@@ -125,12 +125,20 @@ class ReleverTests(TestCase):
         relever.assert_not_called()
         self.assertEqual(reponse.status_code, 302)
 
-    def test_une_erreur_graph_s_affiche(self):
+    def test_une_erreur_graph_s_affiche_sans_son_detail(self):
+        """Le détail (URL Graph avec l'adresse de la boîte, réponse Microsoft)
+        reste dans le journal du serveur : un collaborateur n'apprend rien de
+        la boîte (audit du 2026-10-18, M2)."""
+        detail = "GET https://graph.microsoft.com/v1.0/users/hello@foxugly.com/messages → HTTP 403"
         with mock.patch("events.views.parametres.verrou_de_releve", return_value=verrou(True)), \
-             mock.patch("events.views.parametres.relever_la_boite", side_effect=ErreurGraph("HTTP 403")):
+             mock.patch("events.views.parametres.relever_la_boite", side_effect=ErreurGraph(detail)), \
+             self.assertLogs("events.views.parametres", level="WARNING") as journal:
             reponse = self.client.post(self.url)
         self.assertEqual(reponse.status_code, 302)
-        self.assertTrue(any("HTTP 403" in m for m in self.messages(reponse)))
+        messages = self.messages(reponse)
+        self.assertTrue(any("pas pu être relevée" in m for m in messages))
+        self.assertFalse(any("403" in m or "foxugly" in m or "graph" in m for m in messages))
+        self.assertIn("HTTP 403", "\n".join(journal.output))
         self.assertFalse(Journal.objects.filter(action=Journal.Action.COURRIELS_RELEVES).exists())
 
 

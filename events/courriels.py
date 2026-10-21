@@ -94,10 +94,39 @@ class Analyse:
     transfert: bool = False  # cette couche transfère la couche du dessous (`analyser_en_couches`)
     cle: str = ""  # clé d'une couche lue dans le texte, qui n'a pas de Message-ID à elle
     cle_ancienne: str = ""  # la clé qu'un import d'avant les couches lui a donnée
+    authentification: str = ""  # `Authentication-Results` du courriel REÇU par la boîte
 
 
 def lire(octets):
     return email.message_from_bytes(octets, policy=email.policy.default)
+
+
+_VERDICT = re.compile(r"\b(spf|dkim|dmarc)\s*=\s*([a-z]+)", re.IGNORECASE)
+
+
+def authentification(octets):
+    """L'en-tête `Authentication-Results` du courriel reçu, sur une ligne.
+
+    Qui connaît l'alias crée un évènement, et `From:` se falsifie (audit du
+    2026-10-18, M4). Le serveur de réception (Exchange Online) note ses
+    contrôles SPF, DKIM et DMARC dans cet en-tête, qu'il ajoute **en tête** :
+    seul le premier compte — ceux du dessous ont pu être écrits par
+    l'expéditeur. Il porte sur le courriel reçu par la boîte (l'enveloppe d'un
+    transfert), jamais sur un original transféré, dont rien ne prouve l'origine.
+    """
+    try:
+        valeurs = lire(octets).get_all("Authentication-Results") or []
+    except Exception:  # un en-tête illisible ne doit pas empêcher l'import
+        return ""
+    return " ".join(str(valeurs[0]).split())[:1000] if valeurs else ""
+
+
+def verdict_d_authentification(entete):
+    """« spf=pass dkim=pass dmarc=pass », ou « » sans en-tête."""
+    vus = {}
+    for methode, resultat in _VERDICT.findall(entete or ""):
+        vus.setdefault(methode.lower(), resultat.lower())
+    return " ".join("%s=%s" % (m, vus[m]) for m in ("spf", "dkim", "dmarc") if m in vus)
 
 
 def adresses(message, *entetes):
@@ -297,7 +326,7 @@ def _bloc_de_transfert(texte):
                     while k < len(lignes) and lignes[k].strip() == "":
                         k += 1
                     suivante = LIGNE_DE_BLOC.match(lignes[k]) if k < len(lignes) else None
-                    if not (suivante and any(suivante.group(1).lower() in l for l in LIBELLES.values())):
+                    if not (suivante and any(suivante.group(1).lower() in libelles for libelles in LIBELLES.values())):
                         break
                 j += 1
                 continue
@@ -453,7 +482,11 @@ def analyser_en_couches(octets, ignorer=()):
     l'alias n'en est une que si elle s'adresse aussi à quelqu'un d'autre que
     les adresses `ignorer` (les alias, la boîte d'import).
     """
-    return [_finaliser(c) for c in _couches(octets, enveloppe=True, ignorer=ignorer, repli=None)]
+    couches = [_finaliser(c) for c in _couches(octets, enveloppe=True, ignorer=ignorer, repli=None)]
+    entete = authentification(octets)
+    for couche in couches:
+        couche.authentification = entete
+    return couches
 
 
 def analyser(octets, repli=None):
@@ -481,6 +514,7 @@ def analyser(octets, repli=None):
     if origine.cle_ancienne:
         origine.message_id = origine.cle_ancienne
     origine.transfert = False
+    origine.authentification = authentification(octets)
     return _finaliser(origine)
 
 
@@ -499,6 +533,8 @@ def en_markdown(analyse, refusees=()):
                            " (approchée)" if analyse.date_approchee else ""),
         "- Identifiant : %s" % (analyse.message_id or "—"),
         "- Forme : %s" % analyse.forme,
+        "- Authentification du courriel reçu par la boîte : %s" % (
+            verdict_d_authentification(analyse.authentification) or "aucune (non authentifié)"),
         "",
         "## Texte",
         "",
@@ -512,6 +548,9 @@ def en_markdown(analyse, refusees=()):
     if refusees:
         lignes += ["", "## Pièces jointes non importées", ""]
         lignes += ["- %s — %s" % (nom, raison) for nom, raison in refusees]
+    if analyse.authentification:
+        lignes += ["", "## Authentication-Results (courriel reçu par la boîte)", "",
+                   analyse.authentification]
     return "\n".join(lignes) + "\n"
 
 

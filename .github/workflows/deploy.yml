@@ -2,8 +2,9 @@ name: Deploy
 
 # Modèle de la flotte (OPERATIONS.md §3.11), repris de QuizOnline : après une CI
 # verte sur main, OIDC → rôle IAM chronos-deploy → SSM sur l'instance.
+# Pas de `workflow_dispatch` (audit du 2026-10-18, M10) : il déployait sans CI
+# verte. Redéployer = relancer la CI de main (« Re-run all jobs »).
 on:
-  workflow_dispatch:
   workflow_run:
     workflows: ["CI"]
     types:
@@ -21,7 +22,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -36,7 +37,7 @@ jobs:
         id: ssm
         env:
           INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
-          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           # Commandes SSM, exécutées par ROOT, dans l'ordre. SSM les enchaîne en UN
           # script et ne retient que le code de la dernière : sans `set -eu`, une
@@ -48,6 +49,9 @@ jobs:
           #   3. en root : unités systemd, script de configuration et nginx
           #      installés depuis le BLOB GIT VALIDÉ (miroir de root, au SHA), jamais depuis l'arbre
           #      modifiable par django (§3.10) ; nginx -t, sinon retour arrière ;
+          #      la minuterie de purge activée (idempotent) ; le SHA déployé écrit dans
+          #      /var/lib/fleet-deploy/Chronos.release.env (root, hors de portée de django),
+          #      lu par les unités (EnvironmentFile=-) : SENTRY_RELEASE (audit M11) ;
           #   4. en django : ssm-deploy.sh (pip, migrate, collectstatic, restart) ;
           #   5. normalisation finale des droits : 750 / 640, groupe www-data.
           #      chown -R -h ne suit aucun lien planté par django ; le chmod tourne
@@ -74,8 +78,12 @@ jobs:
               "$G:deploy/chronos-gunicorn.service > /etc/systemd/system/chronos-gunicorn.service",
               "$G:deploy/chronos-mail-import.service > /etc/systemd/system/chronos-mail-import.service",
               "$G:deploy/chronos-mail-import.timer > /etc/systemd/system/chronos-mail-import.timer",
+              "$G:deploy/chronos-purge.service > /etc/systemd/system/chronos-purge.service",
+              "$G:deploy/chronos-purge.timer > /etc/systemd/system/chronos-purge.timer",
               "$G:deploy/fetch-env-from-ssm.sh > /usr/local/sbin/chronos-env-fetch.sh && chmod 0755 /usr/local/sbin/chronos-env-fetch.sh && chown root:root /usr/local/sbin/chronos-env-fetch.sh",
               "systemctl daemon-reload",
+              "systemctl enable --now chronos-purge.timer",
+              "echo SENTRY_RELEASE=$SHA > /var/lib/fleet-deploy/Chronos.release.env.tmp && mv /var/lib/fleet-deploy/Chronos.release.env.tmp /var/lib/fleet-deploy/Chronos.release.env",
               "bash -c 'set -e; $G:deploy/nginx/chronos.foxugly.com.conf > /etc/nginx/sites-available/chronos.foxugly.com.new; cp -a /etc/nginx/sites-available/chronos.foxugly.com /etc/nginx/sites-available/chronos.foxugly.com.deploybak; mv /etc/nginx/sites-available/chronos.foxugly.com.new /etc/nginx/sites-available/chronos.foxugly.com; nginx -t || { mv /etc/nginx/sites-available/chronos.foxugly.com.deploybak /etc/nginx/sites-available/chronos.foxugly.com; exit 1; }; systemctl reload nginx'",
               "sudo -u django bash $A/deploy/ssm-deploy.sh",
               "chown -R -h django:www-data $A && sudo -u django chmod -R g-w,o-rwx $A"

@@ -108,7 +108,6 @@ class AnalyseTests(TestCase):
 
     def test_les_images_de_signature_sont_ignorees(self):
         m = courriel("Devis", "Voici.", pieces=[("devis.pdf", b"%PDF", "application", "pdf")])
-        logo = EmailMessage()
         m.add_attachment(b"\x89PNG logo", maintype="image", subtype="png", disposition="inline", cid="<logo@x>")
         a = analyser(m.as_bytes())
         self.assertEqual([p.nom for p in a.pieces], ["devis.pdf"])

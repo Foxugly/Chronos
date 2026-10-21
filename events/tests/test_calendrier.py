@@ -117,7 +117,7 @@ class VueCalendrierTests(TestCase):
     def test_le_theme_est_celui_de_bootstrap(self):
         reponse = self.page()
         self.assertContains(reponse, 'themeSystem: "bootstrap5"')
-        self.assertContains(reponse, "@fullcalendar/bootstrap5@6.1.21")
+        self.assertContains(reponse, "fullcalendar-bootstrap5-6.1.21")
         self.assertContains(reponse, "bootstrap-icons@1.13.1")
 
     def test_les_bornes_couvrent_tout_le_dossier_avec_une_marge(self):
@@ -151,7 +151,7 @@ class VueCalendrierTests(TestCase):
 
     def test_chaque_ressource_externe_porte_son_empreinte(self):
         html = self.page().content.decode()
-        for balise in re.findall(r"<(?:script|link) [^>]*(?:src|href)=\"https://[^>]*>", html):
+        for balise in re.findall(r"<(?:script|link) [^>]*(?:src|href)=\"(?:https://|/static/vendor/)[^>]*>", html):
             with self.subTest(balise=balise[:80]):
                 self.assertIn('integrity="sha', balise)
                 self.assertIn('crossorigin="anonymous"', balise)

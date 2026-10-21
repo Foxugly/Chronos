@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.decorators import login_not_required
 from django.http import Http404
@@ -72,7 +73,9 @@ urlpatterns = [
 # (`url_has_allowed_host_and_scheme`) — pas de redirection ouverte.
 path("i18n/setlang/", login_not_required(set_language), name="set_language"),
     # Publique comme la connexion : on doit pouvoir la lire avant de créer un compte.
-    path("confidentialite/", login_not_required(TemplateView.as_view(template_name="confidentialite.html")),
+    path("confidentialite/", login_not_required(TemplateView.as_view(
+        template_name="confidentialite.html",
+        extra_context={"retention_partages_jours": settings.RETENTION_PARTAGES_JOURS})),
          name="confidentialite"),
 path("admin/login/", admin_login_redirect),
 path("admin/", admin.site.urls),

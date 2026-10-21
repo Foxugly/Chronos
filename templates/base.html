@@ -129,6 +129,7 @@
                         {% if user.is_staff %}
                             <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-shield-lock me-2" aria-hidden="true"></i>{% translate "Administration" %}</a></li>
                         {% endif %}
+                        <li><a class="dropdown-item" href="{% url 'compte_supprimer' %}"><i class="bi bi-person-x me-2" aria-hidden="true"></i>{% translate "Supprimer mon compte" %}</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <form method="post" action="{% url 'account_logout' %}" class="m-0">
@@ -184,7 +185,7 @@
         </span>
     </div>
 </footer>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+<script src="{% static 'vendor/bootstrap-5.3.8/bootstrap.bundle.min.js' %}"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
 {# La langue courante, pour les scripts (FullCalendar, vis-timeline, flatpickr) : #}

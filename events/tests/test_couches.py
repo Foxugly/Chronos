@@ -7,7 +7,6 @@ l'alias n'en est pas un — sauf si elle s'adresse aussi à quelqu'un d'autre.
 """
 
 import datetime
-from pathlib import Path
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase

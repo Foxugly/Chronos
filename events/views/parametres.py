@@ -1,5 +1,6 @@
 """Les paramètres d'un dossier : alias de courriel, relève, nom, étiquettes, expéditeurs."""
 
+import logging
 import secrets
 
 from django.conf import settings
@@ -22,6 +23,19 @@ from ..journal import consigner
 from ..models import Dossier, Journal
 from ..permissions import get_dossier_for_owner, get_dossier_for_read, get_dossier_for_write
 from .evenements import _est_ajax, adresse_de_retour
+
+logger = logging.getLogger(__name__)
+
+
+def _consigner_l_echec(contexte, erreur):
+    """Le détail d'une erreur Graph ou Exchange reste dans le journal du serveur.
+
+    Il cite l'URL Graph (donc l'adresse de la boîte) et jusqu'à 500 caractères
+    de réponse Microsoft : rien à faire à l'écran d'un collaborateur (audit du
+    2026-10-18, M2). Vers Sentry, `config/sentry_filtres` ne laisse passer que
+    le type, comme pour tout journal `events.*`.
+    """
+    logger.warning("%s : %s — %s", contexte, type(erreur).__name__, erreur)
 
 
 def dossier_alias(request, dossier_id):
@@ -55,9 +69,11 @@ def dossier_alias(request, dossier_id):
         try:
             exchange.ajouter(apres)
         except exchange.ErreurExchange as erreur:
+            _consigner_l_echec("alias_ajout", erreur)
             messages.error(request, _(
-                "Exchange a refusé l'alias %(alias)s : rien n'a été enregistré. Détail : %(detail)s"
-            ) % {"alias": apres, "detail": erreur})
+                "Exchange a refusé l'alias %(alias)s : rien n'a été enregistré. Le détail est dans "
+                "le journal du serveur."
+            ) % {"alias": apres})
             return redirect("dossier_parametres", dossier_id=dossier.pk)
     with transaction.atomic():
         dossier = form.save(commit=False)
@@ -72,10 +88,11 @@ def dossier_alias(request, dossier_id):
         try:
             exchange.retirer(avant)
         except exchange.ErreurExchange as erreur:
+            _consigner_l_echec("alias_retrait", erreur)
             messages.warning(request, _(
                 "L'ancien alias %(alias)s n'a pas pu être retiré d'Exchange : retirez-le à la "
-                "main. Ses courriels ne créent plus d'évènement. Détail : %(detail)s"
-            ) % {"alias": avant, "detail": erreur})
+                "main. Ses courriels ne créent plus d'évènement."
+            ) % {"alias": avant})
     if apres != avant:
         if apres:
             messages.success(request, _("Les courriels transférés à %(alias)s deviendront des évènements de ce dossier.") % {"alias": apres})
@@ -105,7 +122,8 @@ def dossier_relever(request, dossier_id):
         try:
             bilan = relever_la_boite()
         except ErreurGraph as erreur:
-            messages.error(request, _("La boîte n'a pas pu être relevée : %(detail)s") % {"detail": erreur})
+            _consigner_l_echec("releve", erreur)
+            messages.error(request, _("La boîte n'a pas pu être relevée. Réessayez plus tard."))
             return redirect(retour)
     importes, deja = bilan.importes[dossier.pk], bilan.deja[dossier.pk]
     if importes:
@@ -135,7 +153,8 @@ def dossier_alias_verifier(request, dossier_id):
         try:
             actif = exchange.est_actif(dossier.alias_courriel)
         except exchange.ErreurExchange as erreur:
-            messages.error(request, _("Exchange n'a pas pu être interrogé : %(detail)s") % {"detail": erreur})
+            _consigner_l_echec("alias_verification", erreur)
+            messages.error(request, _("Exchange n'a pas pu être interrogé. Réessayez plus tard."))
         else:
             if actif:
                 messages.success(request, _("L'alias %(alias)s est actif dans Exchange.") % {

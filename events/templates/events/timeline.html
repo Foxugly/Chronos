@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{{ dossier.name }}{% endblock %}
 {% block dossier_courant %}{{ dossier.name }}{% endblock %}
@@ -74,10 +74,10 @@
     {{ timeline_items|json_script:"timeline-items" }}
 
     {# Autonome : il embarque vis-data (`vis.DataSet`), plus de script à part. #}
-    <script src="https://cdn.jsdelivr.net/npm/vis-timeline@8.5.4/standalone/umd/vis-timeline-graph2d.min.js"
+    <script src="{% static 'vendor/vis-timeline-8.5.4/vis-timeline-graph2d.min.js' %}"
             integrity="sha384-cC2AABVwe6K5nvoFjIHFkBI+2NIdEo39w+eIC/lrdsTO9FA+Lz/OHeh6dRMeMf4U"
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/js/fontawesome.min.js"
+    <script src="{% static 'vendor/font-awesome-7.3.1/fontawesome.min.js' %}"
             integrity="sha512-WgR61jcssTjrH2a2vWm5JiWaEy1kmFIE5G0ybjKB0UEDzygVCebYW4eP2p96XmJWXA0zk/sNhbCfb09Wx39t4A=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     {% include "events/_detail_evenement_js.html" %}

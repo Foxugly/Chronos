@@ -1,0 +1,23 @@
+[Unit]
+Description=Chronos — purge des invitations et liens de partage morts (RGPD)
+After=network-online.target chronos-env-fetch.service postgresql.service
+Requires=chronos-env-fetch.service
+
+[Service]
+Type=oneshot
+User=django
+Group=www-data
+UMask=0027
+WorkingDirectory=/var/www/django_websites/Chronos
+EnvironmentFile=/run/chronos/.env
+# Le SHA déployé (SENTRY_RELEASE), écrit par root au déploiement ; absent avant le premier.
+EnvironmentFile=-/var/lib/fleet-deploy/Chronos.release.env
+ExecStart=/var/www/django_websites/Chronos/.venv/bin/python manage.py purger_partages
+TimeoutStartSec=600
+# Durcissement (OPERATIONS.md §3.22). Jamais ProtectSystem=strict.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes

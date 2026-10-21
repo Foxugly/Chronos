@@ -177,7 +177,8 @@ class TheEditorIsOnlyAConvenienceTests(TestCase):
         self.assertIn("quill", page)
         # Les ressources *chargées* (script, feuille de style), pas les simples liens
         # (le footer pointe vers foxugly.com, qui n'est rien chargé dans la page).
-        ressources = len(re.findall(r'<(?:script|link)\b[^>]*\b(?:src|href)="https://', page))
+        # Scripts copiés dans static/vendor compris : ils gardent leur empreinte.
+        ressources = len(re.findall(r'<(?:script|link)\b[^>]*\b(?:src|href)="(?:https://|/static/vendor/)', page))
         self.assertEqual(ressources, page.count("integrity="))
 
     def test_the_textarea_stays_usable_without_javascript(self):

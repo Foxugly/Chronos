@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n nettoyage %}
 
 {% comment %}
 Le dossier en liste, groupé par mois, du plus ancien au plus récent.
@@ -129,7 +129,7 @@ l'est en connaissance de cause.
                         {% endif %}
 
                         {% if evenement.description %}
-                            <div class="mt-2 small text-break">{{ evenement.description|safe }}</div>
+                            <div class="mt-2 small text-break">{{ evenement.description|nettoye }}</div>
                         {% endif %}
 
                         {% if pieces %}

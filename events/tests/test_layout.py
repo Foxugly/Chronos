@@ -10,7 +10,7 @@ import re
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from events.models import DossierAccess, Event
+from events.models import DossierAccess
 from events.tests.factories import grant, make_dossier, make_user
 
 
@@ -97,7 +97,8 @@ class EventFormInheritsTheSharedLayoutTests(TestCase):
         page = self._formulaire()
         # Les ressources *chargées* (script, feuille de style), pas les simples liens
         # (le footer pointe vers foxugly.com, qui n'est rien chargé dans la page).
-        ressources = len(re.findall(r'<(?:script|link)\b[^>]*\b(?:src|href)="https://', page))
+        # Scripts copiés dans static/vendor compris : ils gardent leur empreinte.
+        ressources = len(re.findall(r'<(?:script|link)\b[^>]*\b(?:src|href)="(?:https://|/static/vendor/)', page))
         self.assertEqual(ressources, page.count("integrity="))
 
     def test_the_pending_file_list_is_built_without_markup(self):

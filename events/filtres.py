@@ -336,5 +336,5 @@ def pieces_filtrees(dossier, evenements, filtres, types_piece=()):
             "trouve_dans": trouve_dans,
         })
     # Dans l'ordre des numéros de pièces : celui d'un bordereau.
-    lignes.sort(key=lambda l: (l["document"].numero or 0, l["document"].pk))
+    lignes.sort(key=lambda ligne: (ligne["document"].numero or 0, ligne["document"].pk))
     return lignes, total

@@ -272,7 +272,7 @@ class JournalImportTests(RechercheFixtureMixin, TestCase):
                                objet="autre", evenement=self.event)
         self.client.force_login(self.owner)
         reponse = self.client.get(reverse("dossier_journal", args=[self.dossier.pk]))
-        lignes = {l["entree"].objet: l["par_import"] for l in reponse.context["lignes"]}
+        lignes = {ligne["entree"].objet: ligne["par_import"] for ligne in reponse.context["lignes"]}
         self.assertEqual(lignes, {"courriel.md": True, "autre": False})
         self.assertContains(reponse, "par l'import de courriels")
 
@@ -300,7 +300,7 @@ class OngletDocumentsTests(RechercheFixtureMixin, TestCase):
         return self.liste(vue="documents", **parametres)
 
     def noms(self, reponse):
-        return [l["document"].title for l in reponse.context["pieces"]]
+        return [p["document"].title for p in reponse.context["pieces"]]
 
     def test_toutes_les_pieces_avec_leurs_evenements(self):
         reponse = self.documents()

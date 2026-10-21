@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Suppression du compte en libre-service (RGPD, audit du 2026-10-18, M8).
+Confirmée par le mot de passe ; refusée tant que le compte possède un dossier.
+{% endcomment %}
+
+{% block title %}{% translate "Supprimer mon compte" %} — Chronos{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <div class="page-header__left"></div>
+        <h1 class="page-header__title"><i class="bi bi-person-x" aria-hidden="true"></i>{% translate "Supprimer mon compte" %}</h1>
+        <div class="page-header__right"></div>
+    </div>
+
+    <div class="card shadow-sm mx-auto" style="max-width: 40rem;">
+        <div class="card-body p-4">
+            {% if dossiers_possedes %}
+                <div class="alert alert-warning mb-0">
+                    {% blocktranslate trimmed count n=dossiers_possedes %}
+                        Ce compte possède un dossier. Un dossier de preuves ne disparaît pas avec son
+                        propriétaire : confiez-le d'abord à quelqu'un d'autre en écrivant à hello@foxugly.com.
+                    {% plural %}
+                        Ce compte possède {{ n }} dossiers. Un dossier de preuves ne disparaît pas avec son
+                        propriétaire : confiez-les d'abord à quelqu'un d'autre en écrivant à hello@foxugly.com.
+                    {% endblocktranslate %}
+                </div>
+            {% else %}
+                <p>{% blocktranslate trimmed %}
+                    Votre compte, votre adresse e-mail et vos accès aux dossiers seront supprimés
+                    définitivement. Le journal des dossiers garde ce qui s'y est passé, sans votre compte.
+                {% endblocktranslate %}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                        {{ form.password }}
+                        {% for erreur in form.password.errors %}
+                            <div class="text-danger small mt-1">{{ erreur }}</div>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1" aria-hidden="true"></i>{% translate "Supprimer définitivement mon compte" %}
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,10 @@
+[Unit]
+Description=Chronos — purge quotidienne des invitations et liens de partage morts
+
+[Timer]
+OnCalendar=*-*-* 03:40:00
+Persistent=true
+RandomizedDelaySec=10m
+
+[Install]
+WantedBy=timers.target

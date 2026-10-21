@@ -14,8 +14,10 @@ aucune vue ici ne permet de partager le dossier ni d'en voir un autre —
 cela reste l'affaire du propriétaire, authentifié.
 """
 
+from datetime import timedelta
+
 from django.contrib.auth.decorators import login_not_required
-from django.http import FileResponse, Http404, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
@@ -257,6 +259,10 @@ def share_document_detach(request, token, event_id, document_id):
     return _proteger(JsonResponse({"success": True, "supprime": supprime}))
 
 
+#: Un export par lien et par minute au plus (audit du 2026-10-18, M9).
+DELAI_ENTRE_EXPORTS = timedelta(minutes=1)
+
+
 @login_not_required
 def share_dossier_export(request, token):
     """L'export du dossier, par un lien de partage (lecture ou écriture).
@@ -265,6 +271,12 @@ def share_dossier_export(request, token):
     remettre en un fichier n'élargit rien. L'export est inscrit au journal au
     nom du lien — on ne sait pas qui le tenait —, et l'archive le dit aussi.
     POST uniquement, comme sur le chemin authentifié.
+
+    Un export relit et hache toutes les pièces : sans limite, un porteur du
+    lien pourrait le répéter à volonté. Le journal sert de compteur (il est
+    partagé par tous les processus) : un export du même lien dans la dernière
+    minute → 429. Le verrou sur la ligne du lien sérialise deux demandes
+    simultanées : la seconde attend, puis voit l'export de la première.
     """
     if request.method != "POST":
         return _proteger(JsonResponse({"success": False}, status=405))
@@ -274,9 +286,22 @@ def share_dossier_export(request, token):
         auteur = _("le lien de partage « %(nom)s »") % {"nom": lien.label}
     else:
         auteur = _("un lien de partage")
-    # Jamais le journal par un lien : il n'y est pas consultable.
-    archive, details = preparer_export(dossier, request.POST, auteur)
-    consigner(dossier, Journal.Action.EXPORT, lien=lien, objet=dossier.name, details=details)
+    with transaction.atomic():
+        ShareLink.objects.select_for_update().filter(pk=lien.pk).first()
+        recent = Journal.objects.filter(
+            lien=lien, action=Journal.Action.EXPORT,
+            moment__gt=timezone.now() - DELAI_ENTRE_EXPORTS,
+        ).exists()
+        if recent:
+            reponse = HttpResponse(
+                _("Un export vient d'être fait par ce lien : réessayez dans une minute."),
+                status=429, content_type="text/plain; charset=utf-8",
+            )
+            reponse["Retry-After"] = str(int(DELAI_ENTRE_EXPORTS.total_seconds()))
+            return _proteger(reponse)
+        # Jamais le journal par un lien : il n'y est pas consultable.
+        archive, details = preparer_export(dossier, request.POST, auteur)
+        consigner(dossier, Journal.Action.EXPORT, lien=lien, objet=dossier.name, details=details)
     nom = "%s-%s.zip" % (slugify(dossier.name) or "dossier", timezone.localdate().isoformat())
     return _proteger(
         FileResponse(archive, as_attachment=True, filename=nom, content_type="application/zip")

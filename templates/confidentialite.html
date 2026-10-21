@@ -59,10 +59,18 @@ créer un compte.
             </ul>
 
             <h2 class="h5 mt-4">{% translate "Vos droits" %}</h2>
-            <p class="mb-0">{% blocktranslate trimmed %}
+            <p>{% blocktranslate trimmed %}
                 Vous pouvez demander l'accès à vos données, leur rectification ou leur suppression en
                 écrivant à hello@foxugly.com. Le journal d'un dossier est conservé tant que le dossier
                 existe.
+            {% endblocktranslate %}</p>
+            <p>{% blocktranslate trimmed %}
+                Vous pouvez aussi supprimer vous-même votre compte (menu du compte, « Supprimer mon
+                compte »), sauf s'il possède un dossier.
+            {% endblocktranslate %}</p>
+            <p class="mb-0">{% blocktranslate trimmed with jours=retention_partages_jours|default:90 %}
+                Les invitations et les liens de partage qui ne servent plus (acceptés, annulés, révoqués ou
+                expirés) sont effacés {{ jours }} jours après leur fin.
             {% endblocktranslate %}</p>
         </div>
     </div>

@@ -103,7 +103,7 @@ def _executer(action, alias=None):
     except FileNotFoundError as exc:
         raise ErreurExchange("PowerShell (pwsh) est introuvable sur ce serveur.", "missing_config") from exc
     sortie = (fini.stdout or "").strip()
-    derniere = next((l for l in reversed(sortie.splitlines()) if l.strip()), "")
+    derniere = next((ligne for ligne in reversed(sortie.splitlines()) if ligne.strip()), "")
     try:
         resultat = json.loads(derniere)
     except json.JSONDecodeError as exc:

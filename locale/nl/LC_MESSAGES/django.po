@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 16:55+0200\n"
+"POT-Creation-Date: 2026-10-21 02:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -50,14 +50,18 @@ msgid ""
 "heures ; vous ne serez pas prévenu une seconde fois tant qu'il porte cette "
 "catégorie.\n"
 msgstr ""
-"Een e-mail gericht aan het dossier « %(dossier)s » kon niet worden geïmporteerd.\n"
+"Een e-mail gericht aan het dossier « %(dossier)s » kon niet worden "
+"geïmporteerd.\n"
 "\n"
 "Afzender: %(expediteur)s\n"
 "Onderwerp: %(objet)s\n"
 "Ontvangen op: %(recu)s\n"
 "Fout: %(erreur)s\n"
 "\n"
-"De e-mail blijft in het Postvak IN van %(boite)s, gemarkeerd met de categorie « %(categorie)s ». Hij wordt bij elke ophaling gedurende 24 uur opnieuw geprobeerd; u wordt geen tweede keer verwittigd zolang hij die categorie draagt.\n"
+"De e-mail blijft in het Postvak IN van %(boite)s, gemarkeerd met de "
+"categorie « %(categorie)s ». Hij wordt bij elke ophaling gedurende 24 uur "
+"opnieuw geprobeerd; u wordt geen tweede keer verwittigd zolang hij die "
+"categorie draagt.\n"
 
 #: .\events\alertes.py:64
 msgid "(sans objet)"
@@ -93,31 +97,31 @@ msgstr "dezelfde e-mail, via twee wegen ontvangen"
 msgid "Fusionné depuis « %(titre)s » (%(periode)s) :"
 msgstr "Samengevoegd uit ‘%(titre)s’ (%(periode)s):"
 
-#: .\events\etiquettes.py:21
+#: .\events\etiquettes.py:22
 msgid "Devis"
 msgstr "Offerte"
 
-#: .\events\etiquettes.py:21
+#: .\events\etiquettes.py:22
 msgid "Facture"
 msgstr "Factuur"
 
-#: .\events\etiquettes.py:21
+#: .\events\etiquettes.py:22
 msgid "Paiement"
 msgstr "Betaling"
 
-#: .\events\etiquettes.py:21
+#: .\events\etiquettes.py:22
 msgid "Photo du chantier"
 msgstr "Werffoto"
 
-#: .\events\etiquettes.py:21
+#: .\events\etiquettes.py:22
 msgid "Courrier"
 msgstr "Brief"
 
-#: .\events\etiquettes.py:22
+#: .\events\etiquettes.py:23
 msgid "Mise en demeure"
 msgstr "Ingebrekestelling"
 
-#: .\events\etiquettes.py:22
+#: .\events\etiquettes.py:23
 msgid "Avis d'expert"
 msgstr "Deskundigenadvies"
 
@@ -321,84 +325,84 @@ msgstr "in orde"
 msgid "DIFFÉRENTE"
 msgstr "VERSCHILLEND"
 
-#: .\events\filtres.py:97
+#: .\events\filtres.py:111
 #, python-format
 msgid "recherche « %(q)s »"
 msgstr "zoekopdracht ‘%(q)s’"
 
-#: .\events\filtres.py:99
+#: .\events\filtres.py:113
 #, python-format
 msgid "expéditeur : %(nom)s"
 msgstr "afzender: %(nom)s"
 
-#: .\events\filtres.py:101
+#: .\events\filtres.py:115
 #, python-format
 msgid "étiquette : %(nom)s"
 msgstr "label: %(nom)s"
 
-#: .\events\filtres.py:103
+#: .\events\filtres.py:117
 #, python-format
 msgid "de %(du)s à %(au)s"
 msgstr "van %(du)s tot %(au)s"
 
-#: .\events\filtres.py:107
+#: .\events\filtres.py:121
 #, python-format
 msgid "à partir de %(du)s"
 msgstr "vanaf %(du)s"
 
-#: .\events\filtres.py:109
+#: .\events\filtres.py:123
 #, python-format
 msgid "jusqu'à %(au)s"
 msgstr "tot %(au)s"
 
-#: .\events\filtres.py:121
+#: .\events\filtres.py:135
 msgid "saisis à la main"
 msgstr "handmatig ingevoerd"
 
-#: .\events\filtres.py:163 .\events\models.py:203 .\events\models.py:508
+#: .\events\filtres.py:177 .\events\models.py:203 .\events\models.py:508
 msgid "titre"
 msgstr "titel"
 
-#: .\events\filtres.py:164 .\events\models.py:220
+#: .\events\filtres.py:178 .\events\models.py:220
 msgid "description"
 msgstr "beschrijving"
 
-#: .\events\filtres.py:170
+#: .\events\filtres.py:184
 msgid "texte du courriel"
 msgstr "tekst van de e-mail"
 
-#: .\events\filtres.py:172
+#: .\events\filtres.py:186
 #, python-format
 msgid "pièce « %(nom)s »"
 msgstr "stuk ‘%(nom)s’"
 
-#: .\events\filtres.py:175
+#: .\events\filtres.py:189
 #, python-format
 msgid "texte de « %(nom)s »"
 msgstr "tekst van ‘%(nom)s’"
 
-#: .\events\filtres.py:235
+#: .\events\filtres.py:249
 msgid "PDF"
 msgstr "PDF"
 
-#: .\events\filtres.py:236
+#: .\events\filtres.py:250
 msgid "Images"
 msgstr "Afbeeldingen"
 
-#: .\events\filtres.py:237
+#: .\events\filtres.py:251
 msgid "Courriels"
 msgstr "E-mails"
 
-#: .\events\filtres.py:238
+#: .\events\filtres.py:252
 msgid "Bureautique"
 msgstr "Kantoordocumenten"
 
-#: .\events\filtres.py:315 .\events\models.py:49 .\events\models.py:164
+#: .\events\filtres.py:329 .\events\models.py:49 .\events\models.py:164
 #: .\events\models.py:959
 msgid "nom"
 msgstr "naam"
 
-#: .\events\filtres.py:317
+#: .\events\filtres.py:331
 msgid "texte"
 msgstr "tekst"
 
@@ -996,14 +1000,18 @@ msgstr "label"
 msgid "étiquettes"
 msgstr "labels"
 
-#: .\events\share_views.py:274
+#: .\events\share_views.py:286
 #, python-format
 msgid "le lien de partage « %(nom)s »"
 msgstr "de deellink ‘%(nom)s’"
 
-#: .\events\share_views.py:276
+#: .\events\share_views.py:288
 msgid "un lien de partage"
 msgstr "een deellink"
+
+#: .\events\share_views.py:297
+msgid "Un export vient d'être fait par ce lien : réessayez dans une minute."
+msgstr "Er is net een export via deze link gemaakt: probeer het over een minuut opnieuw."
 
 #: .\events\templates\events\_alias_affiche.html:5
 msgid "Copier l'adresse"
@@ -1563,7 +1571,7 @@ msgstr "Het formulier kon niet worden geladen."
 msgid "Modifier l'évènement"
 msgstr "Gebeurtenis bewerken"
 
-#: .\events\templates\events\_modal_evenement.html:25 .\templates\base.html:163
+#: .\events\templates\events\_modal_evenement.html:25 .\templates\base.html:164
 msgid "Fermer"
 msgstr "Sluiten"
 
@@ -1598,6 +1606,35 @@ msgstr "Tijdlijn"
 #: .\events\templates\events\calendrier.html:223 .\events\views\dossiers.py:92
 msgid "Liste"
 msgstr "Lijst"
+
+#: .\events\templates\events\compte_supprimer.html:9
+#: .\events\templates\events\compte_supprimer.html:14 .\templates\base.html:132
+msgid "Supprimer mon compte"
+msgstr "Mijn account verwijderen"
+
+#: .\events\templates\events\compte_supprimer.html:22
+#, python-format
+msgid ""
+"Ce compte possède un dossier. Un dossier de preuves ne disparaît pas avec "
+"son propriétaire : confiez-le d'abord à quelqu'un d'autre en écrivant à "
+"hello@foxugly.com."
+msgid_plural ""
+"Ce compte possède %(n)s dossiers. Un dossier de preuves ne disparaît pas "
+"avec son propriétaire : confiez-les d'abord à quelqu'un d'autre en écrivant "
+"à hello@foxugly.com."
+msgstr[0] "Dit account is eigenaar van een dossier. Een bewijsdossier verdwijnt niet met zijn eigenaar: vertrouw het eerst aan iemand anders toe door te schrijven naar hello@foxugly.com."
+msgstr[1] "Dit account is eigenaar van %(n)s dossiers. Een bewijsdossier verdwijnt niet met zijn eigenaar: vertrouw ze eerst aan iemand anders toe door te schrijven naar hello@foxugly.com."
+
+#: .\events\templates\events\compte_supprimer.html:31
+msgid ""
+"Votre compte, votre adresse e-mail et vos accès aux dossiers seront "
+"supprimés définitivement. Le journal des dossiers garde ce qui s'y est "
+"passé, sans votre compte."
+msgstr "Uw account, uw e-mailadres en uw toegang tot dossiers worden definitief verwijderd. Het logboek van de dossiers bewaart wat er gebeurd is, zonder uw account."
+
+#: .\events\templates\events\compte_supprimer.html:45
+msgid "Supprimer définitivement mon compte"
+msgstr "Mijn account definitief verwijderen"
 
 #: .\events\templates\events\detail_evenement.html:23
 #: .\events\templates\events\dossier_share.html:21
@@ -2334,6 +2371,22 @@ msgstr "Vorige week"
 msgid "Semaine suivante"
 msgstr "Volgende week"
 
+#: .\events\views\compte.py:18
+msgid "Mot de passe actuel"
+msgstr "Huidig wachtwoord"
+
+#: .\events\views\compte.py:29
+msgid "Mot de passe incorrect."
+msgstr "Onjuist wachtwoord."
+
+#: .\events\views\compte.py:60
+msgid "Ce compte possède un dossier : il ne peut pas être supprimé."
+msgstr "Dit account is eigenaar van een dossier: het kan niet worden verwijderd."
+
+#: .\events\views\compte.py:63
+msgid "Votre compte a été supprimé."
+msgstr "Uw account is verwijderd."
+
 #: .\events\views\dossiers.py:91
 msgid "Calendrier"
 msgstr "Kalender"
@@ -2351,12 +2404,12 @@ msgstr "Week van %(date)s"
 msgid "Écriture"
 msgstr "Schrijven"
 
-#: .\events\views\doublons.py:62
+#: .\events\views\doublons.py:59
 #, python-format
 msgid "« %(absorbe)s » a été fusionné dans « %(garde)s »."
 msgstr "‘%(absorbe)s’ is samengevoegd in ‘%(garde)s’."
 
-#: .\events\views\doublons.py:73
+#: .\events\views\doublons.py:70
 msgid "Ces deux évènements ne seront plus proposés comme doublons."
 msgstr "Deze twee gebeurtenissen worden niet meer als dubbels voorgesteld."
 
@@ -2365,26 +2418,21 @@ msgstr "Deze twee gebeurtenissen worden niet meer als dubbels voorgesteld."
 msgid "Évènement « %(titre)s » supprimé."
 msgstr "Gebeurtenis ‘%(titre)s’ verwijderd."
 
-#: .\events\views\parametres.py:59
+#: .\events\views\parametres.py:74
 #, python-format
 msgid ""
-"Exchange a refusé l'alias %(alias)s : rien n'a été enregistré. Détail : "
-"%(detail)s"
-msgstr ""
-"Exchange heeft de alias %(alias)s geweigerd: er is niets opgeslagen. Detail: "
-"%(detail)s"
+"Exchange a refusé l'alias %(alias)s : rien n'a été enregistré. Le détail est "
+"dans le journal du serveur."
+msgstr "Exchange heeft de alias %(alias)s geweigerd: er is niets opgeslagen. Het detail staat in het serverlogboek."
 
-#: .\events\views\parametres.py:76
+#: .\events\views\parametres.py:93
 #, python-format
 msgid ""
 "L'ancien alias %(alias)s n'a pas pu être retiré d'Exchange : retirez-le à la "
-"main. Ses courriels ne créent plus d'évènement. Détail : %(detail)s"
-msgstr ""
-"De oude alias %(alias)s kon niet uit Exchange worden verwijderd: verwijder "
-"hem handmatig. E-mails naar die alias worden geen gebeurtenissen meer. "
-"Detail: %(detail)s"
+"main. Ses courriels ne créent plus d'évènement."
+msgstr "De oude alias %(alias)s kon niet uit Exchange worden verwijderd: verwijder hem handmatig. E-mails naar die alias worden geen gebeurtenissen meer."
 
-#: .\events\views\parametres.py:81
+#: .\events\views\parametres.py:98
 #, python-format
 msgid ""
 "Les courriels transférés à %(alias)s deviendront des évènements de ce "
@@ -2393,31 +2441,30 @@ msgstr ""
 "E-mails die naar %(alias)s worden doorgestuurd, worden gebeurtenissen van "
 "dit dossier."
 
-#: .\events\views\parametres.py:83
+#: .\events\views\parametres.py:100
 msgid "Import par courriel désactivé pour ce dossier."
 msgstr "Import per e-mail uitgeschakeld voor dit dossier."
 
-#: .\events\views\parametres.py:103
+#: .\events\views\parametres.py:120
 msgid "Un import est déjà en cours : réessayez dans une minute."
 msgstr "Er loopt al een import: probeer het over een minuut opnieuw."
 
-#: .\events\views\parametres.py:108
-#, python-format
-msgid "La boîte n'a pas pu être relevée : %(detail)s"
-msgstr "De mailbox kon niet worden gelezen: %(detail)s"
+#: .\events\views\parametres.py:126
+msgid "La boîte n'a pas pu être relevée. Réessayez plus tard."
+msgstr "De mailbox kon niet worden gelezen. Probeer het later opnieuw."
 
-#: .\events\views\parametres.py:113
+#: .\events\views\parametres.py:131
 #, python-format
 msgid "%(n)d courriel importé dans ce dossier."
 msgid_plural "%(n)d courriels importés dans ce dossier."
 msgstr[0] "%(n)d e-mail in dit dossier geïmporteerd."
 msgstr[1] "%(n)d e-mails in dit dossier geïmporteerd."
 
-#: .\events\views\parametres.py:116
+#: .\events\views\parametres.py:134
 msgid "Aucun nouveau courriel pour ce dossier."
 msgstr "Geen nieuwe e-mails voor dit dossier."
 
-#: .\events\views\parametres.py:119
+#: .\events\views\parametres.py:137
 msgid ""
 "Certains courriels n'ont pas pu être importés : ils restent dans la boîte de "
 "réception et seront retentés."
@@ -2425,24 +2472,23 @@ msgstr ""
 "Sommige e-mails konden niet worden geïmporteerd: ze blijven in het Postvak "
 "IN en worden opnieuw geprobeerd."
 
-#: .\events\views\parametres.py:122
+#: .\events\views\parametres.py:140
 #, python-format
 msgid "%(n)d courriel importé"
 msgid_plural "%(n)d courriels importés"
 msgstr[0] "%(n)d e-mail geïmporteerd"
 msgstr[1] "%(n)d e-mails geïmporteerd"
 
-#: .\events\views\parametres.py:138
-#, python-format
-msgid "Exchange n'a pas pu être interrogé : %(detail)s"
-msgstr "Exchange kon niet worden geraadpleegd: %(detail)s"
+#: .\events\views\parametres.py:157
+msgid "Exchange n'a pas pu être interrogé. Réessayez plus tard."
+msgstr "Exchange kon niet worden geraadpleegd. Probeer het later opnieuw."
 
-#: .\events\views\parametres.py:141
+#: .\events\views\parametres.py:160
 #, python-format
 msgid "L'alias %(alias)s est actif dans Exchange."
 msgstr "De alias %(alias)s is actief in Exchange."
 
-#: .\events\views\parametres.py:145
+#: .\events\views\parametres.py:164
 #, python-format
 msgid ""
 "L'alias %(alias)s n'existe pas dans Exchange : les courriels transférés "
@@ -2451,49 +2497,49 @@ msgstr ""
 "De alias %(alias)s bestaat niet in Exchange: doorgestuurde e-mails worden "
 "geweigerd. Sla hem opnieuw op om hem opnieuw aan te maken."
 
-#: .\events\views\parametres.py:203
+#: .\events\views\parametres.py:222
 msgid "Dossier renommé."
 msgstr "Dossier hernoemd."
 
-#: .\events\views\parametres.py:234
+#: .\events\views\parametres.py:253
 #, python-format
 msgid "Étiquette « %(nom)s » supprimée."
 msgstr "Label ‘%(nom)s’ verwijderd."
 
-#: .\events\views\parametres.py:238
+#: .\events\views\parametres.py:257
 msgid "Le nom d'une étiquette ne peut pas être vide."
 msgstr "De naam van een label mag niet leeg zijn."
 
-#: .\events\views\parametres.py:240
+#: .\events\views\parametres.py:259
 #, python-format
 msgid "Une étiquette « %(nom)s » existe déjà dans ce dossier."
 msgstr "Er bestaat al een label ‘%(nom)s’ in dit dossier."
 
-#: .\events\views\parametres.py:247
+#: .\events\views\parametres.py:266
 msgid "Étiquette renommée."
 msgstr "Label hernoemd."
 
-#: .\events\views\parametres.py:276
+#: .\events\views\parametres.py:295
 #, python-format
 msgid "Couleur invalide pour %(nom)s."
 msgstr "Ongeldige kleur voor %(nom)s."
 
-#: .\events\views\partage.py:42
+#: .\events\views\partage.py:43
 #, python-format
 msgid "Accès accordé à %(compte)s (%(droit)s)."
 msgstr "Toegang toegekend aan %(compte)s (%(droit)s)."
 
-#: .\events\views\partage.py:101
+#: .\events\views\partage.py:102
 #, python-format
 msgid "Accès retiré à %(compte)s."
 msgstr "Toegang ingetrokken voor %(compte)s."
 
-#: .\events\views\partage.py:128
+#: .\events\views\partage.py:129
 #, python-format
 msgid "Accès au dossier « %(dossier)s »"
 msgstr "Toegang tot het dossier ‘%(dossier)s’"
 
-#: .\events\views\partage.py:132
+#: .\events\views\partage.py:133
 #, python-format
 msgid ""
 "%(auteur)s vous donne accès au dossier « %(dossier)s ».\n"
@@ -2514,22 +2560,22 @@ msgstr ""
 "\n"
 "Deze link vervalt op %(date)s. Hij kan maar één keer worden gebruikt.\n"
 
-#: .\events\views\partage.py:172
+#: .\events\views\partage.py:173
 #, python-format
 msgid "Invitation envoyée à %(email)s. Elle expire le %(date)s."
 msgstr "Uitnodiging verstuurd naar %(email)s. Ze vervalt op %(date)s."
 
-#: .\events\views\partage.py:200
+#: .\events\views\partage.py:201
 #, python-format
 msgid "Invitation annulée pour %(email)s."
 msgstr "Uitnodiging geannuleerd voor %(email)s."
 
-#: .\events\views\partage.py:240
+#: .\events\views\partage.py:241
 #, python-format
 msgid "Vous avez désormais accès au dossier « %(dossier)s »."
 msgstr "U hebt nu toegang tot het dossier ‘%(dossier)s’."
 
-#: .\events\views\partage.py:300
+#: .\events\views\partage.py:301
 msgid "Lien révoqué. Il ne donne plus accès à rien."
 msgstr "Link ingetrokken. Hij geeft geen toegang meer."
 
@@ -2642,41 +2688,41 @@ msgstr "Mijn account"
 msgid "Administration"
 msgstr "Beheer"
 
-#: .\templates\base.html:137
+#: .\templates\base.html:138
 msgid "Se déconnecter"
 msgstr "Afmelden"
 
-#: .\templates\base.html:145
+#: .\templates\base.html:146
 msgid "Se connecter"
 msgstr "Aanmelden"
 
-#: .\templates\base.html:150
+#: .\templates\base.html:151
 msgid "Afficher le menu"
 msgstr "Menu tonen"
 
-#: .\templates\base.html:173
+#: .\templates\base.html:174
 msgid "La chronologie d'un dossier, pièces à l'appui."
 msgstr "De chronologie van een dossier, met de stukken erbij."
 
-#: .\templates\base.html:175
+#: .\templates\base.html:176
 #, python-format
 msgid "Version %(version)s"
 msgstr "Versie %(version)s"
 
-#: .\templates\base.html:181 .\templates\confidentialite.html:11
+#: .\templates\base.html:182 .\templates\confidentialite.html:11
 #: .\templates\confidentialite.html:16
 msgid "Confidentialité"
 msgstr "Privacy"
 
-#: .\templates\base.html:183
+#: .\templates\base.html:184
 msgid "Tous droits réservés."
 msgstr "Alle rechten voorbehouden."
 
-#: .\templates\base.html:214 .\templates\base.html:219
+#: .\templates\base.html:215 .\templates\base.html:220
 msgid "Copie impossible ici : sélectionnez l'adresse."
 msgstr "Kopiëren is hier niet mogelijk: selecteer het adres."
 
-#: .\templates\base.html:218
+#: .\templates\base.html:219
 msgid "Copié"
 msgstr "Gekopieerd"
 
@@ -2780,3 +2826,16 @@ msgstr ""
 "U kunt inzage in uw gegevens, verbetering of verwijdering ervan vragen door "
 "te schrijven naar hello@foxugly.com. Het logboek van een dossier wordt "
 "bewaard zolang het dossier bestaat."
+
+#: .\templates\confidentialite.html:67
+msgid ""
+"Vous pouvez aussi supprimer vous-même votre compte (menu du compte, "
+"« Supprimer mon compte »), sauf s'il possède un dossier."
+msgstr "U kunt uw account ook zelf verwijderen (accountmenu, « Mijn account verwijderen »), behalve als het eigenaar is van een dossier."
+
+#: .\templates\confidentialite.html:71
+#, python-format
+msgid ""
+"Les invitations et les liens de partage qui ne servent plus (acceptés, "
+"annulés, révoqués ou expirés) sont effacés %(jours)s jours après leur fin."
+msgstr "Uitnodigingen en deellinks die niet meer dienen (aanvaard, geannuleerd, ingetrokken of verlopen) worden %(jours)s dagen na hun einde gewist."

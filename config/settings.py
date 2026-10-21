@@ -289,11 +289,15 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_ADAPTER = "events.adapters.SdbAccountAdapter"
 ACCOUNT_LOGIN_METHODS = {"username", "email"}
 ACCOUNT_SIGNUP_FIELDS = ["username*", "email*", "password1*", "password2*"]
-# L'inscription est ouverte : quelqu'un pourrait sinon s'enregistrer avec
-# l'adresse d'un autre et la voir traitée comme sienne. « optional »
-# envoie la confirmation sans bloquer la connexion — le backend de
-# messagerie est la console, donc exiger la confirmation empêcherait
-# toute inscription réelle tant que SMTP n'est pas configuré.
+# L'inscription est ouverte : quelqu'un pourrait s'enregistrer avec l'adresse
+# d'un autre et la voir traitée comme sienne (la connexion par e-mail est
+# permise). « optional » envoie la confirmation sans bloquer la connexion.
+# Graph envoie bien les courriels en production : « mandatory » serait
+# possible, mais pas à l'aveugle (audit du 2026-10-18, M7) — un compte sans
+# adresse (créé par `createsuperuser` ou l'administration) serait bloqué sans
+# recours : allauth annonce un lien de confirmation qu'il n'a nulle part où
+# envoyer. Avant de passer à « mandatory », vérifier en production que chaque
+# compte a une adresse joignable.
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 # Limites de débit d'allauth (connexion, inscription, réinitialisation) : par
 # défaut (0 proxy de confiance) allauth prend REMOTE_ADDR, soit 127.0.0.1 pour
@@ -302,6 +306,10 @@ ACCOUNT_EMAIL_VERIFICATION = "optional"
 # proxy et AJOUTE l'adresse vue en fin de X-Forwarded-For : on prend celle-là,
 # jamais les valeurs précédentes, écrites par le client.
 ALLAUTH_TRUSTED_PROXY_COUNT = 1
+
+# Invitations et liens de partage morts : effacés après ce délai (audit M8,
+# events/retention.py, `manage.py purger_partages`, chronos-purge.timer).
+RETENTION_PARTAGES_JOURS = int(os.environ.get("RETENTION_PARTAGES_JOURS", "90"))
 
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
@@ -381,18 +389,23 @@ if SENTRY_DSN:
 
 
 # Politique de sécurité du contenu (OPERATIONS.md §3.6 : nonce, sans
-# `unsafe-inline` pour les scripts). Seuls s'exécutent les scripts des CDN
-# nommés et les scripts en ligne qui portent le nonce de la page
+# `unsafe-inline` pour les scripts). Seuls s'exécutent les scripts servis par
+# le site et les scripts en ligne qui portent le nonce de la page
 # (`nonce="{{ csp_nonce }}"`) : un script glissé dans une description ou un
 # titre ne s'exécuterait pas, même si l'échappement venait à manquer. Les
-# styles restent permis en ligne : FullCalendar, vis-timeline et Quill en
-# injectent, et la règle de la flotte ne vise que les scripts.
+# bibliothèques sont copiées dans `static/vendor/` (octets vérifiés contre
+# leur empreinte SRI, gardée sur la balise) : ouvrir tout jsdelivr ou cdnjs
+# laissait une injection HTML charger n'importe quel paquet npm (audit du
+# 2026-10-18, M5). Les styles et polices restent sur les CDN, et permis en
+# ligne : FullCalendar, vis-timeline et Quill en injectent, et la règle de la
+# flotte ne vise que les scripts. Pas de `report-uri` : un rapport CSP porte
+# l'URL de la page, donc le jeton d'un lien de partage — rien de tel vers Sentry.
 from django.utils.csp import CSP  # noqa: E402
 
 _CDN = ["https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"]
 SECURE_CSP = {
     "default-src": [CSP.SELF],
-    "script-src": [CSP.SELF, CSP.NONCE, *_CDN],
+    "script-src": [CSP.SELF, CSP.NONCE],
     "style-src": [CSP.SELF, CSP.UNSAFE_INLINE, *_CDN],
     "font-src": [CSP.SELF, "data:", *_CDN],
     "img-src": [CSP.SELF, "data:", "blob:"],
