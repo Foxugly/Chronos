@@ -3,6 +3,7 @@
 import datetime
 import json
 import re
+from unittest import mock
 
 from django.test import TestCase
 from django.urls import reverse
@@ -121,11 +122,28 @@ class VueCalendrierTests(TestCase):
         self.assertContains(reponse, "bootstrap-icons@1.13.1")
 
     def test_les_bornes_couvrent_tout_le_dossier_avec_une_marge(self):
-        bornes = self.json_script(self.page(), "calendrier-bornes")
+        with mock.patch("django.utils.timezone.localdate", return_value=datetime.date(2026, 9, 1)):
+            bornes = self.json_script(self.page(), "calendrier-bornes")
         self.assertEqual(
             bornes,
             {"debut": "2026-05-26", "fin": "2026-10-05", "initiale": "2026-08-18"},
         )
+
+    def test_les_bornes_incluent_toujours_aujourd_hui(self):
+        """Un dossier dont le dernier fait est ancien doit laisser créer un
+        évènement aujourd'hui d'un double-clic : la plage va jusqu'à aujourd'hui."""
+        with mock.patch("django.utils.timezone.localdate", return_value=datetime.date(2026, 12, 15)):
+            bornes = self.json_script(self.page(), "calendrier-bornes")
+        self.assertEqual(
+            bornes,
+            {"debut": "2026-05-26", "fin": "2026-12-22", "initiale": "2026-08-18"},
+        )
+
+    def test_les_bornes_incluent_aujourd_hui_avant_le_premier_fait(self):
+        with mock.patch("django.utils.timezone.localdate", return_value=datetime.date(2026, 5, 1)):
+            bornes = self.json_script(self.page(), "calendrier-bornes")
+        self.assertEqual(bornes["debut"], "2026-04-24")
+        self.assertEqual(bornes["fin"], "2026-10-05")
 
     def test_la_navigation_reste_dans_les_bornes_du_dossier(self):
         """Les flèches et « aujourd'hui » s'arrêtent aux dates des évènements :

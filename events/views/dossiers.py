@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.formats import date_format
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from .. import calendrier, doublons as dedoublonnage, filtres as filtrage
@@ -144,16 +145,22 @@ def _bornes_du_dossier(evenements):
     frise se lit mal. `initiale` est le dernier fait — c'est là que le
     dossier en est, et c'est le mois que l'on veut voir en arrivant.
     Sans évènement, aucune borne : le calendrier s'ouvre sur aujourd'hui.
+
+    La période inclut toujours aujourd'hui : sinon, dans un dossier dont le
+    dernier fait date de plus d'une semaine, la journée en cours sort de la
+    plage du calendrier et on ne peut plus y créer d'évènement d'un
+    double-clic.
     """
     if not evenements:
         return None
-    debuts = [e.date for e in evenements]
-    fins = [e.date_fin or e.date for e in evenements]
+    aujourd_hui = timezone.localdate()
+    debuts = [e.date for e in evenements] + [aujourd_hui]
+    fins = [e.date_fin or e.date for e in evenements] + [aujourd_hui]
     marge = timedelta(days=7)
     return {
         "debut": (min(debuts) - marge).isoformat(),
         "fin": (max(fins) + marge).isoformat(),
-        "initiale": max(debuts).isoformat(),
+        "initiale": max(e.date for e in evenements).isoformat(),
     }
 
 
