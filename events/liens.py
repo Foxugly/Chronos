@@ -75,12 +75,12 @@ def meme_expediteur(a, b):
 class Empreinte:
     expediteur: tuple
     moment: datetime.datetime  # avec fuseau
-    objet: str
+    objet: str | None  # `None` : objet cité illisible, il ne départage pas
 
     def correspond(self, autre):
         return (
             autre is not None
-            and self.objet == autre.objet
+            and (self.objet is None or autre.objet is None or self.objet == autre.objet)
             and meme_expediteur(self.expediteur, autre.expediteur)
             and abs(self.moment - autre.moment) <= TOLERANCE
         )
@@ -92,6 +92,17 @@ def empreinte(expediteur, moment, objet):
     if moment.tzinfo is None:
         moment = moment.replace(tzinfo=BRUXELLES)
     return Empreinte(expediteur_normalise(expediteur), moment, objet_normalise(objet))
+
+
+def empreinte_citee(expediteur, moment, objet):
+    """L'empreinte d'un courriel **cité**. Un objet vide est un objet qu'on n'a pas pu
+    lire (« … a écrit : », bloc Samsung d'une ligne) : il ne départage pas. L'objet de
+    la réponse n'en tient pas lieu — on y ouvre souvent un nouveau fil en citant un
+    courriel d'un autre (ACMEBAT, n° 210 cité par le n° 212)."""
+    cite = empreinte(expediteur, moment, objet)
+    if cite is not None and not cite.objet:
+        cite = Empreinte(cite.expediteur, cite.moment, None)
+    return cite
 
 
 def empreinte_de_couche(analyse):
@@ -110,14 +121,32 @@ A_ECRIT = re.compile(
     r"(?im)^[ >]*(?:le|on|op|am)\s+(?P<date>.{6,80}?\d{1,2}[:h.]\d{2}(?:\s*[ap]\.?m\.?)?)[,\s]+"
     r"(?P<de>[^\n]{1,160}?)\s+(?:a écrit|wrote|schreef|schrieb)\s*:\s*$")
 
+#: « -------- Message d'origine --------De : X Date : 27/10/26  11:25  (GMT+01:00) À : … » :
+#: Samsung Email (Android) cite tout le bloc sur une ligne, que `_bloc_de_transfert` ne
+#: lit pas. Son objet n'a pas de fin lisible : on ne le lit pas.
+EN_UNE_LIGNE = re.compile(
+    r"(?i)-{4,}\s*(?:message d'origine|original message|oorspronkelijk bericht)\s*-{4,}\s*"
+    r"(?:de|from|van)\s*:\s*(?P<de>[^\n]{1,160}?)\s+(?:date|datum)\s*:\s*(?P<date>[^\n]{6,60}?)"
+    r"\s+(?:à|a|to|aan)\s*:")
 
-def citations(analyse):
+
+@dataclass(frozen=True)
+class Citee:
+    """Un courriel cité, tel que le texte l'écrit, et son empreinte."""
+    empreinte: Empreinte
+    de: str
+    objet: str  # vide quand illisible
+    a: str
+
+
+def citees(analyse):
     """Les courriels que cette couche cite, du plus récent (le premier cité, celui
     auquel elle répond) au plus ancien : chaque bloc « De : … Envoyé : … » du texte,
-    puis chaque ligne « … a écrit : ». Une citation sans date lisible est omise.
+    puis chaque ligne « … a écrit : » et chaque bloc tenant sur une ligne (Samsung
+    Email). Une citation sans date lisible est omise.
 
-    Les objets des lignes « a écrit » ne sont pas écrits : l'objet de la réponse
-    elle-même en tient lieu (même fil)."""
+    Les objets des lignes « a écrit » ne sont pas écrits, ceux des blocs d'une ligne
+    pas lisibles : vides, ils ne départagent pas (`empreinte_citee`)."""
     texte = analyse.texte or ""
     trouvees = []
     reste = texte
@@ -129,17 +158,23 @@ def citations(analyse):
         ecrite = date_en_toutes_lettres(champs.get("date", ""))
         if ecrite is not None:
             position = len(texte) - len(bloc[2])
-            trouvees.append((position, empreinte(
-                champs.get("de", ""), ecrite.replace(tzinfo=BRUXELLES), champs.get("objet", ""))))
+            de, objet = champs.get("de", "").strip(), champs.get("objet", "").strip()
+            trouvees.append((position, Citee(
+                empreinte_citee(de, ecrite.replace(tzinfo=BRUXELLES), objet), de, objet, champs.get("a", ""))))
         if bloc[2] == reste:
             break
         reste = bloc[2]
-    for m in A_ECRIT.finditer(texte):
+    for m in (*A_ECRIT.finditer(texte), *EN_UNE_LIGNE.finditer(texte)):
         ecrite = date_en_toutes_lettres(m.group("date"))
         if ecrite is not None:
-            trouvees.append((m.start(), empreinte(
-                m.group("de"), ecrite.replace(tzinfo=BRUXELLES), analyse.titre)))
-    return [e for _position, e in sorted(trouvees, key=lambda t: t[0])]
+            de = m.group("de").strip()
+            trouvees.append((m.start(), Citee(empreinte_citee(de, ecrite.replace(tzinfo=BRUXELLES), ""), de, "", "")))
+    return [c for _position, c in sorted(trouvees, key=lambda t: t[0])]
+
+
+def citations(analyse):
+    """Les empreintes des courriels cités, dans l'ordre de `citees`."""
+    return [c.empreinte for c in citees(analyse)]
 
 
 def citation(analyse):

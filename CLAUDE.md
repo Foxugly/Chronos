@@ -510,6 +510,15 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   « … a écrit : » lines): a reply links to its direct parent if present, else to the nearest
   quoted ancestor present, and is re-centred on the parent when it arrives later.
   `Event.destinataires` (migration `0021`) keeps the mail's To/Cc, shown in detail, list, PDF.
+- **Samsung Email (Android) flattens its `text/plain`** (2026-10-29): a forward's or a quote's
+  « De : … Date : 27/10/26 11:25 (GMT+01:00) À : … Objet : … » block sits on **one line**, with a
+  two-digit year. A forward with no readable block falls back to the HTML part (one `<div>` per
+  field); a quote is read by `liens.EN_UNE_LIGNE`. The real 27/10 forward had been imported as a
+  direct mail from the forwarder, then swallowed a real reply by empreinte (n° 211, deleted).
+- **A quoted mail's subject is only compared when it was read** (`liens.empreinte_citee`): « … a
+  écrit : » lines and one-line Samsung blocks have none, stored as an empty `cite_objet`, and match
+  on sender + time alone. The reply's own subject used to stand in — wrong when the reply opens a new
+  thread quoting a mail from another one (ACMEBAT n° 212 → n° 210, shown as missing although present).
 - `events/import_courriels.py` creates, in **one transaction**, the event (instant, Brussels time), the
   original `.eml`, a `.md` text version (for search / AI), the attachments that pass `_verifier_fichier`
   (refused ones are named in the journal and the `.md`, the rest is still imported), a

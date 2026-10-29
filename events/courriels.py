@@ -174,9 +174,12 @@ def date_en_toutes_lettres(texte):
     t = re.sub(r"\s+(à|om|at)\s+", " ", t)
     jour = mois = annee = None
 
-    numerique = re.search(r"\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})\b", t)
+    # « 27/10/26 » : Samsung Email n'écrit que deux chiffres d'année.
+    numerique = re.search(r"\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{4}|\d{2})\b", t)
     if numerique:
         jour, mois, annee = int(numerique.group(1)), int(numerique.group(2)), int(numerique.group(3))
+        if annee < 100:
+            annee += 2000
     else:
         for motif, ordre in (
             (r"\b(\d{1,2})\.?\s+([a-zéû]+)\.?\s+(\d{4})\b", "jma"),  # 5 août 2026
@@ -255,10 +258,10 @@ def _suites_exchange(message):
     return [t for t in (_texte_de_partie(p) for p in (brutes or parties)) if t]
 
 
-def corps_en_texte(message):
+def corps_en_texte(message, preference=("plain", "html")):
     """Le texte d'un courriel : la partie texte, ou le HTML ramené à du texte, plus la
     suite qu'Exchange en aurait détachée (sans répéter ce que le corps contient déjà)."""
-    partie = message.get_body(preferencelist=("plain", "html"))
+    partie = message.get_body(preferencelist=preference)
     contenu = _texte_de_partie(partie) if partie is not None else ""
     for suite in _suites_exchange(message):
         if suite not in contenu:
@@ -412,7 +415,14 @@ def _couches(octets, *, enveloppe, ignorer, repli):
         return _empiler(dessous, couche, recu, enveloppe, ignorer)
 
     texte = corps_en_texte(recu)
-    bloc = _bloc_de_transfert(texte) if est_un_transfert(sujet, texte) else None
+    transfert = est_un_transfert(sujet, texte)
+    bloc = _bloc_de_transfert(texte) if transfert else None
+    if bloc is None and transfert:
+        # Samsung Email (Android) aplatit son texte brut : « …-----De : X Date : …
+        # Objet : … » sur une seule ligne, que le bloc ne lit pas. Son HTML garde
+        # une ligne par champ (transfert réel du 27/10, importé comme direct).
+        en_html = corps_en_texte(recu, preference=("html",))
+        bloc = _bloc_de_transfert(en_html)
     if bloc is None:
         # Envoyé directement : le courriel lui-même, toujours une couche.
         return [Analyse(

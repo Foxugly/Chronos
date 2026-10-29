@@ -108,6 +108,39 @@ class ImportReliéTests(MediaMixin, TestCase):
         reponse.refresh_from_db()
         self.assertEqual(reponse.reponse_a, origine)
 
+    def test_une_reponse_de_samsung_email_se_relie_au_courriel_cite(self):
+        """Samsung Email (Android) cite sur une seule ligne : « -------- Message
+        d'origine --------De : … Date : 28/09/26  20:29  (GMT+01:00) À : … Objet : … »
+        (réponse réelle du 27/10, reliée à rien). L'objet n'a pas de fin lisible :
+        celui de la réponse en tient lieu, comme pour « … a écrit : »."""
+        (origine,) = self.importer(mise_en_demeure_directe())
+        texte = ("Je conteste formellement.\r\n-------- Message d'origine --------De : ACME Bat "
+                 "<contact@acme-bat.example> Date : 28/09/26  20:29  (GMT+02:00) À : jdupont@exemple.be "
+                 "Objet : Mise en demeure Madame, Monsieur,\xa0Nous vous mettons en demeure.")
+        octets = courriel("RE: Mise en demeure", texte, de=MOI, a=ACME_BAT,
+                          recu="Tue, 29 Sep 2026 07:10:00 +0000", message_id="<samsung@exemple.be>").as_bytes()
+        (reponse,) = self.importer(octets)
+        self.assertEqual(reponse.reponse_a, origine)
+        self.assertEqual(reponse.title, "RE: Mise en demeure")  # une réponse, pas un transfert
+        trace = CourrielImporte.objects.get(evenement=reponse)
+        self.assertIn("contact@acme-bat.example", trace.cite_de)  # l'auteur de *cette* citation
+        self.assertEqual(trace.cite_objet, "")  # illisible : pas celui de la réponse
+
+    def test_l_auteur_stocke_est_celui_de_la_citation_retenue(self):
+        """Une réponse Samsung qui cite un courriel citant lui-même « … a écrit : » :
+        l'auteur noté est celui du bloc Samsung (le premier cité), pas celui de la
+        première ligne « a écrit » trouvée plus bas."""
+        texte = ("Je conteste.\r\n-------- Message d'origine --------De : ACME Bat "
+                 "<contact@acme-bat.example> Date : 28/09/26  20:29  (GMT+02:00) À : moi Objet : "
+                 "Mise en demeure Nous vous mettons en demeure.\r\n"
+                 "Le 20 sept. 2026 à 10:00, Jean <jdupont@exemple.be> a écrit :\r\n> Bonjour")
+        octets = courriel("RE: Mise en demeure", texte, de=MOI, a=ACME_BAT,
+                          recu="Tue, 29 Sep 2026 07:10:00 +0000", message_id="<samsung2@exemple.be>").as_bytes()
+        (reponse,) = self.importer(octets)
+        trace = CourrielImporte.objects.get(evenement=reponse)
+        self.assertIn("contact@acme-bat.example", trace.cite_de)
+        self.assertEqual(trace.cite_le, datetime.datetime(2026, 9, 28, 20, 29, tzinfo=BRUXELLES))
+
     def test_le_courriel_cite_arrive_apres_sa_reponse(self):
         """En aval : la réponse était là, le courriel qu'elle cite arrive ensuite."""
         (reponse,) = self.importer(reponse_a_la_mise_en_demeure())

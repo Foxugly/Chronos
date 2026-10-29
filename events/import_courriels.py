@@ -27,13 +27,13 @@ from django.utils import timezone
 from .alertes import CATEGORIE_ECHEC, alerter_echec_import
 from .couleurs import prochaine_couleur
 from .courriels import (
-    _bloc_de_transfert, adresses, analyser_en_couches, en_markdown, lire, texte_en_html,
+    adresses, analyser_en_couches, en_markdown, lire, texte_en_html,
     verdict_d_authentification,
 )
 from .graph import ClientGraph
 from .courriels import BRUXELLES
 from .liens import (
-    A_ECRIT, adresse_de, citation, citations, empreinte, empreinte_d_evenement, empreinte_de_couche,
+    adresse_de, citation, citations, citees, empreinte_citee, empreinte_d_evenement, empreinte_de_couche,
 )
 from .journal import consigner, consigner_pieces, instantane
 from .models import CourrielImporte, Dossier, Event, Expediteur, Journal
@@ -108,7 +108,7 @@ def empreinte_de_trace(trace):
 
 
 def citation_de_trace(trace):
-    return empreinte(trace.cite_de, trace.cite_le, trace.cite_objet) if trace.cite_le else None
+    return empreinte_citee(trace.cite_de, trace.cite_le, trace.cite_objet) if trace.cite_le else None
 
 
 def _richesse(evenement):
@@ -205,19 +205,13 @@ def _moment(evenement):
 
 def champs_cites(analyse):
     """`(de, le, objet, a)` du courriel que cette couche cite, à stocker ; vides sinon."""
-    cite = citation(analyse)
-    if cite is None:
+    trouvees = citees(analyse)
+    if not trouvees:
         return "", None, "", ""
-    bloc = _bloc_de_transfert(analyse.texte or "")
-    if bloc is None:
-        # Citée par une ligne « Le …, X a écrit : » (Gmail, Apple Mail) : pas de bloc
-        # d'en-tête. L'objet est celui de la réponse, comme dans `citations`.
-        ligne = A_ECRIT.search(analyse.texte or "")
-        return ((ligne.group("de").strip() if ligne else "")[:255], cite.moment,
-                (analyse.titre or "")[:255], "")
-    champs = bloc[1]
-    return (champs.get("de", "")[:255], cite.moment, champs.get("objet", "")[:255],
-            champs.get("a", ""))
+    # Le premier cité, celui auquel elle répond : `citation`. Objet vide quand il est
+    # illisible (« … a écrit : », bloc Samsung d'une ligne) — `empreinte_citee`.
+    cite = trouvees[0]
+    return cite.de[:255], cite.empreinte.moment, cite.objet[:255], cite.a
 
 
 def _memoriser(dossier, analyse, evenement):

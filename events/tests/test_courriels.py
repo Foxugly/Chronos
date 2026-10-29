@@ -17,7 +17,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from events.courriels import analyser
+from events.courriels import analyser, date_en_toutes_lettres
 from events.import_courriels import dossier_destinataire, importer
 from events.models import CourrielImporte, DossierAccess, Event, Journal
 from events.tests.factories import grant, make_dossier, make_user
@@ -86,6 +86,32 @@ class AnalyseTests(TestCase):
                 self.assertIn("contact@acme-bat.example", a.expediteur)
                 self.assertEqual(a.texte, "Bonjour,\nNous contestons.")
                 self.assertEqual(a.commentaire, "À verser au dossier.")
+
+    def test_transfert_dans_le_texte_par_samsung_email(self):
+        # Samsung Email (Android) aplatit son texte brut : plus aucun retour à la
+        # ligne entre les champs du bloc. Seul le HTML garde une ligne par champ
+        # (transfert réel du 27/10, lu comme un courriel direct de Jean).
+        texte = ("À verser au dossier.\r\n-------- Message d'origine --------De : ACME Bat "
+                 "<contact@acme-bat.example> Date : 25/08/26  14:31  (GMT+01:00) À : Jean "
+                 "Objet : Réponse 2e acompte Bonjour,\xa0Nous contestons.")
+        html = ("<div>À verser au dossier.</div><div>-------- Message d'origine --------</div>"
+                "<div>De : ACME Bat &lt;contact@acme-bat.example&gt; </div>"
+                "<div>Date : 25/08/26  14:31  (GMT+01:00) </div><div>À : Jean </div>"
+                "<div>Objet : Réponse 2e acompte </div><div><br></div>"
+                "<div>Bonjour,</div><div>Nous contestons.</div>")
+        a = analyser(courriel("FW: Réponse 2e acompte", texte, html=html).as_bytes())
+        self.assertEqual(a.forme, "texte")
+        self.assertEqual(a.titre, "Réponse 2e acompte")
+        self.assertEqual(a.moment, datetime.datetime(2026, 8, 25, 14, 31, tzinfo=BRUXELLES))
+        self.assertFalse(a.date_approchee)
+        self.assertIn("contact@acme-bat.example", a.expediteur)
+        self.assertEqual(a.texte, "Bonjour,\nNous contestons.")
+        self.assertEqual(a.commentaire, "À verser au dossier.")
+
+    def test_une_date_a_deux_chiffres_d_annee(self):
+        # « 27/10/26  11:25  (GMT+01:00) » : Samsung Email n'écrit que deux chiffres.
+        self.assertEqual(date_en_toutes_lettres("27/10/26  11:25  (GMT+01:00)"),
+                         datetime.datetime(2026, 10, 27, 11, 25))
 
     def test_un_courriel_direct_garde_sa_date_de_reception(self):
         a = analyser(courriel("Devis", "Voici le devis.").as_bytes())

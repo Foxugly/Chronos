@@ -99,6 +99,20 @@ class CourrielsManquantsTests(Base):
         self.assertEqual(len(manquants), 1)
         self.assertEqual(manquants[0]["cite_par"], [r1, r2])
 
+    def test_une_citation_sans_objet_lisible_se_reconnait_sans_l_objet(self):
+        """« Le 14 oct. 2026 à 15:13, X a écrit : » ne dit pas l'objet du courriel cité
+        (`cite_objet` vide) : celui de la réponse n'en tient pas lieu. En prod (ACMEBAT),
+        une avocate ouvrait un nouveau fil « Dossier ACME BAT » en citant un courriel
+        du fil « accès à tous les mails » : présent, il était compté manquant."""
+        self.courriel("Re: accès à tous les mails", "2026-09-08", heure="09:16", de="info@banque.example")
+        self.courriel("Dossier", "2026-09-10", **self.cite("info@banque.example", 8, "09:15", ""))
+        self.assertEqual(courriels_manquants(self.dossier), [])
+
+    def test_une_citation_sans_objet_lisible_reste_comparee_sur_l_expediteur(self):
+        self.courriel("Re: accès à tous les mails", "2026-09-08", heure="09:16", de="autre@banque.example")
+        self.courriel("Dossier", "2026-09-10", **self.cite("info@banque.example", 8, "09:15", ""))
+        self.assertEqual(len(courriels_manquants(self.dossier)), 1)
+
     def test_rien_ne_manque_sans_citation(self):
         self.courriel("Facture", "2026-09-08")
         self.assertEqual(courriels_manquants(self.dossier), [])
