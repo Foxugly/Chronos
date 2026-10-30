@@ -15,7 +15,9 @@ import unicodedata
 from dataclasses import dataclass
 from email.utils import getaddresses
 
-from .courriels import BRUXELLES, _bloc_de_transfert, date_en_toutes_lettres
+from .courriels import (
+    BRUXELLES, CITATIONS, TRANSFERTS, _bloc_de_transfert, bloc_et_position, date_en_toutes_lettres,
+)
 
 TOLERANCE = datetime.timedelta(minutes=20)
 
@@ -193,6 +195,30 @@ def citees(analyse):
         elif cite.objet and not uniques[rang[cle]].objet:
             uniques[rang[cle]] = cite
     return uniques
+
+
+#: Ce qui reste au-dessus d'une citation et lui appartient : un séparateur (« ____ »,
+#: « -----Original Message----- »), une ligne vide.
+_ANNONCE = re.compile(r"(?im)(?:^[-_ >]*(?:%s|%s)?[-_ :]*$\n?)+\Z" % (TRANSFERTS, CITATIONS))
+
+
+def texte_sans_citations(texte):
+    """Le texte d'un courriel sans le courriel qu'il cite, ni ceux que celui-ci cite : tout
+    ce qui suit la première citation (bloc « De : … Envoyé : … », ligne « … a écrit : »,
+    bloc Samsung d'une ligne). Le texte entier s'il ne cite rien, ou s'il n'est que citation."""
+    texte = texte or ""
+    debuts = []
+    bloc = bloc_et_position(texte)
+    if bloc:
+        debuts.append(bloc[0])
+    for motif in (A_ECRIT, SCHREEF, EN_UNE_LIGNE):
+        m = motif.search(texte)
+        if m:
+            debuts.append(m.start())
+    if not debuts:
+        return texte
+    garde = _ANNONCE.sub("", texte[:min(debuts)]).rstrip()
+    return garde or texte
 
 
 def citations(analyse):

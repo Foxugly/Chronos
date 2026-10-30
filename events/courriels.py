@@ -349,6 +349,12 @@ def _bloc_de_transfert(texte):
     Rend `(commentaire, champs, suite)` : le texte au-dessus du bloc, les
     champs lus, le texte d'origine en dessous. `None` si aucun bloc.
     """
+    trouve = bloc_et_position(texte)
+    return trouve[1:] if trouve else None
+
+
+def bloc_et_position(texte):
+    """Comme `_bloc_de_transfert`, précédé de la position où le bloc commence dans le texte."""
     lignes = texte.split("\n")
     for i, ligne in enumerate(lignes):
         m = LIGNE_DE_BLOC.match(ligne)
@@ -391,7 +397,8 @@ def _bloc_de_transfert(texte):
             niveau = re.match(r"[ \t]*((?:>[ \t]?)*)", ligne).group(1).count(">")
             if niveau:
                 suite = [re.sub(r"^[ \t]*(?:>[ \t]?){1,%d}" % niveau, "", s) for s in suite]
-            return commentaire, champs, "\n".join(suite).strip()
+            debut = len("\n".join(lignes[:i])) + (1 if i else 0)
+            return debut, commentaire, champs, "\n".join(suite).strip()
     return None
 
 

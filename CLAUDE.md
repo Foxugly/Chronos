@@ -532,6 +532,12 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   imported events from their stored `.eml` (dry run by default; journaled, version bumped; title, date,
   pieces and `.md` untouched; skipped if a user ever edited the description). `importer` and it share
   `import_courriels.description_de`.
+- **A reply's description stops at the quoted mail when that mail is in the dossier** (owner's decision,
+  2026-10-30): `liens.texte_sans_citations` cuts at the first quote (block, « a écrit : » line, Samsung
+  one-liner) and drops the separator above it; `import_courriels.cite_present` checks the *direct* parent
+  only. A quoted mail **missing** from the dossier stays in full — the quote is its only trace — so,
+  link by link, nothing disappears. The `.eml` and `.md` always keep everything (search reads the `.md`).
+  A reply imported **before** its parent keeps its quote until `relire_courriels --dossier N --appliquer`.
 - **A quoted mail's subject is only compared when it was read** (`liens.empreinte_citee`): « … a
   écrit : » lines and one-line Samsung blocks have none, stored as an empty `cite_objet`, and match
   on sender + time alone. The reply's own subject used to stand in — wrong when the reply opens a new

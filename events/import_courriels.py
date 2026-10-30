@@ -34,6 +34,7 @@ from .graph import ClientGraph
 from .courriels import BRUXELLES
 from .liens import (
     adresse_de, citation, citations, citees, empreinte_citee, empreinte_d_evenement, empreinte_de_couche,
+    texte_sans_citations,
 )
 from .journal import consigner, consigner_pieces, instantane
 from .models import CourrielImporte, Dossier, Event, Expediteur, Journal
@@ -266,9 +267,23 @@ def importer_couches(dossier, couches):
     return crees
 
 
-def description_de(analyse):
-    """La description d'un évènement importé : le texte du courriel, nettoyé."""
-    description = texte_en_html(analyse.texte)
+def cite_present(analyse, traces, soi=None):
+    """Vrai si le courriel auquel cette couche répond directement — le premier qu'elle
+    cite — est déjà un évènement du dossier (`traces`, sans `soi`)."""
+    cite = citation(analyse)
+    return cite is not None and any(
+        t.evenement_id != soi and cite.correspond(empreinte_de_trace(t)) for t in traces)
+
+
+def description_de(analyse, sans_citations=False):
+    """La description d'un évènement importé : le texte du courriel, nettoyé.
+
+    `sans_citations` : sans le courriel cité (et ceux qu'il cite), quand celui-ci est
+    déjà dans le dossier — le lien « En réponse à » y mène, le `.eml` et le `.md`
+    gardent tout. Un courriel cité absent du dossier reste visible : la citation est
+    alors sa seule trace (owner's decision, 2026-10-30)."""
+    texte = texte_sans_citations(analyse.texte) if sans_citations else analyse.texte
+    description = texte_en_html(texte)
     if analyse.date_approchee:
         description = "<p><em>%s</em></p>%s" % (
             "Date d'origine illisible : date de réception du transfert.", description
@@ -286,7 +301,7 @@ def importer(dossier, analyse, transfert_de=None):
 
     moment = analyse.moment
     base = "courriel-%s" % moment.strftime("%Y%m%d-%H%M")
-    description = description_de(analyse)
+    description = description_de(analyse, sans_citations=cite_present(analyse, _traces(dossier)))
 
     with transaction.atomic():
         evenement = Event.objects.create(

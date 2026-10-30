@@ -272,3 +272,65 @@ class CommandeRelireTests(MediaMixin, TestCase):
         sortie = self.lancer("--appliquer")
         self.assertIn("modifiée à la main", sortie)
         self.assertEqual(self.evenement.description, "<p>aplati</p>")
+
+
+class TexteSansCitationsTests(SimpleTestCase):
+    REPONSE = "Je conteste formellement.\n\nJean"
+
+    def test_chaque_forme_de_citation(self):
+        from events.liens import texte_sans_citations
+        cites = {
+            **{client: ligne for client, ligne in CITATIONS.items()},
+            "outlook avec séparateur": "________________________________\n" + CITATIONS["outlook fr"],
+            "outlook original message": "-----Original Message-----\n" + CITATIONS["outlook mobile"],
+            "samsung aplati": "-------- Message d'origine --------De : %s Date : 27/10/26  11:25  (GMT+01:00) "
+                              "À : %s Objet : Devis Bonjour" % (EV, MOI),
+        }
+        for client, citation in cites.items():
+            with self.subTest(client=client):
+                texte = self.REPONSE + "\n\n" + citation + "\n\n> Bonjour,\n> Nous contestons.\n"
+                self.assertEqual(texte_sans_citations(texte), self.REPONSE)
+
+    def test_sans_citation_ou_rien_que_la_citation_le_texte_reste_entier(self):
+        from events.liens import texte_sans_citations
+        self.assertEqual(texte_sans_citations(self.REPONSE), self.REPONSE)
+        seule = CITATIONS["gmail fr"] + "\n> Bonjour"
+        self.assertEqual(texte_sans_citations(seule), seule)
+
+
+class DescriptionSansCitationTests(MediaMixin, TestCase):
+    """La description d'une réponse s'arrête au courriel cité quand celui-ci est dans le
+    dossier ; sinon elle le garde, seule trace du courriel manquant."""
+
+    def setUp(self):
+        self.dossier = make_dossier(make_user("owner"), name="ACMEBAT")
+
+    def original(self):
+        return courriel("Réponse 2e acompte", "Bonjour,\nNous contestons.", de=EV, a=MOI,
+                        recu="Tue, 25 Aug 2026 12:33:00 +0000", message_id="<orig@acme-bat.example>").as_bytes()
+
+    def reponse(self):
+        texte = "Je conteste formellement.\n\nJean\n\n" + CITATIONS["outlook fr"] + "\n\nBonjour,\nNous contestons."
+        return courriel("RE: Réponse 2e acompte", texte, de=MOI, a=EV, recu="Wed, 26 Aug 2026 08:00:00 +0000",
+                        message_id="<rep@exemple.be>").as_bytes()
+
+    def test_courriel_cite_present(self):
+        importer(self.dossier, analyser(self.original()))
+        rep = importer(self.dossier, analyser(self.reponse()))
+        self.assertIn("Je conteste formellement.", rep.description)
+        self.assertNotIn("Nous contestons", rep.description)
+        md = next(d for d in rep.documents.all() if d.file.name.endswith(".md"))
+        self.assertIn("Nous contestons", md.file.open("rb").read().decode("utf-8"))
+
+    def test_courriel_cite_absent(self):
+        rep = importer(self.dossier, analyser(self.reponse()))
+        self.assertIn("Nous contestons", rep.description)
+
+    def test_la_commande_coupe_une_reponse_dont_le_cite_est_arrive_depuis(self):
+        rep = importer(self.dossier, analyser(self.reponse()))
+        importer(self.dossier, analyser(self.original()))
+        sortie = StringIO()
+        call_command("relire_courriels", "--dossier", str(self.dossier.pk), "--appliquer", stdout=sortie)
+        rep.refresh_from_db()
+        self.assertNotIn("Nous contestons", rep.description)
+        self.assertIn("Je conteste formellement.", rep.description)
