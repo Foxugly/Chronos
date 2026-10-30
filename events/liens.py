@@ -16,7 +16,8 @@ from dataclasses import dataclass
 from email.utils import getaddresses
 
 from .courriels import (
-    BRUXELLES, CITATIONS, TRANSFERTS, _bloc_de_transfert, bloc_et_position, date_en_toutes_lettres,
+    BRUXELLES, CITATIONS, EN_UNE_LIGNE, TRANSFERTS, _bloc_de_transfert, bloc_et_position,
+    date_en_toutes_lettres,
 )
 
 TOLERANCE = datetime.timedelta(minutes=20)
@@ -135,15 +136,6 @@ A_ECRIT = re.compile(
 #: 14:31 schreef ACME Bat <x@y>: », « Am Di., 25. Aug. 2026 um 14:31 Uhr schrieb … : ».
 SCHREEF = re.compile(
     r"(?im)^[ \t>]*(?:op|am)\s+" + _DATE_ECRITE + r"[,\s]+(?:schreef|schrieb)\s+" + _AUTEUR + r"\s*:\s*$")
-
-#: « -------- Message d'origine --------De : X Date : 27/10/26  11:25  (GMT+01:00) À : … » :
-#: Samsung Email (Android) cite tout le bloc sur une ligne, que `_bloc_de_transfert` ne
-#: lit pas. Son objet n'a pas de fin lisible : on ne le lit pas.
-EN_UNE_LIGNE = re.compile(
-    r"(?i)-{4,}\s*(?:message d'origine|original message|oorspronkelijk bericht)\s*-{4,}\s*"
-    r"(?:de|from|van)\s*:\s*(?P<de>[^\n]{1,160}?)\s+(?:date|datum)\s*:\s*(?P<date>[^\n]{6,60}?)"
-    r"\s+(?:à|a|to|aan)\s*:")
-
 
 @dataclass(frozen=True)
 class Citee:

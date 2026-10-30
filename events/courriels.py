@@ -415,6 +415,14 @@ CITATIONS = r"original message|message d'origine|oorspronkelijk bericht|ursprün
 
 MARQUE_DE_TRANSFERT = re.compile(r"(?im)^[-_ >]*(%s)\b" % TRANSFERTS)
 
+#: « -------- Message d'origine --------De : X Date : 27/10/26  11:25  (GMT+01:00) À : … » :
+#: Samsung Email (Android) écrit tout le bloc sur une ligne, que `_bloc_de_transfert` ne
+#: lit pas. Son objet n'a pas de fin lisible : on ne le lit pas.
+EN_UNE_LIGNE = re.compile(
+    r"(?i)-{4,}\s*(?:message d'origine|original message|oorspronkelijk bericht)\s*-{4,}\s*"
+    r"(?:de|from|van)\s*:\s*(?P<de>[^\n]{1,160}?)\s+(?:date|datum)\s*:\s*(?P<date>[^\n]{6,60}?)"
+    r"\s+(?:à|a|to|aan)\s*:")
+
 
 def est_un_transfert(sujet, texte):
     """Vrai si le courriel *transfère* un autre courriel dans son texte.
@@ -479,13 +487,17 @@ def _couches(octets, *, enveloppe, ignorer, repli):
 
     texte = corps_en_texte(recu)
     transfert = est_un_transfert(sujet, texte)
-    bloc = _bloc_de_transfert(texte) if transfert else None
-    if bloc is None and transfert:
-        # Samsung Email (Android) aplatit son texte brut : « …-----De : X Date : …
-        # Objet : … » sur une seule ligne, que le bloc ne lit pas. Son HTML garde
-        # une ligne par champ (transfert réel du 27/10, importé comme direct).
+    trouve = bloc_et_position(texte) if transfert else None
+    bloc = trouve[1:] if trouve else None
+    samsung = EN_UNE_LIGNE.search(texte) if transfert else None
+    if transfert and (bloc is None or (samsung and samsung.start() < trouve[0])):
+        # Samsung Email (Android) écrit l'en-tête du courriel transféré sur une seule
+        # ligne (« …-----De : X Date : … Objet : … »), que le bloc ne lit pas : le
+        # premier bloc lisible est alors celui d'un courriel cité plus bas (transfert
+        # de Claire Martin du 30/10, lu comme le courriel du 01/09 qu'elle cite). Son
+        # HTML garde une ligne par champ (transfert réel du 27/10, importé comme direct).
         en_html = corps_en_texte(recu, preference=("html",))
-        bloc = _bloc_de_transfert(en_html)
+        bloc = _bloc_de_transfert(en_html) or bloc
     if bloc is None:
         # Envoyé directement : le courriel lui-même, toujours une couche.
         return [Analyse(

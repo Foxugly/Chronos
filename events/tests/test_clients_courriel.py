@@ -334,3 +334,31 @@ class DescriptionSansCitationTests(MediaMixin, TestCase):
         rep.refresh_from_db()
         self.assertNotIn("Nous contestons", rep.description)
         self.assertIn("Je conteste formellement.", rep.description)
+
+
+class TransfertSamsungEnteteDUneLigneTests(SimpleTestCase):
+    """Un transfert Samsung dont seul l'en-tête tient sur une ligne : le reste du texte
+    a ses retours à la ligne. Le premier bloc lisible était celui du courriel cité plus
+    bas — la réponse de Claire Martin (01/09 14:21) était lue comme le courriel du 01/09
+    10:27 qu'elle cite, et rangée comme « déjà importé »."""
+
+    def test_le_courriel_transfere_est_celui_de_l_en_tete_samsung(self):
+        renov = "Claire Martin <cmartin@renov.example>"
+        texte = ("Jean\n-------- Message d'origine --------De : %s Date : 1/09/26  14:21  (GMT+01:00) "
+                 "À : %s Objet : RE: étanchéité sdb \n\nBonjour Monsieur,\n\nMerci pour l'info.\n\n"
+                 "De : %s\nEnvoyé : mardi 1 septembre 2026 10:27\nÀ : Info <info@renov.example>\n"
+                 "Objet : étanchéité sdb\n\nBonjour,\nVotre site est down.\n" % (renov, MOI, MOI))
+        html = ("<div>Jean</div><div>-------- Message d'origine --------</div>"
+                "<div>De : Claire Martin &lt;cmartin@renov.example&gt; </div>"
+                "<div>Date : 1/09/26  14:21  (GMT+01:00) </div><div>À : %s </div>"
+                "<div>Objet : RE: étanchéité sdb </div><div><br></div><div>Bonjour Monsieur,</div>"
+                "<div>Merci pour l'info.</div><div><br></div>"
+                "<div>De : %s<br>Envoyé : mardi 1 septembre 2026 10:27<br>À : Info &lt;info@renov.example&gt;<br>"
+                "Objet : étanchéité sdb</div><div><br></div><div>Bonjour,</div><div>Votre site est down.</div>"
+                % ("Jean &lt;jdupont@exemple.be&gt;", "Jean &lt;jdupont@exemple.be&gt;"))
+        a = analyser(courriel("FW: RE: étanchéité sdb", texte, de=MOI, html=html).as_bytes())
+        self.assertEqual(a.forme, "texte")
+        self.assertIn("cmartin@renov.example", a.expediteur)
+        self.assertEqual(a.moment, datetime.datetime(2026, 9, 1, 14, 21, tzinfo=BRUXELLES))
+        self.assertTrue(a.texte.startswith("Bonjour Monsieur,"))
+        self.assertEqual(citees(a)[0].empreinte.moment, datetime.datetime(2026, 9, 1, 10, 27, tzinfo=BRUXELLES))
