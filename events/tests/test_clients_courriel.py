@@ -362,3 +362,30 @@ class TransfertSamsungEnteteDUneLigneTests(SimpleTestCase):
         self.assertEqual(a.moment, datetime.datetime(2026, 9, 1, 14, 21, tzinfo=BRUXELLES))
         self.assertTrue(a.texte.startswith("Bonjour Monsieur,"))
         self.assertEqual(citees(a)[0].empreinte.moment, datetime.datetime(2026, 9, 1, 10, 27, tzinfo=BRUXELLES))
+
+
+class HeuresEcritesALaMinuteTests(SimpleTestCase):
+    """Deux heures d'envoi écrites dans le texte se comparent à la minute ; une heure de
+    réception suit l'envoi de 20 minutes au plus. Paul Durand a écrit deux fois au même
+    fil le 03/06, à 09:13 et 09:27 : le second passait pour le premier."""
+
+    def setUp(self):
+        from events.liens import ENVOI, RECEPTION, empreinte
+        self.e = lambda h, m, nature, s=0: empreinte(
+            "Paul Durand <info@mediation.example>", datetime.datetime(2026, 6, 3, h, m, s, tzinfo=BRUXELLES),
+            "Re: Devis travaux", nature)
+        self.ENVOI, self.RECEPTION = ENVOI, RECEPTION
+
+    def test_deux_envois_a_quatorze_minutes_sont_deux_courriels(self):
+        self.assertFalse(self.e(9, 13, self.ENVOI).correspond(self.e(9, 27, self.ENVOI)))
+
+    def test_le_meme_envoi_a_la_seconde_pres(self):
+        self.assertTrue(self.e(9, 27, self.ENVOI, 59).correspond(self.e(9, 28, self.ENVOI)))
+
+    def test_une_reception_suit_l_envoi(self):
+        self.assertTrue(self.e(9, 27, self.ENVOI).correspond(self.e(9, 40, self.RECEPTION)))
+        self.assertTrue(self.e(9, 40, self.RECEPTION).correspond(self.e(9, 27, self.ENVOI)))
+        self.assertFalse(self.e(9, 27, self.ENVOI).correspond(self.e(9, 13, self.RECEPTION)))
+
+    def test_sans_nature_vingt_minutes_comme_avant(self):
+        self.assertTrue(self.e(9, 13, None).correspond(self.e(9, 27, self.ENVOI)))

@@ -538,6 +538,11 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   only. A quoted mail **missing** from the dossier stays in full — the quote is its only trace — so,
   link by link, nothing disappears. The `.eml` and `.md` always keep everything (search reads the `.md`).
   A reply imported **before** its parent keeps its quote until `relire_courriels --dossier N --appliquer`.
+- **Times compare by their nature** (`liens.Empreinte.nature`, 2026-10-31): two *sent* times read in
+  the text (inline layers — `couche:` keys — and quotes) must match **to the minute**; a *received*
+  time (`Received`, direct / attached) must follow a sent time by −2 to +20 min; otherwise ±20 min as
+  before. Paul Durand wrote twice in one thread on 03/06 (09:13, 09:27): within 20 min the second was
+  taken for the first — hidden from the missing list, then filed as « déjà importé » when it arrived.
 - **A quoted mail's subject is only compared when it was read** (`liens.empreinte_citee`): « … a
   écrit : » lines and one-line Samsung blocks have none, stored as an empty `cite_objet`, and match
   on sender + time alone. The reply's own subject used to stand in — wrong when the reply opens a new

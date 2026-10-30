@@ -21,6 +21,15 @@ from .courriels import (
 )
 
 TOLERANCE = datetime.timedelta(minutes=20)
+#: Deux heures d'**envoi** lues dans le texte sont écrites à la minute : au-delà, ce sont deux
+#: courriels. Paul Durand a écrit deux fois au même fil le 03/06, à 09:13 et à 09:27 — à
+#: 20 minutes près, celui de 09:27 passait pour celui de 09:13, absent de la liste des
+#: manquants, puis « déjà importé » quand il est arrivé.
+A_LA_MINUTE = datetime.timedelta(seconds=60)
+#: Une heure de réception suit l'heure d'envoi (de 2 à 13 minutes sur les vrais exemples) ;
+#: elle ne la précède qu'au décalage d'horloge près.
+AVANCE_D_HORLOGE = datetime.timedelta(minutes=2)
+ENVOI, RECEPTION = "envoi", "reception"
 
 #: Tous les préfixes, transfert **et** réponse : « RE: sdb » et « sdb » sont le même fil.
 PREFIXES = re.compile(r"^\s*((tr|fw|fwd|wg|doorst|trans|re|aw|antw|sv)\s*:\s*)+", re.IGNORECASE)
@@ -79,22 +88,34 @@ class Empreinte:
     expediteur: tuple
     moment: datetime.datetime  # avec fuseau
     objet: str | None  # `None` : objet cité illisible, il ne départage pas
+    #: `ENVOI` : heure écrite dans le texte (bloc, « a écrit : ») ; `RECEPTION` : en-tête
+    #: `Received` ; `None` : inconnue (date approchée).
+    nature: str | None = None
 
     def correspond(self, autre):
         return (
             autre is not None
             and (self.objet is None or autre.objet is None or self.objet == autre.objet)
             and meme_expediteur(self.expediteur, autre.expediteur)
-            and abs(self.moment - autre.moment) <= TOLERANCE
+            and self._meme_moment(autre)
         )
 
+    def _meme_moment(self, autre):
+        natures = (self.nature, autre.nature)
+        if natures == (ENVOI, ENVOI):
+            return abs(self.moment.replace(second=0) - autre.moment.replace(second=0)) <= A_LA_MINUTE
+        if set(natures) == {ENVOI, RECEPTION}:
+            envoi, reception = (self, autre) if self.nature == ENVOI else (autre, self)
+            return -AVANCE_D_HORLOGE <= reception.moment - envoi.moment <= TOLERANCE
+        return abs(self.moment - autre.moment) <= TOLERANCE
 
-def empreinte(expediteur, moment, objet):
+
+def empreinte(expediteur, moment, objet, nature=None):
     if moment is None:
         return None
     if moment.tzinfo is None:
         moment = moment.replace(tzinfo=BRUXELLES)
-    return Empreinte(expediteur_normalise(expediteur), moment, objet_normalise(objet))
+    return Empreinte(expediteur_normalise(expediteur), moment, objet_normalise(objet), nature)
 
 
 def empreinte_citee(expediteur, moment, objet):
@@ -102,20 +123,26 @@ def empreinte_citee(expediteur, moment, objet):
     lire (« … a écrit : », bloc Samsung d'une ligne) : il ne départage pas. L'objet de
     la réponse n'en tient pas lieu — on y ouvre souvent un nouveau fil en citant un
     courriel d'un autre (ACMEBAT, n° 210 cité par le n° 212)."""
-    cite = empreinte(expediteur, moment, objet)
+    cite = empreinte(expediteur, moment, objet, ENVOI)
     if cite is not None and not cite.objet:
-        cite = Empreinte(cite.expediteur, cite.moment, None)
+        cite = Empreinte(cite.expediteur, cite.moment, None, ENVOI)
     return cite
 
 
+def nature_de_couche(analyse):
+    if analyse.date_approchee:
+        return None
+    return ENVOI if analyse.forme == "texte" else RECEPTION
+
+
 def empreinte_de_couche(analyse):
-    return empreinte(analyse.expediteur, analyse.moment, analyse.titre)
+    return empreinte(analyse.expediteur, analyse.moment, analyse.titre, nature_de_couche(analyse))
 
 
-def empreinte_d_evenement(evenement, expediteur):
+def empreinte_d_evenement(evenement, expediteur, nature=None):
     """L'empreinte d'un évènement importé ; `expediteur` : celui noté à l'import."""
     heure = evenement.heure or datetime.time(0, 0)
-    return empreinte(expediteur, datetime.datetime.combine(evenement.date, heure), evenement.title)
+    return empreinte(expediteur, datetime.datetime.combine(evenement.date, heure), evenement.title, nature)
 
 
 #: La date d'une ligne « … a écrit : », avec le fuseau que certains y ajoutent : Yahoo

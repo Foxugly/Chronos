@@ -34,7 +34,7 @@ from .graph import ClientGraph
 from .courriels import BRUXELLES
 from .liens import (
     adresse_de, citation, citations, citees, empreinte_citee, empreinte_d_evenement, empreinte_de_couche,
-    texte_sans_citations,
+    texte_sans_citations, ENVOI, RECEPTION,
 )
 from .journal import consigner, consigner_pieces, instantane
 from .models import CourrielImporte, Dossier, Event, Expediteur, Journal
@@ -105,7 +105,10 @@ def _traces(dossier):
 
 
 def empreinte_de_trace(trace):
-    return empreinte_d_evenement(trace.evenement, trace.expediteur)
+    """Une couche lue dans le texte (clé `couche:…`) a son heure d'envoi ; une autre,
+    son heure de réception."""
+    nature = ENVOI if trace.message_id.startswith("couche:") else RECEPTION
+    return empreinte_d_evenement(trace.evenement, trace.expediteur, nature)
 
 
 def citation_de_trace(trace):

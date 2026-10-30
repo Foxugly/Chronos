@@ -94,7 +94,7 @@ class CourrielsManquantsTests(Base):
     def test_deux_reponses_au_meme_absent_ne_font_qu_un_manquant(self):
         r1 = self.courriel("RE: Facture", "2026-09-10", **self.cite("info@banque.example", 8, "09:15", "Facture"))
         r2 = self.courriel("RE: Facture", "2026-09-11", de="archi@x.be",
-                           **self.cite("info@banque.example", 8, "09:20", "TR: Facture"))
+                           **self.cite("info@banque.example", 8, "09:15", "TR: Facture"))
         manquants = courriels_manquants(self.dossier)
         self.assertEqual(len(manquants), 1)
         self.assertEqual(manquants[0]["cite_par"], [r1, r2])
