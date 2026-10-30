@@ -182,7 +182,17 @@ def citees(analyse):
         if ecrite is not None:
             de = re.sub(r"<\s+", "<", re.sub(r"\s*\n[ \t>]*", " ", m.group("de"))).strip()
             trouvees.append((m.start(), Citee(empreinte_citee(de, ecrite.replace(tzinfo=BRUXELLES), ""), de, "", "")))
-    return [c for _position, c in sorted(trouvees, key=lambda t: t[0])]
+    # Un même bloc lu deux fois (bloc « De : … » et forme Samsung d'une ligne) ne compte
+    # qu'une fois, avec son objet quand une des deux lectures l'a lu.
+    uniques, rang = [], {}
+    for _position, cite in sorted(trouvees, key=lambda t: t[0]):
+        cle = (cite.empreinte.expediteur, cite.empreinte.moment)
+        if cle not in rang:
+            rang[cle] = len(uniques)
+            uniques.append(cite)
+        elif cite.objet and not uniques[rang[cle]].objet:
+            uniques[rang[cle]] = cite
+    return uniques
 
 
 def citations(analyse):

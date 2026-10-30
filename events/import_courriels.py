@@ -266,6 +266,16 @@ def importer_couches(dossier, couches):
     return crees
 
 
+def description_de(analyse):
+    """La description d'un évènement importé : le texte du courriel, nettoyé."""
+    description = texte_en_html(analyse.texte)
+    if analyse.date_approchee:
+        description = "<p><em>%s</em></p>%s" % (
+            "Date d'origine illisible : date de réception du transfert.", description
+        )
+    return nettoyer(description)
+
+
 def importer(dossier, analyse, transfert_de=None):
     """Crée l'évènement et ses pièces. Rend l'évènement, ou `None` s'il existait déjà."""
     # Import local : `views` importe ce module indirectement via les modèles.
@@ -276,11 +286,7 @@ def importer(dossier, analyse, transfert_de=None):
 
     moment = analyse.moment
     base = "courriel-%s" % moment.strftime("%Y%m%d-%H%M")
-    description = texte_en_html(analyse.texte)
-    if analyse.date_approchee:
-        description = "<p><em>%s</em></p>%s" % (
-            "Date d'origine illisible : date de réception du transfert.", description
-        )
+    description = description_de(analyse)
 
     with transaction.atomic():
         evenement = Event.objects.create(
@@ -289,7 +295,7 @@ def importer(dossier, analyse, transfert_de=None):
             title=analyse.titre,
             date=moment.date(),
             heure=moment.time().replace(microsecond=0),
-            description=nettoyer(description),
+            description=description,
             transfert_de=transfert_de if transfert_de and transfert_de.dossier_id == dossier.pk else None,
             destinataires=analyse.destinataires or "",
         )

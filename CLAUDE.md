@@ -523,6 +523,15 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   AM/PM or an impossible month), Proton (`25th`), Samsung. Dutch/German quotes name the author
   *after* the verb (`liens.SCHREEF`); Gmail may wrap a « a écrit : » line inside the address.
   Written time zones are **ignored** — everything is read as Brussels time, as before.
+- **Flattened plain text gives way to HTML** (`courriels._aplati`, 2026-10-30): a Samsung body, or an
+  Exchange `ATT` suite, with almost no line breaks is read from the HTML part instead; a suite already
+  in the body *up to whitespace* is not appended again (ACMEBAT n° 214 showed the reply twice, then the
+  quoted mail on one line). HTML → text collapses source whitespace first (only tags make lines) and a
+  `blockquote` starts its own line. `liens.citees` counts a block read twice (block + one-line form) once.
+- **`manage.py relire_courriels --evenement N … [--appliquer]`** redoes the description of named
+  imported events from their stored `.eml` (dry run by default; journaled, version bumped; title, date,
+  pieces and `.md` untouched; skipped if a user ever edited the description). `importer` and it share
+  `import_courriels.description_de`.
 - **A quoted mail's subject is only compared when it was read** (`liens.empreinte_citee`): « … a
   écrit : » lines and one-line Samsung blocks have none, stored as an empty `cite_objet`, and match
   on sender + time alone. The reply's own subject used to stand in — wrong when the reply opens a new

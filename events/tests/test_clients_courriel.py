@@ -9,12 +9,19 @@ ou cité.
 """
 
 import datetime
+from io import StringIO
+from types import SimpleNamespace
 
-from django.test import SimpleTestCase
+from django.core.management import call_command
+from django.test import SimpleTestCase, TestCase
 
 from events.courriels import BRUXELLES, analyser, date_en_toutes_lettres
+from events.import_courriels import importer
+from events.journal import consigner
 from events.liens import citees
-from events.tests.test_courriels import courriel
+from events.models import Event, Journal
+from events.tests.factories import make_dossier, make_user
+from events.tests.test_courriels import ALIAS, MediaMixin, courriel
 
 EV = "ACME Bat <contact@acme-bat.example>"
 MOI = "Jean <jdupont@exemple.be>"
@@ -158,3 +165,110 @@ class DatesEcritesTests(SimpleTestCase):
         for ecrite, attendue in cas.items():
             with self.subTest(date=ecrite):
                 self.assertEqual(date_en_toutes_lettres(ecrite), attendue)
+
+
+SIGNATURE_HTML = ("<p>Les\n informations contenues dans ce message\n sont de nature confidentielle.</p>")
+REPONSE = ("Maître,\n\nTout va bien.\n\nJ'accepte la conciliation et la désignation d'un expert.\n\n"
+           "En vous remerciant,\n\nJean")
+CITE_SAMSUNG_APLATI = ("-------- Message d'origine --------De : %s Date : 27/10/26  11:25  (GMT+01:00) À : %s "
+                       "Objet : Dossier ACME BAT Cher Monsieur,\xa0J'espère que vous allez bien.\xa0J'ai préparé une "
+                       "lettre pour ACME BAT.Pouvez-vous en prendre connaissance ?\xa0En vous remerciant,\xa0"
+                       "CdtAnne DuboisAvocate au Barreau de Bruxelles" % (EV, MOI))
+CITE_SAMSUNG_HTML = ("<div>-------- Message d'origine --------</div><div>De : ACME Bat &lt;contact@acme-bat.example&gt; </div>"
+                     "<div>Date : 27/10/26  11:25  (GMT+01:00) </div><div>À : %s </div>"
+                     "<div>Objet : Dossier ACME BAT </div><div><br></div><div>Cher Monsieur,</div>"
+                     "<div>J'espère que vous allez bien.</div>" % "Jean &lt;jdupont@exemple.be&gt;" + SIGNATURE_HTML)
+
+
+class SuiteExchangeAplatieTests(SimpleTestCase):
+    """Une réponse écrite sur Samsung, transférée par Outlook (n° 214 d'ACMEBAT) : Exchange
+    détache la suite du corps en ATT00001.txt (la réponse, aplatie), ATT00003.htm (le
+    courriel cité, lisible) et ATT00004.txt (le même, aplati)."""
+
+    def courriel_transfere(self):
+        bloc = ("________________________________\nFrom: %s\nSent: Tuesday, October 27, 2026 14:30\n"
+                "To: %s\nSubject: RE: Dossier ACME BAT\n\n" % (MOI, EV))
+        m = courriel("TR: RE: Dossier ACME BAT", bloc + REPONSE, de=MOI)
+        m.add_attachment(" ".join(REPONSE.split()).replace(" ", "\xa0", 3), subtype="plain", filename="ATT00001.txt")
+        m.add_attachment(CITE_SAMSUNG_HTML, subtype="html", filename="ATT00003.htm")
+        m.add_attachment(CITE_SAMSUNG_APLATI, subtype="plain", filename="ATT00004.txt")
+        return m.as_bytes()
+
+    def test_la_suite_est_lue_dans_le_html_sans_repeter_la_reponse(self):
+        a = analyser(self.courriel_transfere())
+        self.assertEqual(a.texte.count("Tout va bien"), 1)
+        self.assertIn("\nDe : ACME Bat <contact@acme-bat.example>\nDate : 27/10/26 11:25 (GMT+01:00)\n", a.texte)
+        self.assertNotIn("Message d'origine --------De", a.texte)
+        self.assertIn("Les informations contenues dans ce message sont de nature confidentielle.", a.texte)
+
+    def test_le_courriel_cite_compte_une_fois_avec_son_objet(self):
+        trouvees = citees(analyser(self.courriel_transfere()))
+        self.assertEqual(len(trouvees), 1)
+        self.assertEqual(trouvees[0].objet, "Dossier ACME BAT")
+        self.assertEqual(trouvees[0].empreinte.moment, datetime.datetime(2026, 10, 27, 11, 25, tzinfo=BRUXELLES))
+
+
+class HtmlEnTexteTests(SimpleTestCase):
+    def test_les_retours_du_source_html_ne_coupent_pas_les_phrases(self):
+        m = courriel("Devis", "x", html=SIGNATURE_HTML)
+        m.get_body(preferencelist=("plain",)).set_content("x" * 10)  # garde la partie texte courte
+        from events.courriels import corps_en_texte, lire
+        texte = corps_en_texte(lire(m.as_bytes()), preference=("html",))
+        self.assertEqual(texte, "Les informations contenues dans ce message sont de nature confidentielle.")
+
+    def test_une_citation_commence_sur_sa_ligne(self):
+        from events.courriels import corps_en_texte, lire
+        html = ("<div>Merci.</div><div>Le 14 oct. 2026 à 15:13, %s a écrit :"
+                "<blockquote><div>Cher Monsieur,</div></blockquote></div>" % EV.replace("<", "&lt;").replace(">", "&gt;"))
+        texte = corps_en_texte(lire(courriel("RE: Devis", "x", html=html).as_bytes()), preference=("html",))
+        self.assertIn("a écrit :\nCher Monsieur,", texte)
+
+    def test_un_texte_brut_aplati_cede_la_place_au_html(self):
+        # Un courriel écrit sur Samsung, envoyé directement : son texte brut tient sur une ligne.
+        aplati = " ".join(REPONSE.split()) * 3
+        html = "".join("<div>%s</div>" % ligne for ligne in REPONSE.split("\n"))
+        a = analyser(courriel("Accord", aplati, html=html).as_bytes())
+        self.assertEqual(a.forme, "direct")
+        self.assertTrue(a.texte.startswith("Maître,\n\nTout va bien."))
+
+
+class CommandeRelireTests(MediaMixin, TestCase):
+    """`relire_courriels` refait la description d'un évènement importé avant une
+    amélioration de la lecture (n° 212 et 214 d'ACMEBAT)."""
+
+    def setUp(self):
+        self.dossier = make_dossier(make_user("owner"), name="ACMEBAT")
+        self.dossier.alias_courriel = ALIAS
+        self.dossier.save()
+        self.evenement = importer(self.dossier, analyser(SuiteExchangeAplatieTests().courriel_transfere()))
+        # Ce que l'ancienne lecture avait écrit.
+        Event.objects.filter(pk=self.evenement.pk).update(description="<p>aplati</p>")
+
+    def lancer(self, *args):
+        sortie = StringIO()
+        call_command("relire_courriels", "--evenement", str(self.evenement.pk), *args, stdout=sortie)
+        self.evenement.refresh_from_db()
+        return sortie.getvalue()
+
+    def test_l_essai_n_ecrit_rien(self):
+        sortie = self.lancer()
+        self.assertIn("Essai", sortie)
+        self.assertEqual(self.evenement.description, "<p>aplati</p>")
+        self.assertFalse(Journal.objects.filter(action=Journal.Action.EVENEMENT_MODIFIE).exists())
+
+    def test_appliquer_refait_la_description_et_la_journalise(self):
+        version = self.evenement.version
+        self.lancer("--appliquer")
+        self.assertIn("Tout va bien.", self.evenement.description)
+        self.assertNotIn("aplati", self.evenement.description)
+        self.assertEqual(self.evenement.version, version + 1)
+        entree = Journal.objects.get(action=Journal.Action.EVENEMENT_MODIFIE, evenement=self.evenement)
+        self.assertEqual(entree.details["changements"]["description"][0], "<p>aplati</p>")
+        self.assertIsNone(entree.auteur)
+
+    def test_une_description_retouchee_a_la_main_est_laissee(self):
+        consigner(self.dossier, Journal.Action.EVENEMENT_MODIFIE, request=SimpleNamespace(user=self.dossier.owner),
+                  evenement=self.evenement, details={"changements": {"description": ["a", "b"]}})
+        sortie = self.lancer("--appliquer")
+        self.assertIn("modifiée à la main", sortie)
+        self.assertEqual(self.evenement.description, "<p>aplati</p>")

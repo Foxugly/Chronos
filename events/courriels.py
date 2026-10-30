@@ -261,27 +261,51 @@ def _texte_de_partie(partie):
         return ""
     if partie.get_content_type() == "text/html":
         contenu = re.sub(r"(?is)<(script|style).*?</\1>", "", contenu)
-        contenu = re.sub(r"(?i)<br\s*/?>|</(p|div|li|tr|h[1-6])>", "\n", contenu)
+        # Les retours à la ligne du source HTML ne sont pas ceux du texte (« Les\n
+        # informations contenues… » dans une signature d'avocate) : seules les balises
+        # en font. Une citation (`blockquote`) commence sur sa propre ligne.
+        contenu = re.sub(r"\s+", " ", contenu)
+        contenu = re.sub(r"(?i)<br\s*/?>|</(p|div|li|tr|h[1-6]|blockquote)>|<blockquote\b[^>]*>", "\n", contenu)
         contenu = html.unescape(strip_tags(contenu))
+        contenu = "\n".join(ligne.strip() for ligne in contenu.split("\n"))
     contenu = contenu.replace("\r\n", "\n").replace("\xa0", " ")
     return re.sub(r"\n{3,}", "\n\n", contenu).strip()
 
 
+def _aplati(texte):
+    """Vrai pour un texte brut sans ses retours à la ligne : Samsung Email (Android) met
+    tout un courriel sur une ligne, que sa partie HTML garde lisible."""
+    return len(texte) > 200 and texte.count("\n") * 300 < len(texte)
+
+
+def _compact(texte):
+    return re.sub(r"\s+", "", texte)
+
+
 def _suites_exchange(message):
     """Le texte des parties ATTnnnnn, dans l'ordre : le texte brut d'abord ; le HTML
-    seulement s'il n'y a aucune suite en texte brut (Exchange met souvent les deux)."""
+    seulement s'il n'y a aucune suite en texte brut (Exchange met souvent les deux), ou
+    si une suite brute est aplatie (une réponse Samsung transférée par Outlook)."""
     parties = [p for p in message.iter_attachments() if SUITE_EXCHANGE.match(p.get_filename() or "")]
-    brutes = [p for p in parties if p.get_content_type() == "text/plain"]
-    return [t for t in (_texte_de_partie(p) for p in (brutes or parties)) if t]
+    brutes = [t for t in (_texte_de_partie(p) for p in parties if p.get_content_type() == "text/plain") if t]
+    en_html = [t for t in (_texte_de_partie(p) for p in parties if p.get_content_type() == "text/html") if t]
+    if en_html and (not brutes or any(_aplati(t) for t in brutes)):
+        return en_html
+    return brutes
 
 
 def corps_en_texte(message, preference=("plain", "html")):
     """Le texte d'un courriel : la partie texte, ou le HTML ramené à du texte, plus la
-    suite qu'Exchange en aurait détachée (sans répéter ce que le corps contient déjà)."""
+    suite qu'Exchange en aurait détachée (sans répéter ce que le corps contient déjà,
+    aux espaces près). Un texte brut aplati cède la place au HTML."""
     partie = message.get_body(preferencelist=preference)
     contenu = _texte_de_partie(partie) if partie is not None else ""
+    if partie is not None and partie.get_content_type() == "text/plain" and _aplati(contenu):
+        en_html = message.get_body(preferencelist=("html",))
+        if en_html is not None:
+            contenu = _texte_de_partie(en_html) or contenu
     for suite in _suites_exchange(message):
-        if suite not in contenu:
+        if _compact(suite) not in _compact(contenu):
             contenu = (contenu + "\n\n" + suite).strip()
     return contenu
 
