@@ -58,17 +58,24 @@ MOIS = {
     "octobre": 10, "oct": 10, "october": 10, "oktober": 10, "okt": 10,
     "novembre": 11, "nov": 11, "november": 11,
     "décembre": 12, "decembre": 12, "déc": 12, "dec": 12, "december": 12,
+    # Allemand : Outlook et Gmail réglés en allemand.
+    "januar": 1, "jän": 1, "februar": 2, "märz": 3, "marz": 3, "mär": 3,
+    "dezember": 12, "dez": 12,
 }
 
 #: Les libellés des lignes d'un bloc de transfert, par rôle.
+#: Thunderbird en français écrit « Sujet » et « Pour » ; Outlook en allemand « Von »,
+#: « Gesendet », « An », « Betreff ».
 LIBELLES = {
-    "de": ("de", "from", "van"),
-    "date": ("envoyé", "envoye", "sent", "verzonden", "date", "datum"),
-    "a": ("à", "a", "to", "aan"),
-    "objet": ("objet", "subject", "onderwerp"),
+    "de": ("de", "from", "van", "von"),
+    "date": ("envoyé", "envoye", "sent", "verzonden", "date", "datum", "gesendet"),
+    "a": ("à", "a", "to", "aan", "pour", "an"),
+    "objet": ("objet", "subject", "onderwerp", "sujet", "betreff"),
 }
 
-LIGNE_DE_BLOC = re.compile(r"^\s*\*?([A-Za-zÀ-ÿ]+)\*?\s*:\s*(.*)$")
+#: Une ligne « Libellé : valeur » d'un bloc d'en-tête. Le préfixe `>` est celui de
+#: l'iPhone, qui cite le bloc d'un transfert comme une réponse (« > De: … »).
+LIGNE_DE_BLOC = re.compile(r"^[ \t]*(?:>[ \t]?)*\*?([A-Za-zÀ-ÿ]+)\*?\s*:\s*(.*)$")
 
 
 @dataclass
@@ -168,22 +175,32 @@ def date_en_toutes_lettres(texte):
     « mar. », qui est aussi l'abréviation anglaise de mars.
 
     Ces dates sont écrites à l'heure de la personne qui a transféré : on les
-    lit comme l'heure de Bruxelles.
+    lit comme l'heure de Bruxelles. Le fuseau que certains écrivent (Yahoo « UTC+2 »,
+    Apple « CEST », Thunderbird « +0200 », Samsung « (GMT+01:00) ») est ignoré.
     """
     t = " " + texte.lower().replace(",", " ") + " "
-    t = re.sub(r"\s+(à|om|at)\s+", " ", t)
+    t = re.sub(r"\s+(à|om|at|um)\s+", " ", t)
+    # « 1er octobre », « August 25th » (Proton) : le jour sans son ordinal.
+    t = re.sub(r"\b(\d{1,2})(?:er|e|st|nd|rd|th)\b", r"\1", t)
     jour = mois = annee = None
 
+    iso = re.search(r"\b(\d{4})-(\d{1,2})-(\d{1,2})\b", t)
     # « 27/10/26 » : Samsung Email n'écrit que deux chiffres d'année.
     numerique = re.search(r"\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{4}|\d{2})\b", t)
-    if numerique:
+    if iso:
+        annee, mois, jour = int(iso.group(1)), int(iso.group(2)), int(iso.group(3))
+    elif numerique:
         jour, mois, annee = int(numerique.group(1)), int(numerique.group(2)), int(numerique.group(3))
         if annee < 100:
             annee += 2000
+        # « 8/25/26 2:31 PM » : un client réglé en anglais américain (Thunderbird) met le
+        # mois d'abord. Seulement si le mois lu est impossible, ou l'heure sur 12 heures.
+        if jour <= 12 and (mois > 12 or re.search(r"\d\s*(am|pm|a\.m\.|p\.m\.)", t)):
+            jour, mois = mois, jour
     else:
         for motif, ordre in (
-            (r"\b(\d{1,2})\.?\s+([a-zéû]+)\.?\s+(\d{4})\b", "jma"),  # 5 août 2026
-            (r"\b([a-zéû]+)\.?\s+(\d{1,2})\s+(\d{4})\b", "mja"),      # August 5 2026
+            (r"\b(\d{1,2})\.?\s+([a-zéûä]+)\.?\s+(\d{4})\b", "jma"),  # 5 août 2026
+            (r"\b([a-zéûä]+)\.?\s+(\d{1,2})\s+(\d{4})\b", "mja"),      # August 5 2026
         ):
             for m in re.finditer(motif, t):
                 if ordre == "jma":
@@ -311,14 +328,17 @@ def _bloc_de_transfert(texte):
     lignes = texte.split("\n")
     for i, ligne in enumerate(lignes):
         m = LIGNE_DE_BLOC.match(ligne)
-        if not m or m.group(1).lower() not in LIBELLES["de"]:
+        # Le bloc commence par l'expéditeur, ou par l'objet chez Thunderbird
+        # (« Sujet : … Date : … De : … Pour : … »).
+        if not m or m.group(1).lower() not in LIBELLES["de"] + LIBELLES["objet"]:
             continue
         champs, j = {}, i
         while j < len(lignes) and j < i + 12:
             m2 = LIGNE_DE_BLOC.match(lignes[j])
             if not m2:
                 complet = "date" in champs and ("objet" in champs or "a" in champs)
-                if lignes[j].strip() == "" and champs:
+                # « > » seul est la ligne vide d'un bloc cité par l'iPhone.
+                if lignes[j].strip(" \t>") == "" and champs:
                     # Une ligne vide *dans* un bloc encore incomplet (Outlook converti
                     # depuis le HTML : « De : … », ligne vide, « Envoyé : … ») ne le
                     # termine pas si la suivante est un champ d'en-tête. Un bloc complet,
@@ -338,19 +358,31 @@ def _bloc_de_transfert(texte):
                 if cle in libelles and role not in champs:
                     champs[role] = m2.group(2).strip()
             j += 1
-        if "date" in champs and ("objet" in champs or "a" in champs):
+        if "de" in champs and "date" in champs and ("objet" in champs or "a" in champs):
             commentaire = "\n".join(lignes[:i])
-            commentaire = re.sub(r"(?im)^[-_ ]*(message transféré|forwarded message|doorgestuurd bericht|original message|message d'origine|oorspronkelijk bericht)[-_ ]*$", "", commentaire)
+            commentaire = re.sub(r"(?im)^[-_ >]*(%s|%s)[-_ :]*$" % (TRANSFERTS, CITATIONS), "", commentaire)
             commentaire = re.sub(r"(?m)^[-_]{5,}\s*$", "", commentaire).strip()
-            return commentaire, champs, "\n".join(lignes[j:]).strip()
+            suite = lignes[j:]
+            # Le bloc était cité (« > De: … », iPhone) : son texte l'est autant.
+            niveau = re.match(r"[ \t]*((?:>[ \t]?)*)", ligne).group(1).count(">")
+            if niveau:
+                suite = [re.sub(r"^[ \t]*(?:>[ \t]?){1,%d}" % niveau, "", s) for s in suite]
+            return commentaire, champs, "\n".join(suite).strip()
     return None
 
 
-#: Une ligne qui annonce un transfert dans le texte (Gmail, Outlook, Apple Mail).
-MARQUE_DE_TRANSFERT = re.compile(
-    r"(?im)^[-_ >]*(message transféré|forwarded message|begin forwarded message|"
-    r"doorgestuurd bericht|weitergeleitete nachricht)\b"
+#: Les lignes qui annoncent un transfert dans le texte : Gmail (« ---------- Message
+#: transféré --------- »), Yahoo (« ----- Mail transféré ----- »), Apple Mail (« Début du
+#: message réexpédié : »), Thunderbird et Proton (« -------- Forwarded Message -------- »).
+TRANSFERTS = (
+    r"message transféré|mail transféré|forwarded message|begin forwarded message|"
+    r"début du message réexpédié|message réexpédié|(?:begin )?doorgestuurd bericht|"
+    r"weitergeleitete nachricht"
 )
+#: Celles qui annoncent le message cité d'une réponse (Outlook, Samsung).
+CITATIONS = r"original message|message d'origine|oorspronkelijk bericht|ursprüngliche nachricht"
+
+MARQUE_DE_TRANSFERT = re.compile(r"(?im)^[-_ >]*(%s)\b" % TRANSFERTS)
 
 
 def est_un_transfert(sujet, texte):

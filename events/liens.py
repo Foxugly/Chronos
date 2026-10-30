@@ -115,11 +115,24 @@ def empreinte_d_evenement(evenement, expediteur):
     return empreinte(expediteur, datetime.datetime.combine(evenement.date, heure), evenement.title)
 
 
-#: « Le lun. 28 sept. 2026 à 20:29, ACME Bat <x@y> a écrit : » (Gmail, Apple Mail),
-#: « On Mon, Sep 28, 2026 at 8:29 PM ACME Bat <x@y> wrote: », « Op … schreef … : ».
+#: La date d'une ligne « … a écrit : », avec le fuseau que certains y ajoutent : Yahoo
+#: « 14:31:07 UTC+2 », Apple « CEST », Thunderbird « +0200 », Gmail allemand « 14:31 Uhr ».
+_DATE_ECRITE = (
+    r"(?P<date>.{6,80}?\d{1,2}[:h.]\d{2}(?::\d{2})?(?:\s*[ap]\.?m\.?)?(?:\s*uhr)?"
+    r"(?:\s*\(?(?:gmt|utc)\s*(?:[+-]\d{1,2}(?::?\d{2})?)?\)?|\s+[+-]\d{4}|\s+(?:cet|cest|wet|west|bst)\b)?)"
+)
+#: L'auteur, que Gmail coupe parfois en deux lignes au milieu de l'adresse (« <\nx@y> »).
+_AUTEUR = r"(?P<de>(?:[^\n]|\n[ \t>]*(?=\S)){1,200}?)"
+
+#: « Le lun. 28 sept. 2026 à 20:29, ACME Bat <x@y> a écrit : » (Gmail, Apple Mail, Yahoo,
+#: Thunderbird, Proton), « On Mon, Sep 28, 2026 at 8:29 PM ACME Bat <x@y> wrote: ».
 A_ECRIT = re.compile(
-    r"(?im)^[ >]*(?:le|on|op|am)\s+(?P<date>.{6,80}?\d{1,2}[:h.]\d{2}(?:\s*[ap]\.?m\.?)?)[,\s]+"
-    r"(?P<de>[^\n]{1,160}?)\s+(?:a écrit|wrote|schreef|schrieb)\s*:\s*$")
+    r"(?im)^[ \t>]*(?:le|on)\s+" + _DATE_ECRITE + r"[,\s]+" + _AUTEUR
+    + r"\s+(?:a[\s>]+écrit|wrote)\s*:\s*$")
+#: Le néerlandais et l'allemand nomment l'auteur après le verbe : « Op di 25 aug 2026 om
+#: 14:31 schreef ACME Bat <x@y>: », « Am Di., 25. Aug. 2026 um 14:31 Uhr schrieb … : ».
+SCHREEF = re.compile(
+    r"(?im)^[ \t>]*(?:op|am)\s+" + _DATE_ECRITE + r"[,\s]+(?:schreef|schrieb)\s+" + _AUTEUR + r"\s*:\s*$")
 
 #: « -------- Message d'origine --------De : X Date : 27/10/26  11:25  (GMT+01:00) À : … » :
 #: Samsung Email (Android) cite tout le bloc sur une ligne, que `_bloc_de_transfert` ne
@@ -164,10 +177,10 @@ def citees(analyse):
         if bloc[2] == reste:
             break
         reste = bloc[2]
-    for m in (*A_ECRIT.finditer(texte), *EN_UNE_LIGNE.finditer(texte)):
+    for m in (*A_ECRIT.finditer(texte), *SCHREEF.finditer(texte), *EN_UNE_LIGNE.finditer(texte)):
         ecrite = date_en_toutes_lettres(m.group("date"))
         if ecrite is not None:
-            de = m.group("de").strip()
+            de = re.sub(r"<\s+", "<", re.sub(r"\s*\n[ \t>]*", " ", m.group("de"))).strip()
             trouvees.append((m.start(), Citee(empreinte_citee(de, ecrite.replace(tzinfo=BRUXELLES), ""), de, "", "")))
     return [c for _position, c in sorted(trouvees, key=lambda t: t[0])]
 

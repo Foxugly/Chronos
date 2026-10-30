@@ -515,6 +515,14 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   two-digit year. A forward with no readable block falls back to the HTML part (one `<div>` per
   field); a quote is read by `liens.EN_UNE_LIGNE`. The real 27/10 forward had been imported as a
   direct mail from the forwarder, then swallowed a real reply by empreinte (n° 211, deleted).
+- **Every common mail client is covered** (2026-10-30, `events/tests/test_clients_courriel.py`: one
+  forward and one quote per client, FR/EN/NL/DE): Outlook (desktop, web/Hotmail, mobile, Mac), Gmail,
+  Yahoo (« Mail transféré », `UTC+2` after the time), Apple Mail (« Début du message réexpédié : »;
+  the iPhone prefixes the forwarded block and text with `>`, stripped), Thunderbird (block **starts
+  with the subject**, « Sujet » / « Pour »; US dates `8/25/26 2:31 PM` read month-first only with
+  AM/PM or an impossible month), Proton (`25th`), Samsung. Dutch/German quotes name the author
+  *after* the verb (`liens.SCHREEF`); Gmail may wrap a « a écrit : » line inside the address.
+  Written time zones are **ignored** — everything is read as Brussels time, as before.
 - **A quoted mail's subject is only compared when it was read** (`liens.empreinte_citee`): « … a
   écrit : » lines and one-line Samsung blocks have none, stored as an empty `cite_objet`, and match
   on sender + time alone. The reply's own subject used to stand in — wrong when the reply opens a new
