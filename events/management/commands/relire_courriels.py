@@ -23,9 +23,10 @@ from django.db.models import F
 from django.utils.html import strip_tags
 
 from events import sauvegarde
-from events.import_courriels import _traces, adresses_de_la_boite, cite_present, description_de
+from events.import_courriels import (
+    _traces, adresses_de_la_boite, cite_present, couche_de_l_evenement, description_de, description_retouchee,
+)
 from events.journal import consigner, differences, instantane
-from events.management.commands.relier_courriels import Command as Relier
 from events.models import CourrielImporte, Event, Journal
 
 
@@ -62,12 +63,10 @@ class Command(BaseCommand):
         if not CourrielImporte.objects.filter(evenement=evenement).exists():
             self.stdout.write("n°%d : pas un courriel importé, ignoré." % evenement.pk)
             return
-        retouches = Journal.objects.filter(evenement=evenement, action=Journal.Action.EVENEMENT_MODIFIE,
-                                           auteur__isnull=False)
-        if any("description" in (j.details.get("changements") or {}) for j in retouches):
+        if description_retouchee(evenement):
             self.stdout.write("n°%d : description modifiée à la main, laissée telle quelle." % evenement.pk)
             return
-        couche = Relier._couche(self, evenement, ignorer)
+        couche = couche_de_l_evenement(evenement, ignorer, signaler=self.stderr.write)
         if couche is None:
             self.stdout.write("n°%d : aucune couche retrouvée dans ses .eml." % evenement.pk)
             return

@@ -363,6 +363,36 @@ class DescriptionSansCitationTests(SansSauvegardeMixin, MediaMixin, TestCase):
         rep = importer(self.dossier, analyser(self.reponse()))
         self.assertIn("Nous contestons", rep.description)
 
+    def importer_couches(self, octets):
+        from events.courriels import analyser_en_couches
+        from events.import_courriels import importer_couches
+        return importer_couches(self.dossier, analyser_en_couches(octets, ignorer=[ALIAS]))
+
+    def test_le_cite_arrive_apres_la_reponse_la_raccourcit(self):
+        """ACMEBAT n° 20 : la réponse est arrivée d'abord, citant un courriel absent (gardé en
+        entier) ; le courriel transféré ensuite, la citation laisse la place au lien."""
+        (rep,) = self.importer_couches(self.reponse())
+        self.assertIn("Nous contestons", rep.description)
+        version = rep.version
+        (orig,) = self.importer_couches(self.original())
+        rep.refresh_from_db()
+        self.assertEqual(rep.reponse_a, orig)
+        self.assertIn("Je conteste formellement.", rep.description)
+        self.assertNotIn("Nous contestons", rep.description)
+        self.assertEqual(rep.version, version + 1)
+        (entree,) = [j for j in Journal.objects.filter(evenement=rep, action=Journal.Action.EVENEMENT_MODIFIE)
+                     if "description" in j.details["changements"]]
+        self.assertIsNone(entree.auteur)
+
+    def test_une_description_retouchee_n_est_pas_raccourcie(self):
+        (rep,) = self.importer_couches(self.reponse())
+        Event.objects.filter(pk=rep.pk).update(description="<p>Ma version, Nous contestons.</p>")
+        consigner(self.dossier, Journal.Action.EVENEMENT_MODIFIE, request=SimpleNamespace(user=self.dossier.owner),
+                  evenement=rep, details={"changements": {"description": ["a", "b"]}})
+        self.importer_couches(self.original())
+        rep.refresh_from_db()
+        self.assertEqual(rep.description, "<p>Ma version, Nous contestons.</p>")
+
     def test_la_commande_coupe_une_reponse_dont_le_cite_est_arrive_depuis(self):
         rep = importer(self.dossier, analyser(self.reponse()))
         importer(self.dossier, analyser(self.original()))

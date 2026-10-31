@@ -20,10 +20,9 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from events import sauvegarde
-from events.courriels import analyser_en_couches
 from events.doublons import doublons_possibles
 from events.import_courriels import (
-    _richesse, adresses_de_la_boite, champs_cites, cle_du_courriel, expediteur_du_dossier, relier,
+    _richesse, adresses_de_la_boite, champs_cites, couche_de_l_evenement, expediteur_du_dossier, relier,
     transfere_par_contenu,
 )
 from events.journal import consigner
@@ -56,20 +55,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS("\nÉcrit."))
 
     def _couche(self, evenement, ignorer):
-        cles = set(CourrielImporte.objects.filter(evenement=evenement).values_list("message_id", flat=True))
-        for document in evenement.documents.all():
-            if not document.file.name.lower().endswith(".eml"):
-                continue
-            try:
-                with document.file.open("rb") as fichier:
-                    couches = analyser_en_couches(fichier.read(), ignorer=ignorer)
-            except Exception as erreur:  # un .eml illisible n'arrête pas les autres
-                self.stderr.write("  n°%d : %s illisible (%s)" % (evenement.pk, document.file.name, erreur))
-                continue
-            for couche in couches:
-                if cles & {cle_du_courriel(couche), couche.cle_ancienne}:
-                    return couche
-        return None
+        return couche_de_l_evenement(evenement, ignorer, signaler=lambda m: self.stderr.write("  " + m))
 
     def _dossier(self, dossier):
         self.stdout.write(self.style.MIGRATE_HEADING("Dossier n°%d — %s" % (dossier.pk, dossier.name)))

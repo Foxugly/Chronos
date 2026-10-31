@@ -22,6 +22,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.db import connection, transaction
+from django.db.models import F
 from django.utils import timezone
 
 from .alertes import CATEGORIE_ECHEC, alerter_echec_import
@@ -37,7 +38,7 @@ from .liens import (
     ENVOI, RECEPTION,
 )
 from .mise_en_forme import description_en_html
-from .journal import consigner, consigner_pieces, instantane
+from .journal import consigner, consigner_pieces, differences, instantane
 from .models import CourrielImporte, Dossier, Event, Expediteur, Journal
 from .sanitize import nettoyer
 
@@ -267,8 +268,60 @@ def importer_couches(dossier, couches):
             for reponse, cite in relier(evenement, couche, traces):
                 consigner(dossier, Journal.Action.EVENEMENT_MODIFIE, objet=reponse.title, evenement=reponse,
                           details={"changements": {"reponse_a": ["", cite.title]}, "source": "courriel"})
+                if reponse.pk != evenement.pk:
+                    # Une réponse arrivée avant ce courriel le citait en entier : il est là.
+                    raccourcir(reponse, traces)
             precedent = evenement
     return crees
+
+
+def couche_de_l_evenement(evenement, ignorer, signaler=None):
+    """La couche d'un évènement importé, relue dans ses `.eml` stockés, ou `None`.
+    `signaler(message)` : un `.eml` illisible, qui n'arrête pas les autres."""
+    cles = set(CourrielImporte.objects.filter(evenement=evenement).values_list("message_id", flat=True))
+    for document in evenement.documents.all():
+        if not document.file.name.lower().endswith(".eml"):
+            continue
+        try:
+            with document.file.open("rb") as fichier:
+                couches = analyser_en_couches(fichier.read(), ignorer=ignorer)
+        except Exception as erreur:  # un .eml illisible n'arrête pas les autres
+            if signaler:
+                signaler("n°%d : %s illisible (%s)" % (evenement.pk, document.file.name, erreur))
+            continue
+        for couche in couches:
+            if cles & {cle_du_courriel(couche), couche.cle_ancienne}:
+                return couche
+    return None
+
+
+def description_retouchee(evenement):
+    """Vrai si quelqu'un a modifié la description à la main (le journal le dit) : on ne
+    l'écrase jamais."""
+    retouches = Journal.objects.filter(evenement=evenement, action=Journal.Action.EVENEMENT_MODIFIE,
+                                       auteur__isnull=False)
+    return any("description" in (j.details.get("changements") or {}) for j in retouches)
+
+
+def raccourcir(reponse, traces):
+    """Refait la description de `reponse` quand le courriel qu'elle cite vient d'arriver :
+    la citation, sa seule trace jusque-là, laisse la place au lien « En réponse à »
+    (`description_de`). Journalisé ; jamais une description retouchée à la main. Rend
+    vrai si la description a changé."""
+    if description_retouchee(reponse):
+        return False
+    couche = couche_de_l_evenement(reponse, adresses_de_la_boite())
+    if couche is None:
+        return False
+    nouvelle = description_de(couche, sans_citations=cite_present(couche, traces, soi=reponse.pk))
+    if nouvelle == reponse.description:
+        return False
+    avant = instantane(reponse)
+    reponse.description = nouvelle
+    Event.objects.filter(pk=reponse.pk).update(description=nouvelle, version=F("version") + 1)
+    consigner(reponse.dossier, Journal.Action.EVENEMENT_MODIFIE, objet=reponse.title, evenement=reponse,
+              details={"changements": differences(avant, instantane(reponse)), "source": "courriel"})
+    return True
 
 
 def cite_present(analyse, traces, soi=None):

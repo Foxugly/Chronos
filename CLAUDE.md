@@ -541,7 +541,8 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   one-liner) and drops the separator above it; `import_courriels.cite_present` checks the *direct* parent
   only. A quoted mail **missing** from the dossier stays in full — the quote is its only trace — so,
   link by link, nothing disappears. The `.eml` and `.md` always keep everything (search reads the `.md`).
-  A reply imported **before** its parent keeps its quote until `relire_courriels --dossier N --appliquer`.
+  A reply imported **before** its parent is shortened when the parent arrives (`import_courriels.raccourcir`,
+  called for each downstream link `relier` makes; journaled, never a hand-edited description — 2026-10-31).
 - **The description comes from the mail's HTML** (`events/mise_en_forme.py`, 2026-10-31): the HTML part is
   read into `Ligne`s (text, inline HTML — `strong`/`em`/`u`/`s`/`code`/`a` only — and `blockquote` depth),
   whose text splits like `_texte_de_partie`, so `bloc_en_lignes` finds the same forward blocks by line
