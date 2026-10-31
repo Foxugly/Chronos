@@ -527,11 +527,15 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   Exchange `ATT` suite, with almost no line breaks is read from the HTML part instead; a suite already
   in the body *up to whitespace* is not appended again (ACMEBAT n° 214 showed the reply twice, then the
   quoted mail on one line). HTML → text collapses source whitespace first (only tags make lines) and a
-  `blockquote` starts its own line. `liens.citees` counts a block read twice (block + one-line form) once.
+  `blockquote` starts its own line; inside `pre`/`textarea` source newlines are kept. `liens.citees` counts a block read twice (block + one-line form) once.
 - **`manage.py relire_courriels --evenement N … [--appliquer]`** redoes the description of named
   imported events from their stored `.eml` (dry run by default; journaled, version bumped; title, date,
   pieces and `.md` untouched; skipped if a user ever edited the description). `importer` and it share
   `import_courriels.description_de`.
+- **`relier_courriels` / `relire_courriels --appliquer` back up first** (`events/sauvegarde.py`,
+  2026-10-31, after 31 descriptions were rewritten in prod without one): a failed backup stops the command
+  before any write. Command tests stub it with `test_courriels.SansSauvegardeMixin` (`sauvegarder` refuses
+  a `TestCase`'s open transaction).
 - **A reply's description stops at the quoted mail when that mail is in the dossier** (owner's decision,
   2026-10-30): `liens.texte_sans_citations` cuts at the first quote (block, « a écrit : » line, Samsung
   one-liner) and drops the separator above it; `import_courriels.cite_present` checks the *direct* parent

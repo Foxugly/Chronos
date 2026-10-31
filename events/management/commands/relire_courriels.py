@@ -9,8 +9,9 @@ quand celui-ci est dans le dossier. Le titre, la date, les pièces et la version
 Jamais un évènement dont quelqu'un a modifié la description à la main (le journal le
 dit) : on n'écrase pas un texte retouché.
 
-**Essai par défaut** : rien n'est écrit sans `--appliquer`. Chaque description remplacée
-est journalisée (avant → après) et la version de l'évènement augmente.
+**Essai par défaut** : rien n'est écrit sans `--appliquer`, qui sauvegarde d'abord
+(`events/sauvegarde.py`). Chaque description remplacée est journalisée (avant → après)
+et la version de l'évènement augmente.
 """
 
 import html
@@ -21,6 +22,7 @@ from django.db import transaction
 from django.db.models import F
 from django.utils.html import strip_tags
 
+from events import sauvegarde
 from events.import_courriels import _traces, adresses_de_la_boite, cite_present, description_de
 from events.journal import consigner, differences, instantane
 from events.management.commands.relier_courriels import Command as Relier
@@ -48,6 +50,8 @@ class Command(BaseCommand):
             raise CommandError("Évènement(s) inconnu(s) : %s" % ", ".join(map(str, sorted(inconnus))))
         self.detail = dossier is None
         ignorer = adresses_de_la_boite()
+        if appliquer:
+            sauvegarde.sauvegarder_avant_d_ecrire(self)
         with transaction.atomic():
             for ev in evenements:
                 self._relire(ev, ignorer, appliquer)

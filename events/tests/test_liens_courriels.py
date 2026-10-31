@@ -13,7 +13,7 @@ from events.import_courriels import importer, importer_couches
 from events.liens import adresse_de, empreinte, objet_normalise
 from events.models import CourrielImporte, Event, Journal
 from events.tests.factories import make_dossier, make_user
-from events.tests.test_courriels import ALIAS, MediaMixin, courriel
+from events.tests.test_courriels import ALIAS, MediaMixin, SansSauvegardeMixin, courriel
 
 ACME_BAT = "ACME Bat <contact@acme-bat.example>"
 MOI = "Jean <jdupont@exemple.be>"
@@ -192,7 +192,7 @@ class ImportReliéTests(MediaMixin, TestCase):
         self.assertIn("Réponse :", page)
 
 
-class CommandeRelierTests(MediaMixin, TestCase):
+class CommandeRelierTests(SansSauvegardeMixin, MediaMixin, TestCase):
     """Le rattrapage de l'existant : des évènements importés avant les liens."""
 
     def setUp(self):
@@ -232,6 +232,13 @@ class CommandeRelierTests(MediaMixin, TestCase):
         trace = CourrielImporte.objects.get(evenement=self.reponse)
         self.assertEqual((trace.cite_de, trace.cite_objet), ("garde", "garde"))
         self.assertEqual(trace.cite_a, "Jean <jdupont@exemple.be>")
+
+    def test_l_essai_ne_sauvegarde_pas_appliquer_si(self):
+        self.sauvegarde.reset_mock()
+        self.lancer()
+        self.sauvegarde.assert_not_called()
+        self.lancer("--appliquer")
+        self.sauvegarde.assert_called_once()
 
     def test_appliquer_ecrit_le_lien_et_la_citation(self):
         self.lancer("--appliquer")
@@ -331,7 +338,7 @@ class ReponsesMieuxRelieesTests(MediaMixin, TestCase):
         self.assertIn("Destinataires", page)
 
 
-class CommandeRecalculerTests(MediaMixin, TestCase):
+class CommandeRecalculerTests(SansSauvegardeMixin, MediaMixin, TestCase):
     def test_recalculer_relit_la_suite_exchange_et_relie(self):
         dossier = make_dossier(make_user("owner"), name="ACMEBAT")
         dossier.alias_courriel = ALIAS
@@ -390,7 +397,7 @@ class BlocAvecLignesVidesTests(SimpleTestCase):
         self.assertEqual(champs["objet"], "X")
 
 
-class TransfertSansEnTeteTests(MediaMixin, TestCase):
+class TransfertSansEnTeteTests(SansSauvegardeMixin, MediaMixin, TestCase):
     """n° 12 du dossier réel : « FW: RE: … » dont le texte transféré a perdu l'en-tête
     « De : … » du courriel de l'architecte ; seul son contenu reste."""
 

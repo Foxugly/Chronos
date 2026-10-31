@@ -13,6 +13,7 @@ from io import StringIO
 from types import SimpleNamespace
 
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import SimpleTestCase, TestCase
 
 from events.courriels import BRUXELLES, analyser, date_en_toutes_lettres
@@ -21,7 +22,7 @@ from events.journal import consigner
 from events.liens import citees
 from events.models import Event, Journal
 from events.tests.factories import make_dossier, make_user
-from events.tests.test_courriels import ALIAS, MediaMixin, courriel
+from events.tests.test_courriels import ALIAS, MediaMixin, SansSauvegardeMixin, courriel
 
 EV = "ACME Bat <contact@acme-bat.example>"
 MOI = "Jean <jdupont@exemple.be>"
@@ -216,6 +217,13 @@ class HtmlEnTexteTests(SimpleTestCase):
         texte = corps_en_texte(lire(m.as_bytes()), preference=("html",))
         self.assertEqual(texte, "Les informations contenues dans ce message sont de nature confidentielle.")
 
+    def test_un_pre_garde_ses_retours_a_la_ligne(self):
+        """Un courriel en texte brut emballé dans `<pre>` : ses lignes sont les siennes."""
+        from events.courriels import corps_en_texte, lire
+        html = "<div>Bonjour,</div><pre>Ligne 1\nLigne 2\n\nLigne 4</pre><div>Fin</div>"
+        texte = corps_en_texte(lire(courriel("Devis", "x", html=html).as_bytes()), preference=("html",))
+        self.assertEqual(texte, "Bonjour,\nLigne 1\nLigne 2\n\nLigne 4\nFin")
+
     def test_une_citation_commence_sur_sa_ligne(self):
         from events.courriels import corps_en_texte, lire
         html = ("<div>Merci.</div><div>Le 14 oct. 2026 à 15:13, %s a écrit :"
@@ -232,7 +240,7 @@ class HtmlEnTexteTests(SimpleTestCase):
         self.assertTrue(a.texte.startswith("Maître,\n\nTout va bien."))
 
 
-class CommandeRelireTests(MediaMixin, TestCase):
+class CommandeRelireTests(SansSauvegardeMixin, MediaMixin, TestCase):
     """`relire_courriels` refait la description d'un évènement importé avant une
     amélioration de la lecture (n° 212 et 214 d'ACMEBAT)."""
 
@@ -253,6 +261,35 @@ class CommandeRelireTests(MediaMixin, TestCase):
     def test_l_essai_n_ecrit_rien(self):
         sortie = self.lancer()
         self.assertIn("Essai", sortie)
+        self.assertEqual(self.evenement.description, "<p>aplati</p>")
+        self.assertFalse(Journal.objects.filter(action=Journal.Action.EVENEMENT_MODIFIE).exists())
+
+    def test_l_essai_ne_sauvegarde_pas(self):
+        self.sauvegarde.reset_mock()
+        self.lancer()
+        self.sauvegarde.assert_not_called()
+
+    def test_appliquer_sauvegarde_avant_d_ecrire(self):
+        def avant(commande):
+            self.evenement.refresh_from_db()
+            self.assertEqual(self.evenement.description, "<p>aplati</p>")
+        self.sauvegarde.reset_mock(side_effect=True)
+        self.sauvegarde.side_effect = avant
+        try:
+            self.lancer("--appliquer")
+        finally:
+            self.sauvegarde.side_effect = None
+        self.sauvegarde.assert_called_once()
+        self.assertNotIn("aplati", self.evenement.description)
+
+    def test_une_sauvegarde_ratee_arrete_tout(self):
+        self.sauvegarde.side_effect = CommandError("disque plein")
+        try:
+            with self.assertRaisesMessage(CommandError, "disque plein"):
+                self.lancer("--appliquer")
+        finally:
+            self.sauvegarde.side_effect = None
+        self.evenement.refresh_from_db()
         self.assertEqual(self.evenement.description, "<p>aplati</p>")
         self.assertFalse(Journal.objects.filter(action=Journal.Action.EVENEMENT_MODIFIE).exists())
 
@@ -298,7 +335,7 @@ class TexteSansCitationsTests(SimpleTestCase):
         self.assertEqual(texte_sans_citations(seule), seule)
 
 
-class DescriptionSansCitationTests(MediaMixin, TestCase):
+class DescriptionSansCitationTests(SansSauvegardeMixin, MediaMixin, TestCase):
     """La description d'une réponse s'arrête au courriel cité quand celui-ci est dans le
     dossier ; sinon elle le garde, seule trace du courriel manquant."""
 

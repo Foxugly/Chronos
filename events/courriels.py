@@ -261,11 +261,15 @@ def _texte_de_partie(partie):
         return ""
     if partie.get_content_type() == "text/html":
         contenu = re.sub(r"(?is)<(script|style).*?</\1>", "", contenu)
+        # Sauf dans `pre` et `textarea`, où le texte garde ses retours à la ligne
+        # (courriel en texte brut emballé dans du HTML) : ils deviennent des `br`.
+        contenu = re.sub(r"(?is)<(pre|textarea)\b.*?</\1>",
+                         lambda m: re.sub(r"\r?\n", "<br>", m.group(0)), contenu)
         # Les retours à la ligne du source HTML ne sont pas ceux du texte (« Les\n
         # informations contenues… » dans une signature d'avocate) : seules les balises
         # en font. Une citation (`blockquote`) commence sur sa propre ligne.
         contenu = re.sub(r"\s+", " ", contenu)
-        contenu = re.sub(r"(?i)<br\s*/?>|</(p|div|li|tr|h[1-6]|blockquote)>|<blockquote\b[^>]*>", "\n", contenu)
+        contenu = re.sub(r"(?i)<br\s*/?>|</(p|div|li|tr|h[1-6]|blockquote|pre|textarea)>|<blockquote\b[^>]*>", "\n", contenu)
         contenu = html.unescape(strip_tags(contenu))
         contenu = "\n".join(ligne.strip() for ligne in contenu.split("\n"))
     contenu = contenu.replace("\r\n", "\n").replace("\xa0", " ")

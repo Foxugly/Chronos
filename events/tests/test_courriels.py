@@ -152,6 +152,15 @@ class MediaMixin:
         shutil.rmtree(cls.media_root, ignore_errors=True)
 
 
+class SansSauvegardeMixin:
+    """`--appliquer` sauvegarde d'abord (`events/sauvegarde.py`) ; `sauvegarder` refuse
+    la transaction ouverte d'un `TestCase`. Testée à part : ici, elle ne fait rien."""
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.sauvegarde = cls.enterClassContext(mock.patch("events.sauvegarde.sauvegarder_avant_d_ecrire"))
+
+
 class ImportTests(MediaMixin, TestCase):
     def setUp(self):
         self.owner = make_user("owner")

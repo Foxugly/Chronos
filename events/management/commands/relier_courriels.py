@@ -13,11 +13,13 @@ stocké, retrouve la couche qui leur correspond, puis
 
 **Essai par défaut** : tout est fait dans une transaction **annulée** à la fin, donc le
 rapport est exactement ce que `--appliquer` écrira. Rien n'est jamais supprimé ici.
+`--appliquer` sauvegarde d'abord (`events/sauvegarde.py`).
 """
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from events import sauvegarde
 from events.courriels import analyser_en_couches
 from events.doublons import doublons_possibles
 from events.import_courriels import (
@@ -42,6 +44,8 @@ class Command(BaseCommand):
     def handle(self, *args, appliquer, dossier, recalculer=False, **options):
         self.recalculer = recalculer
         dossiers = Dossier.objects.filter(pk=dossier) if dossier else Dossier.objects.all()
+        if appliquer:
+            sauvegarde.sauvegarder_avant_d_ecrire(self)
         with transaction.atomic():
             for d in dossiers.order_by("pk"):
                 self._dossier(d)
