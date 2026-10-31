@@ -267,3 +267,11 @@ body.app-shell { background: var(--surface-2); color: var(--ink); display: flex;
   .page-header { display: block; }
   .page-header__title { justify-content: flex-start; text-align: left; }
 }
+
+/* Description d'un évènement : les citations d'un courriel importé. */
+.description blockquote {
+  margin: 0 0 1rem;
+  padding-left: .75rem;
+  border-left: 3px solid var(--bs-border-color);
+  color: var(--bs-secondary-color);
+}

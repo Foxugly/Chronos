@@ -226,6 +226,15 @@ def texte_sans_citations(texte):
     ce qui suit la première citation (bloc « De : … Envoyé : … », ligne « … a écrit : »,
     bloc Samsung d'une ligne). Le texte entier s'il ne cite rien, ou s'il n'est que citation."""
     texte = texte or ""
+    debut = debut_des_citations(texte)
+    if debut is None:
+        return texte
+    garde = _ANNONCE.sub("", texte[:debut]).rstrip()
+    return garde or texte
+
+
+def debut_des_citations(texte):
+    """La position où commence la première citation du texte, ou `None`."""
     debuts = []
     bloc = bloc_et_position(texte)
     if bloc:
@@ -234,10 +243,12 @@ def texte_sans_citations(texte):
         m = motif.search(texte)
         if m:
             debuts.append(m.start())
-    if not debuts:
-        return texte
-    garde = _ANNONCE.sub("", texte[:min(debuts)]).rstrip()
-    return garde or texte
+    return min(debuts) if debuts else None
+
+
+def est_une_annonce(ligne):
+    """Vrai pour une ligne qui annonce une citation sans rien dire : séparateur, ligne vide."""
+    return bool(_ANNONCE.fullmatch(ligne))
 
 
 def citations(analyse):

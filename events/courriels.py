@@ -359,6 +359,18 @@ def _bloc_de_transfert(texte):
 
 def bloc_et_position(texte):
     """Comme `_bloc_de_transfert`, précédé de la position où le bloc commence dans le texte."""
+    trouve = bloc_en_lignes(texte)
+    if trouve is None:
+        return None
+    i, _j, _niveau, commentaire, champs, suite = trouve
+    debut = len("\n".join(texte.split("\n")[:i])) + (1 if i else 0)
+    return debut, commentaire, champs, suite
+
+
+def bloc_en_lignes(texte):
+    """Le bloc de transfert, en numéros de ligne : `(i, j, niveau, commentaire, champs,
+    suite)` — il occupe les lignes `i` à `j - 1`, son texte d'origine commence à `j`, et
+    `niveau` est le nombre de `>` qui le citaient. `None` si aucun bloc."""
     lignes = texte.split("\n")
     for i, ligne in enumerate(lignes):
         m = LIGNE_DE_BLOC.match(ligne)
@@ -401,8 +413,7 @@ def bloc_et_position(texte):
             niveau = re.match(r"[ \t]*((?:>[ \t]?)*)", ligne).group(1).count(">")
             if niveau:
                 suite = [re.sub(r"^[ \t]*(?:>[ \t]?){1,%d}" % niveau, "", s) for s in suite]
-            debut = len("\n".join(lignes[:i])) + (1 if i else 0)
-            return debut, commentaire, champs, "\n".join(suite).strip()
+            return i, j, niveau, commentaire, champs, "\n".join(suite).strip()
     return None
 
 

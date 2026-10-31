@@ -27,15 +27,16 @@ from django.utils import timezone
 from .alertes import CATEGORIE_ECHEC, alerter_echec_import
 from .couleurs import prochaine_couleur
 from .courriels import (
-    adresses, analyser_en_couches, en_markdown, lire, texte_en_html,
+    adresses, analyser_en_couches, en_markdown, lire,
     verdict_d_authentification,
 )
 from .graph import ClientGraph
 from .courriels import BRUXELLES
 from .liens import (
     adresse_de, citation, citations, citees, empreinte_citee, empreinte_d_evenement, empreinte_de_couche,
-    texte_sans_citations, ENVOI, RECEPTION,
+    ENVOI, RECEPTION,
 )
+from .mise_en_forme import description_en_html
 from .journal import consigner, consigner_pieces, instantane
 from .models import CourrielImporte, Dossier, Event, Expediteur, Journal
 from .sanitize import nettoyer
@@ -279,14 +280,15 @@ def cite_present(analyse, traces, soi=None):
 
 
 def description_de(analyse, sans_citations=False):
-    """La description d'un évènement importé : le texte du courriel, nettoyé.
+    """La description d'un évènement importé : le courriel mis en forme (gras, liens,
+    citations), tiré de son HTML quand on l'y retrouve, sinon de son texte ; nettoyée.
 
     `sans_citations` : sans le courriel cité (et ceux qu'il cite), quand celui-ci est
     déjà dans le dossier — le lien « En réponse à » y mène, le `.eml` et le `.md`
     gardent tout. Un courriel cité absent du dossier reste visible : la citation est
-    alors sa seule trace (owner's decision, 2026-10-30)."""
-    texte = texte_sans_citations(analyse.texte) if sans_citations else analyse.texte
-    description = texte_en_html(texte)
+    alors sa seule trace (owner's decision, 2026-10-30). Une réponse écrite entre les
+    passages cités, ou dessous, garde tout (`mise_en_forme.sans_citations`)."""
+    description = description_en_html(analyse, couper=sans_citations)
     if analyse.date_approchee:
         description = "<p><em>%s</em></p>%s" % (
             "Date d'origine illisible : date de réception du transfert.", description

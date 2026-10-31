@@ -542,6 +542,15 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   only. A quoted mail **missing** from the dossier stays in full — the quote is its only trace — so,
   link by link, nothing disappears. The `.eml` and `.md` always keep everything (search reads the `.md`).
   A reply imported **before** its parent keeps its quote until `relire_courriels --dossier N --appliquer`.
+- **The description comes from the mail's HTML** (`events/mise_en_forme.py`, 2026-10-31): the HTML part is
+  read into `Ligne`s (text, inline HTML — `strong`/`em`/`u`/`s`/`code`/`a` only — and `blockquote` depth),
+  whose text splits like `_texte_de_partie`, so `bloc_en_lignes` finds the same forward blocks by line
+  number. The couche is the HTML chunk (whole, above or below each block) whose **words** best match
+  `Analyse.texte`, if the match is >= `RESSEMBLANCE` (0.7); otherwise the description is built from the
+  text as before (`>` lines become `blockquote`). `Analyse.texte` itself is unchanged: detection still
+  runs on it. `sans_citations` keeps **everything** when someone wrote after the start of a *marked*
+  quote (inline answers, bottom-posting); an unmarked Outlook quote is cut as before. Output still goes
+  through `sanitize.nettoyer`.
 - **Times compare by their nature** (`liens.Empreinte.nature`, 2026-10-31): two *sent* times read in
   the text (inline layers — `couche:` keys — and quotes) must match **to the minute**; a *received*
   time (`Received`, direct / attached) must follow a sent time by −2 to +20 min; otherwise ±20 min as
