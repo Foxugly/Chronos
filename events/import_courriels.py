@@ -293,6 +293,12 @@ def description_de(analyse, sans_citations=False):
         description = "<p><em>%s</em></p>%s" % (
             "Date d'origine illisible : date de réception du transfert.", description
         )
+    elif analyse.date_autre:
+        description = "<p><em>%s</em></p>%s" % (
+            "Date d'origine ambiguë (ordre jour/mois) : lue comme le %s, peut-être le %s." % (
+                analyse.moment.strftime("%d/%m/%Y"), analyse.date_autre.strftime("%d/%m/%Y")),
+            description,
+        )
     return nettoyer(description)
 
 
@@ -344,6 +350,7 @@ def importer(dossier, analyse, transfert_de=None):
                 "forme": analyse.forme,
                 "message_id": cle_du_courriel(analyse),
                 "date_approchee": analyse.date_approchee,
+                "date_autre": analyse.date_autre.isoformat() if analyse.date_autre else None,
                 # SPF / DKIM / DMARC du courriel reçu (audit M4) ; « » : non authentifié.
                 "authentification": verdict_d_authentification(analyse.authentification),
                 "refusees": refusees,

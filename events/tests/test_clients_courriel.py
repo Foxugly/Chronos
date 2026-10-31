@@ -426,3 +426,79 @@ class HeuresEcritesALaMinuteTests(SimpleTestCase):
 
     def test_sans_nature_vingt_minutes_comme_avant(self):
         self.assertTrue(self.e(9, 13, None).correspond(self.e(9, 27, self.ENVOI)))
+
+
+class OrdreJourMoisTests(SimpleTestCase):
+    """« 05/10/2026 » : le 5 octobre en Europe, le 10 mai aux États-Unis (`lire_date`)."""
+    TARD = datetime.datetime(2026, 12, 1, tzinfo=BRUXELLES)
+
+    def test_une_langue_qui_met_le_jour_d_abord_tranche(self):
+        from events.courriels import lire_date
+        self.assertEqual(lire_date("05/10/2026 2:31 PM", jour_d_abord=True, avant=self.TARD),
+                         (datetime.datetime(2026, 10, 5, 14, 31), None))
+
+    def test_en_anglais_sans_autre_indice_le_doute_reste(self):
+        from events.courriels import lire_date
+        self.assertEqual(lire_date("05/10/2026 14:31", jour_d_abord=False, avant=self.TARD),
+                         (datetime.datetime(2026, 10, 5, 14, 31), datetime.datetime(2026, 5, 10, 14, 31)))
+        # « PM » : un client américain, le mois d'abord — l'autre lecture reste possible.
+        self.assertEqual(lire_date("05/10/2026 2:31 PM", jour_d_abord=False, avant=self.TARD),
+                         (datetime.datetime(2026, 5, 10, 14, 31), datetime.datetime(2026, 10, 5, 14, 31)))
+
+    def test_le_courriel_qui_contient_la_date_ecarte_la_lecture_future(self):
+        from events.courriels import lire_date
+        juin = datetime.datetime(2026, 6, 1, tzinfo=BRUXELLES)
+        self.assertEqual(lire_date("05/10/2026 14:31", jour_d_abord=False, avant=juin),
+                         (datetime.datetime(2026, 5, 10, 14, 31), None))
+
+    def test_les_autres_dates_du_texte_trahissent_l_ordre(self):
+        from events.courriels import lire_date, ordre_des_dates
+        self.assertEqual(ordre_des_dates("Sent: 10/25/2026 9:00 AM … Sent: 05/10/2026"), "mj")
+        self.assertEqual(ordre_des_dates("25/10/2026 et 05/10/2026"), "jm")
+        self.assertIsNone(ordre_des_dates("25/10/2026 et 10/25/2026"))
+        self.assertEqual(lire_date("05/10/2026 14:31", jour_d_abord=False, ordre="mj", avant=self.TARD),
+                         (datetime.datetime(2026, 5, 10, 14, 31), None))
+
+    def test_les_mois_en_espagnol_italien_portugais(self):
+        attendu = datetime.datetime(2026, 10, 5, 14, 31)
+        for ecrite in ("lunes, 5 de octubre de 2026 14:31", "lunedì 5 ottobre 2026 14:31",
+                       "segunda-feira, 5 de outubro de 2026 14:31", "5 de out. de 2026 às 14:31"):
+            with self.subTest(ecrite):
+                self.assertEqual(date_en_toutes_lettres(ecrite), attendu)
+
+    def test_les_citations_en_espagnol_italien_portugais(self):
+        for ligne in ("El lun, 5 oct 2026 a las 14:31, ACME Bat <contact@acme-bat.example> escribió:",
+                      "Il giorno lun 5 ott 2026 alle ore 14:31 ACME Bat <contact@acme-bat.example> ha scritto:",
+                      "Em seg., 5 de out. de 2026 às 14:31, ACME Bat <contact@acme-bat.example> escreveu:"):
+            with self.subTest(ligne):
+                a = analyser(courriel("RE: Devis", "Non.\n\n%s\n> Oui ?" % ligne).as_bytes())
+                trouvees = citees(a)
+                self.assertEqual(len(trouvees), 1)
+                self.assertEqual(trouvees[0].empreinte.moment, datetime.datetime(2026, 10, 5, 14, 31, tzinfo=BRUXELLES))
+
+    def test_un_transfert_outlook_en_espagnol(self):
+        texte = ("Para el expediente.\n\nDe: ACME Bat <contact@acme-bat.example>\nEnviado el: lunes, 5 de octubre de 2026 14:31\n"
+                 "Para: Jean <jdupont@exemple.be>\nAsunto: Devis\n\nNo.")
+        a = analyser(courriel("RV: Devis", texte).as_bytes())
+        self.assertEqual(a.moment, datetime.datetime(2026, 10, 5, 14, 31, tzinfo=BRUXELLES))
+        self.assertEqual(a.titre, "Devis")
+
+    def test_un_bloc_en_francais_n_est_pas_douteux(self):
+        texte = ("Pour le dossier.\n\nDe : ACME Bat <contact@acme-bat.example>\nEnvoyé : 05/10/2026 14:31\n"
+                 "À : Jean <jdupont@exemple.be>\nObjet : Devis\n\nNon.")
+        a = analyser(courriel("TR: Devis", texte, recu="Mon, 30 Nov 2026 10:00:00 +0000").as_bytes())
+        self.assertEqual(a.moment, datetime.datetime(2026, 10, 5, 14, 31, tzinfo=BRUXELLES))
+        self.assertIsNone(a.date_autre)
+
+    def test_un_bloc_en_anglais_douteux_est_signale(self):
+        from events.import_courriels import description_de
+        texte = ("FYI.\n\nFrom: ACME Bat <contact@acme-bat.example>\nSent: 05/10/2026 14:31\n"
+                 "To: Jean <jdupont@exemple.be>\nSubject: Devis\n\nNo.")
+        a = analyser(courriel("FW: Devis", texte, recu="Mon, 30 Nov 2026 10:00:00 +0000").as_bytes())
+        self.assertEqual(a.moment, datetime.datetime(2026, 10, 5, 14, 31, tzinfo=BRUXELLES))
+        self.assertEqual(a.date_autre, datetime.datetime(2026, 5, 10, 14, 31))
+        self.assertIn("lue comme le 05/10/2026, peut-être le 10/05/2026", description_de(a))
+        # Reçu le 1er juin : le 5 octobre est impossible, plus de doute.
+        a = analyser(courriel("FW: Devis", texte, recu="Mon, 1 Jun 2026 10:00:00 +0000").as_bytes())
+        self.assertEqual(a.moment, datetime.datetime(2026, 5, 10, 14, 31, tzinfo=BRUXELLES))
+        self.assertIsNone(a.date_autre)

@@ -553,6 +553,13 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   runs on it. `sans_citations` keeps **everything** when someone wrote after the start of a *marked*
   quote (inline answers, bottom-posting); an unmarked Outlook quote is cut as before. Output still goes
   through `sanitize.nettoyer`.
+- **Numeric dates and day/month order** (`courriels.lire_date`, 2026-10-31): « 05/10/2026 » is read
+  day-first when the block's labels or the « a écrit » line are not English (fr/nl/de/es/it/pt —
+  `champs["anglais"]`, `liens._en_anglais`); for English, the order other dates of the same text betray
+  (`ordre_des_dates`), else « PM » → month-first, then the containing mail's moment (`avant`) rules out a
+  reading in the future. A doubt that remains is kept as `Analyse.date_autre`, shown above the description
+  (« Date d'origine ambiguë… ») and in the `.md`. Months, block labels (« Enviado el », « Inviato »,
+  « Assunto »…), « escribió / ha scritto / escreveu » lines and RV:/I:/ENC: prefixes cover es/it/pt.
 - **Times compare by their nature** (`liens.Empreinte.nature`, 2026-10-31): two *sent* times read in
   the text (inline layers — `couche:` keys — and quotes) must match **to the minute**; a *received*
   time (`Received`, direct / attached) must follow a sent time by −2 to +20 min; otherwise ±20 min as

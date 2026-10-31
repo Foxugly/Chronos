@@ -38,10 +38,10 @@ from django.utils.html import strip_tags
 
 BRUXELLES = ZoneInfo("Europe/Brussels")
 
-#: Préfixes de transfert et de réponse retirés du titre, dans les trois langues
-#: et chez les principaux clients de messagerie.
+#: Préfixes de transfert retirés du titre, en six langues (RV: espagnol, I: italien,
+#: ENC: portugais) et chez les principaux clients de messagerie.
 PREFIXES_TRANSFERT = re.compile(
-    r"^\s*((tr|fw|fwd|wg|doorst|trans)\s*:\s*)+", re.IGNORECASE
+    r"^\s*((tr|fw|fwd|wg|doorst|trans|rv|i|enc)\s*:\s*)+", re.IGNORECASE
 )
 
 #: Mois écrits en toutes lettres, abrégés ou non, en français, anglais, néerlandais.
@@ -61,21 +61,41 @@ MOIS = {
     # Allemand : Outlook et Gmail réglés en allemand.
     "januar": 1, "jän": 1, "februar": 2, "märz": 3, "marz": 3, "mär": 3,
     "dezember": 12, "dez": 12,
+    # Espagnol, italien, portugais.
+    "enero": 1, "ene": 1, "gennaio": 1, "gen": 1, "janeiro": 1,
+    "febrero": 2, "febbraio": 2, "fevereiro": 2, "fev": 2,
+    "marzo": 3, "março": 3, "marco": 3,
+    "abril": 4, "abr": 4, "aprile": 4,
+    "mayo": 5, "maggio": 5, "mag": 5, "maio": 5,
+    "junio": 6, "giugno": 6, "giu": 6, "junho": 6,
+    "julio": 7, "luglio": 7, "lug": 7, "julho": 7,
+    "agosto": 8, "ago": 8,
+    "septiembre": 9, "setiembre": 9, "settembre": 9, "setembro": 9, "set": 9,
+    "octubre": 10, "ottobre": 10, "ott": 10, "outubro": 10, "out": 10,
+    "noviembre": 11, "novembro": 11,
+    "diciembre": 12, "dic": 12, "dicembre": 12, "dezembro": 12,
 }
 
 #: Les libellés des lignes d'un bloc de transfert, par rôle.
 #: Thunderbird en français écrit « Sujet » et « Pour » ; Outlook en allemand « Von »,
 #: « Gesendet », « An », « Betreff ».
+#: Espagnol, italien, portugais : « Enviado », « Inviato », « Fecha », « Data », « Para »,
+#: « Asunto », « Oggetto », « Assunto ».
 LIBELLES = {
-    "de": ("de", "from", "van", "von"),
-    "date": ("envoyé", "envoye", "sent", "verzonden", "date", "datum", "gesendet"),
-    "a": ("à", "a", "to", "aan", "pour", "an"),
-    "objet": ("objet", "subject", "onderwerp", "sujet", "betreff"),
+    "de": ("de", "from", "van", "von", "da"),
+    "date": ("envoyé", "envoye", "sent", "verzonden", "date", "datum", "gesendet",
+             "enviado", "enviado el", "enviada", "inviato", "fecha", "data"),
+    "a": ("à", "a", "to", "aan", "pour", "an", "para"),
+    "objet": ("objet", "subject", "onderwerp", "sujet", "betreff", "asunto", "oggetto", "assunto"),
 }
+#: Les libellés anglais. Un bloc qui n'en a pas d'autres peut venir des États-Unis, où
+#: « 05/10/2026 » est le 10 mai ; toutes les autres langues lues ici mettent le jour d'abord.
+ANGLAIS = {"from", "sent", "date", "to", "subject"}
 
 #: Une ligne « Libellé : valeur » d'un bloc d'en-tête. Le préfixe `>` est celui de
 #: l'iPhone, qui cite le bloc d'un transfert comme une réponse (« > De: … »).
-LIGNE_DE_BLOC = re.compile(r"^[ \t]*(?:>[ \t]?)*\*?([A-Za-zÀ-ÿ]+)\*?\s*:\s*(.*)$")
+#: « Enviado el: » : Outlook en espagnol écrit ce libellé en deux mots.
+LIGNE_DE_BLOC = re.compile(r"^[ \t]*(?:>[ \t]?)*\*?([A-Za-zÀ-ÿ]+(?: el)?)\*?\s*:\s*(.*)$")
 
 
 @dataclass
@@ -98,6 +118,9 @@ class Analyse:
     message_id: str = ""  # identifiant du courriel d'origine (ou reçu), pour ne pas importer deux fois
     forme: str = "direct"  # "joint", "texte" ou "direct"
     date_approchee: bool = False
+    #: L'autre lecture d'une date « 05/10/2026 » dont l'ordre jour/mois reste douteux
+    #: (`lire_date`), ou `None`.
+    date_autre: datetime.datetime | None = None
     transfert: bool = False  # cette couche transfère la couche du dessous (`analyser_en_couches`)
     cle: str = ""  # clé d'une couche lue dans le texte, qui n'a pas de Message-ID à elle
     cle_ancienne: str = ""  # la clé qu'un import d'avant les couches lui a donnée
@@ -177,12 +200,49 @@ def date_en_toutes_lettres(texte):
     Ces dates sont écrites à l'heure de la personne qui a transféré : on les
     lit comme l'heure de Bruxelles. Le fuseau que certains écrivent (Yahoo « UTC+2 »,
     Apple « CEST », Thunderbird « +0200 », Samsung « (GMT+01:00) ») est ignoré.
+
+    Une date tout en chiffres dont l'ordre jour/mois est douteux est lue jour d'abord, ou
+    mois d'abord avec une heure « PM » ; `lire_date` sait mieux faire, avec le contexte.
     """
+    return lire_date(texte)[0]
+
+
+def ordre_des_dates(texte):
+    """L'ordre que les dates en chiffres d'un texte trahissent : `"jm"` si l'une a un jour
+    au-delà de 12 (« 25/10/2026 »), `"mj"` si c'est le mois (« 10/25/2026 »), sinon — ou
+    si le texte mêle les deux — `None`."""
+    ordres = set()
+    for a, b in re.findall(r"\b(\d{1,2})[/.-](\d{1,2})[/.-](?:\d{4}|\d{2})\b", texte or ""):
+        if int(a) > 12 >= int(b):
+            ordres.add("jm")
+        elif int(b) > 12 >= int(a):
+            ordres.add("mj")
+    return ordres.pop() if len(ordres) == 1 else None
+
+
+def lire_date(texte, jour_d_abord=None, avant=None, ordre=None):
+    """Comme `date_en_toutes_lettres`, plus l'autre lecture possible : `(date, autre)`.
+
+    « 05/10/2026 » est le 5 octobre en Europe, le 10 mai aux États-Unis. Pour trancher :
+
+    1. `jour_d_abord` : la langue du bloc ou de la ligne qui écrit la date. Vrai pour le
+       français, le néerlandais, l'allemand, l'espagnol, l'italien, le portugais ; faux
+       pour l'anglais (États-Unis ou Royaume-Uni ?), `None` si on ne sait pas.
+    2. `ordre` : celui que trahissent les autres dates du texte (`ordre_des_dates`).
+    3. Sinon, « PM » fait lire le mois d'abord, comme un client américain ; puis `avant`
+       — le moment du courriel qui contient celui-ci, forcément plus récent — écarte la
+       lecture qui tomberait après lui.
+
+    `autre` n'est pas `None` quand le doute reste : c'est la lecture écartée."""
     t = " " + texte.lower().replace(",", " ") + " "
-    t = re.sub(r"\s+(à|om|at|um)\s+", " ", t)
+    t = re.sub(r"\s+(à|om|at|um|alle|alle ore|a las|às|as)\s+", " ", t)
+    # « 5 de octubre de 2026 » (espagnol, portugais).
+    t = re.sub(r"(\d)\s+de\s+([a-zç])", r"\1 \2", t)
+    t = re.sub(r"([a-zç]\.?)\s+de\s+(\d{4})", r"\1 \2", t)
     # « 1er octobre », « August 25th » (Proton) : le jour sans son ordinal.
     t = re.sub(r"\b(\d{1,2})(?:er|e|st|nd|rd|th)\b", r"\1", t)
     jour = mois = annee = None
+    inverse = None  # (jour, mois) de l'autre lecture, si elle reste possible
 
     iso = re.search(r"\b(\d{4})-(\d{1,2})-(\d{1,2})\b", t)
     # « 27/10/26 » : Samsung Email n'écrit que deux chiffres d'année.
@@ -193,17 +253,23 @@ def date_en_toutes_lettres(texte):
         jour, mois, annee = int(numerique.group(1)), int(numerique.group(2)), int(numerique.group(3))
         if annee < 100:
             annee += 2000
-        # « 8/25/26 2:31 PM » : un client réglé en anglais américain (Thunderbird) met le
-        # mois d'abord. Seulement si le mois lu est impossible, ou l'heure sur 12 heures.
-        if jour <= 12 and (mois > 12 or re.search(r"\d\s*(am|pm|a\.m\.|p\.m\.)", t)):
-            jour, mois = mois, jour
+        if jour <= 12 and mois > 12:
+            jour, mois = mois, jour  # « 8/25/26 » : un seul ordre possible
+        elif jour <= 12 and mois <= 12 and jour != mois and not jour_d_abord:
+            if ordre == "mj":
+                jour, mois = mois, jour
+            elif ordre is None:
+                # « 8/5/26 2:31 PM » : l'heure sur 12 heures est américaine.
+                if re.search(r"\d\s*(am|pm|a\.m\.|p\.m\.)", t):
+                    jour, mois = mois, jour
+                inverse = (mois, jour)
     else:
-        for motif, ordre in (
-            (r"\b(\d{1,2})\.?\s+([a-zéûä]+)\.?\s+(\d{4})\b", "jma"),  # 5 août 2026
-            (r"\b([a-zéûä]+)\.?\s+(\d{1,2})\s+(\d{4})\b", "mja"),      # August 5 2026
+        for motif, ordre_des_mots in (
+            (r"\b(\d{1,2})\.?\s+([a-zéûäç]+)\.?\s+(\d{4})\b", "jma"),  # 5 août 2026
+            (r"\b([a-zéûäç]+)\.?\s+(\d{1,2})\s+(\d{4})\b", "mja"),      # August 5 2026
         ):
             for m in re.finditer(motif, t):
-                if ordre == "jma":
+                if ordre_des_mots == "jma":
                     j, nom, a = m.group(1), m.group(2), m.group(3)
                 else:
                     nom, j, a = m.group(1), m.group(2), m.group(3)
@@ -213,7 +279,7 @@ def date_en_toutes_lettres(texte):
             if mois:
                 break
     if not mois:
-        return None
+        return None, None
 
     h = m_ = s = 0
     heure = re.search(r"\b(\d{1,2})[:h](\d{2})(?::(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)?", t)
@@ -225,9 +291,19 @@ def date_en_toutes_lettres(texte):
         elif suffixe == "am" and h == 12:
             h = 0
     try:
-        return datetime.datetime(annee, mois, jour, h, m_, s)
+        lue = datetime.datetime(annee, mois, jour, h, m_, s)
     except ValueError:
-        return None
+        return None, None
+    if inverse is None:
+        return lue, None
+    autre = lue.replace(month=inverse[1], day=inverse[0])
+    if avant is not None:
+        # Un jour de marge : `avant` a son fuseau, la date lue est naïve.
+        limite = avant.astimezone(BRUXELLES).replace(tzinfo=None) + datetime.timedelta(days=1)
+        possibles = [d for d in (lue, autre) if d <= limite]
+        if len(possibles) == 1:
+            return possibles[0], None
+    return lue, autre
 
 
 #: La suite d'un corps qu'Exchange a détachée en « pièces » ATT00001.txt, ATT00003.htm…
@@ -378,7 +454,7 @@ def bloc_en_lignes(texte):
         # (« Sujet : … Date : … De : … Pour : … »).
         if not m or m.group(1).lower() not in LIBELLES["de"] + LIBELLES["objet"]:
             continue
-        champs, j = {}, i
+        champs, j, lus = {}, i, set()
         while j < len(lignes) and j < i + 12:
             m2 = LIGNE_DE_BLOC.match(lignes[j])
             if not m2:
@@ -403,8 +479,11 @@ def bloc_en_lignes(texte):
             for role, libelles in LIBELLES.items():
                 if cle in libelles and role not in champs:
                     champs[role] = m2.group(2).strip()
+                    lus.add(cle)
             j += 1
         if "de" in champs and "date" in champs and ("objet" in champs or "a" in champs):
+            # Des libellés tous anglais : la date peut être américaine (`lire_date`).
+            champs["anglais"] = lus <= ANGLAIS
             commentaire = "\n".join(lignes[:i])
             commentaire = re.sub(r"(?im)^[-_ >]*(%s|%s)[-_ :]*$" % (TRANSFERTS, CITATIONS), "", commentaire)
             commentaire = re.sub(r"(?m)^[-_]{5,}\s*$", "", commentaire).strip()
@@ -528,9 +607,11 @@ def _couches(octets, *, enveloppe, ignorer, repli):
     while est_un_transfert(blocs[-1][1].get("objet", ""), "") and _bloc_de_transfert(blocs[-1][2]):
         blocs.append(_bloc_de_transfert(blocs[-1][2]))
     dessous = []
+    ordre = ordre_des_dates(texte)
     for k, (_mot, champs, suite) in enumerate(blocs):
         origine = k == len(blocs) - 1
-        ecrite = date_en_toutes_lettres(champs.get("date", ""))
+        ecrite, autre = lire_date(champs.get("date", ""), jour_d_abord=not champs.get("anglais"),
+                                  avant=reception, ordre=ordre)
         moment = ecrite.replace(tzinfo=BRUXELLES) if ecrite else None
         objet = champs.get("objet") or sujet
         dessous.insert(0, Analyse(
@@ -544,6 +625,7 @@ def _couches(octets, *, enveloppe, ignorer, repli):
             eml=octets,
             forme="texte",
             date_approchee=moment is None,
+            date_autre=autre if moment else None,
             transfert=not origine,
             cle=_cle_de_couche(champs),
             # Avant les couches, l'origine prenait le Message-ID du courriel reçu.
@@ -630,7 +712,9 @@ def en_markdown(analyse, refusees=()):
         "- De : %s" % (analyse.expediteur or "—"),
         "- À : %s" % (analyse.destinataires or "—"),
         "- Date : %s%s" % (analyse.moment.strftime("%Y-%m-%d %H:%M:%S %z"),
-                           " (approchée)" if analyse.date_approchee else ""),
+                           " (approchée)" if analyse.date_approchee else
+                           " (ordre jour/mois incertain ; peut-être le %s)" % analyse.date_autre.strftime("%Y-%m-%d")
+                           if analyse.date_autre else ""),
         "- Identifiant : %s" % (analyse.message_id or "—"),
         "- Forme : %s" % analyse.forme,
         "- Authentification du courriel reçu par la boîte : %s" % (

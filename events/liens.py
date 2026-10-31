@@ -16,8 +16,8 @@ from dataclasses import dataclass
 from email.utils import getaddresses
 
 from .courriels import (
-    BRUXELLES, CITATIONS, EN_UNE_LIGNE, TRANSFERTS, _bloc_de_transfert, bloc_et_position,
-    date_en_toutes_lettres,
+    BRUXELLES, CITATIONS, EN_UNE_LIGNE, TRANSFERTS, _bloc_de_transfert, bloc_et_position, lire_date,
+    ordre_des_dates,
 )
 
 TOLERANCE = datetime.timedelta(minutes=20)
@@ -32,7 +32,7 @@ AVANCE_D_HORLOGE = datetime.timedelta(minutes=2)
 ENVOI, RECEPTION = "envoi", "reception"
 
 #: Tous les préfixes, transfert **et** réponse : « RE: sdb » et « sdb » sont le même fil.
-PREFIXES = re.compile(r"^\s*((tr|fw|fwd|wg|doorst|trans|re|aw|antw|sv)\s*:\s*)+", re.IGNORECASE)
+PREFIXES = re.compile(r"^\s*((tr|fw|fwd|wg|doorst|trans|rv|i|enc|re|aw|antw|sv|r|res)\s*:\s*)+", re.IGNORECASE)
 ADRESSE = re.compile(r"[\w.+'-]+@[\w-]+(?:\.[\w-]+)+")
 
 
@@ -155,14 +155,22 @@ _DATE_ECRITE = (
 _AUTEUR = r"(?P<de>(?:[^\n]|\n[ \t>]*(?=\S)){1,200}?)"
 
 #: « Le lun. 28 sept. 2026 à 20:29, ACME Bat <x@y> a écrit : » (Gmail, Apple Mail, Yahoo,
-#: Thunderbird, Proton), « On Mon, Sep 28, 2026 at 8:29 PM ACME Bat <x@y> wrote: ».
+#: Thunderbird, Proton), « On Mon, Sep 28, 2026 at 8:29 PM ACME Bat <x@y> wrote: »,
+#: « El lun, 28 sept 2026 a las 20:29, … escribió: », « Il giorno lun 28 set 2026 alle ore
+#: 20:29 … ha scritto: », « Em seg., 28 de set. de 2026 às 20:29, … escreveu: ».
 A_ECRIT = re.compile(
-    r"(?im)^[ \t>]*(?:le|on)\s+" + _DATE_ECRITE + r"[,\s]+" + _AUTEUR
-    + r"\s+(?:a[\s>]+écrit|wrote)\s*:\s*$")
+    r"(?im)^[ \t>]*(?:le|on|el|il giorno|il|em)\s+" + _DATE_ECRITE + r"[,\s]+" + _AUTEUR
+    + r"\s+(?:a[\s>]+écrit|wrote|escribió|ha scritto|escreveu)\s*:\s*$")
 #: Le néerlandais et l'allemand nomment l'auteur après le verbe : « Op di 25 aug 2026 om
 #: 14:31 schreef ACME Bat <x@y>: », « Am Di., 25. Aug. 2026 um 14:31 Uhr schrieb … : ».
 SCHREEF = re.compile(
     r"(?im)^[ \t>]*(?:op|am)\s+" + _DATE_ECRITE + r"[,\s]+(?:schreef|schrieb)\s+" + _AUTEUR + r"\s*:\s*$")
+
+def _en_anglais(citation):
+    """« On … wrote: », « ----- Original Message ----- » : l'ordre jour/mois est douteux."""
+    debut = citation.group(0).lstrip(" \t>-").lower()
+    return debut.startswith("on ") or debut.startswith("original message")
+
 
 @dataclass(frozen=True)
 class Citee:
@@ -184,12 +192,15 @@ def citees(analyse):
     texte = analyse.texte or ""
     trouvees = []
     reste = texte
+    # Une date « 05/10/2026 » se lit selon la langue de qui l'écrit (`lire_date`) ; le
+    # courriel cité précède forcément celui qui le cite.
+    contexte = {"avant": analyse.moment, "ordre": ordre_des_dates(texte)}
     while True:
         bloc = _bloc_de_transfert(reste)
         if not bloc:
             break
         champs = bloc[1]
-        ecrite = date_en_toutes_lettres(champs.get("date", ""))
+        ecrite, _autre = lire_date(champs.get("date", ""), jour_d_abord=not champs.get("anglais"), **contexte)
         if ecrite is not None:
             position = len(texte) - len(bloc[2])
             de, objet = champs.get("de", "").strip(), champs.get("objet", "").strip()
@@ -199,7 +210,7 @@ def citees(analyse):
             break
         reste = bloc[2]
     for m in (*A_ECRIT.finditer(texte), *SCHREEF.finditer(texte), *EN_UNE_LIGNE.finditer(texte)):
-        ecrite = date_en_toutes_lettres(m.group("date"))
+        ecrite, _autre = lire_date(m.group("date"), jour_d_abord=not _en_anglais(m), **contexte)
         if ecrite is not None:
             de = re.sub(r"<\s+", "<", re.sub(r"\s*\n[ \t>]*", " ", m.group("de"))).strip()
             trouvees.append((m.start(), Citee(empreinte_citee(de, ecrite.replace(tzinfo=BRUXELLES), ""), de, "", "")))
