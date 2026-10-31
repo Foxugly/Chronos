@@ -143,3 +143,25 @@ class ImportTests(MediaMixin, TestCase):
         dossier = make_dossier(make_user("owner"))
         evenement = importer(dossier, analyser(courriel("Devis", TEXTE, html=HTML).as_bytes()))
         self.assertIn("<strong>refusé</strong>", evenement.description)
+
+
+class CoucheRetrouveeTests(SimpleTestCase):
+    def test_le_courriel_cite_seul_n_est_pas_pris_pour_la_reponse(self):
+        """Le texte d'une réponse contient toute sa citation : le morceau du seul courriel
+        cité lui ressemble presque autant. Il ne commence pas comme elle (ACMEBAT n° 12)."""
+        from types import SimpleNamespace
+
+        from events.mise_en_forme import lignes_de_couche
+        cite = " ".join("mot%d" % k for k in range(300))
+        entete = "De : X <x@y.be>\nEnvoyé : mardi 1 septembre 2026 10:00\nÀ : Moi\nObjet : Devis"
+        # La réponse s'écrit autrement en texte brut et en HTML (signature en tableau,
+        # liens en clair) : presque aucun de ses mots ne se retrouve.
+        reponse_texte = "Voir ci-dessous. " + " ".join("brut%d" % k for k in range(40))
+        reponse_html = "Voir ci-dessous. " + " ".join("html%d" % k for k in range(40))
+        texte = "%s\n\n%s\n\n%s" % (reponse_texte, entete, cite)
+        html = "<p>%s</p><p>%s</p><div>&nbsp;</div><p>%s</p>" % (
+            reponse_html, entete.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>"), cite)
+        eml = courriel("RE: Devis", texte, html=html).as_bytes()
+        lignes = lignes_de_couche(SimpleNamespace(eml=eml, texte=texte))
+        # Le bon morceau, ou aucun (la description vient alors du texte) ; jamais le cité seul.
+        self.assertTrue(lignes is None or lignes[0].texte.startswith("Voir ci-dessous."))

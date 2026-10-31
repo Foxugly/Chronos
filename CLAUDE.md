@@ -546,7 +546,9 @@ each mail into an event. Set-up on the Microsoft side: `docs/superpowers/import-
   read into `Ligne`s (text, inline HTML — `strong`/`em`/`u`/`s`/`code`/`a` only — and `blockquote` depth),
   whose text splits like `_texte_de_partie`, so `bloc_en_lignes` finds the same forward blocks by line
   number. The couche is the HTML chunk (whole, above or below each block) whose **words** best match
-  `Analyse.texte`, if the match is >= `RESSEMBLANCE` (0.7); otherwise the description is built from the
+  `Analyse.texte`, if the match is >= `RESSEMBLANCE` (0.7) **and** its first and last 30 words match
+  (`_memes_bords`: a reply's text holds its whole quote chain, so the quoted mail alone scored higher than
+  the reply on ACMEBAT n° 12); otherwise the description is built from the
   text as before (`>` lines become `blockquote`). `Analyse.texte` itself is unchanged: detection still
   runs on it. `sans_citations` keeps **everything** when someone wrote after the start of a *marked*
   quote (inline answers, bottom-posting); an unmarked Outlook quote is cut as before. Output still goes

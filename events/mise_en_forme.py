@@ -264,10 +264,26 @@ def lignes_de_couche(analyse):
     cible = _mots(analyse.texte)
     meilleur, score = None, 0.0
     for morceau in _morceaux(lignes):
-        s = _ressemblance(cible, _mots(texte_de(morceau)))
+        mots = _mots(texte_de(morceau))
+        if not _memes_bords(cible, mots):
+            continue
+        s = _ressemblance(cible, mots)
         if s > score:
             meilleur, score = morceau, s
     return meilleur if score >= RESSEMBLANCE else None
+
+
+#: Le nombre de mots comparés au début et à la fin, et leur ressemblance minimale.
+BORDS, RESSEMBLANCE_DES_BORDS = 30, 0.6
+
+
+def _memes_bords(cible, mots):
+    """Le morceau commence et finit comme le texte. Sans cela, le texte d'une réponse —
+    qui contient toute la chaîne de ses citations — ressemble presque autant au seul
+    courriel cité, sans les mots de la réponse (ACMEBAT n° 12 : 0,957 contre 0,954)."""
+    def semblables(a, b):
+        return SequenceMatcher(None, a, b, autojunk=False).ratio() >= RESSEMBLANCE_DES_BORDS
+    return semblables(cible[:BORDS], mots[:BORDS]) and semblables(cible[-BORDS:], mots[-BORDS:])
 
 
 # ------------------------------------------------------------- sans les citations
