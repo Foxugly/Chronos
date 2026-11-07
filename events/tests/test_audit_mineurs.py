@@ -303,7 +303,8 @@ class DeploiementTests(SimpleTestCase):
     def test_la_ci_passe_ruff_a_la_version_de_la_flotte(self):
         ci = (RACINE / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
         self.assertIn("ruff check .", ci)
-        self.assertIn("ruff==0.16.10", (RACINE / "requirements-dev.txt").read_text(encoding="utf-8"))
+        # Une version figée, pas une version précise : Dependabot la suit avec la flotte.
+        self.assertRegex((RACINE / "requirements-dev.txt").read_text(encoding="utf-8"), r"(?m)^ruff==\d+\.\d+\.\d+$")
 
     def test_le_sha_deploye_devient_sentry_release(self):
         self.assertIn("echo SENTRY_RELEASE=$SHA > /var/lib/fleet-deploy/Chronos.release.env.tmp", self.deploy)

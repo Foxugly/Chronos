@@ -68,7 +68,8 @@ Run one module, class, or single test:
 Tests use the MD5 password hasher (`config/settings.py`, only when `sys.argv[1] == "test"`): PBKDF2
 was 97 % of the suite's time (14 min → 13 s). A test checks it does not leak outside `manage.py test`.
 
-Linter: **ruff 0.16.10** (`requirements-dev.txt`, rules in `ruff.toml` — the pre-0.16 default set),
+Linter: **ruff 0.17.3** (`requirements-dev.txt`, kept at the fleet's version by Dependabot — the test only
+checks it is pinned; rules in `ruff.toml` — the pre-0.16 default set),
 run by the CI `lint` job: `.\.venv\Scripts\python.exe -m ruff check .`. No formatter, no front-end
 build. `requirements.txt` lists only the direct dependencies; everything else is transitive.
 
