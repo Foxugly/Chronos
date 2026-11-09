@@ -769,9 +769,15 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   to the import/sender mailbox only (`Application Mail.ReadWrite`, `Application Mail.Send`,
   `Mail Recipients`), SSM parameters, then a dry run and the timer on the box. Client secret and
   certificate expire **2028-10-09**.
-- **Going-live facts (2026-10-09).** Port **8010** (8008 is Fabric, 8009 Facilitation). The repo is
-  **private** — the only one in the fleet — so the box pulls it with a read-only deploy key
-  (`github-chronos` host alias in `~django/.ssh/config`). IAM and SSM were set up from CloudShell
+- **The repo is public since 2026-11-09**, and its whole history was **anonymised** first: no real
+  party, address or case detail may ever enter a tracked file, a commit message or a PR — test
+  fixtures use invented names (ACME Bat, Paul Durand…) and `.example` domains. The GitHub repo was
+  **deleted and recreated** (old PRs kept the original commits); new repo id `1451286801` (IAM trust
+  of `chronos-deploy` updated), original history only in a local git-ignored bundle under
+  `sauvegardes/`. The box now fetches over **HTTPS** (no deploy key; the old `github-chronos` alias
+  and root key are unused).
+- **Going-live facts (2026-10-09).** Port **8010** (8008 is Fabric, 8009 Facilitation). The repo was
+  then private, pulled with a read-only deploy key. IAM and SSM were set up from CloudShell
   (`deploy/iam-cloudshell.sh`, `deploy/ssm-cloudshell.sh`). Units are installed by each deploy but
   were **enabled by hand once** (`chronos-env-fetch`, `chronos-gunicorn`,
   `chronos-mail-import.timer`).
