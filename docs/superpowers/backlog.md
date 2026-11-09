@@ -161,6 +161,7 @@ Le site est en FR / NL / EN (voir « Fait »). Restent :
 
 - `https://chronos.foxugly.com`, port **8010** (8009 était pris par Facilitation), PostgreSQL 16,
   dépôt GitHub **privé** `Foxugly/Chronos` (clé de déploiement en lecture seule sur la machine).
+  **Public depuis le 2026-11-09**, après anonymisation de tout l'historique ; lu en HTTPS.
 - **Base de production vide, par choix** : les 30 évènements et 77 pièces du PC n'ont pas été
   transférés ; le dossier ACMEBAT se remplit par l'import de courriels.
 - IAM (`deploy/iam-cloudshell.sh`) et SSM (`deploy/ssm-cloudshell.sh`) depuis CloudShell ;

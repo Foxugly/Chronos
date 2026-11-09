@@ -134,12 +134,14 @@ class VraiTransfertALAvocateTests(TestCase):
         self.octets = EXEMPLE_AVOCATE.read_bytes()
 
     def verifier(self, couches):
+        # Le dépôt est public : aucune adresse réelle ici, seulement la forme du résultat.
         self.assertEqual(len(couches), 2)
         mise_en_demeure, transfert = couches
-        self.assertIn("acme-bat@outlook.com", mise_en_demeure.expediteur)
+        self.assertIn("@outlook.com", mise_en_demeure.expediteur)
         self.assertEqual(mise_en_demeure.moment, datetime.datetime(2026, 9, 28, 20, 29, tzinfo=BRUXELLES))
-        self.assertIn("jdupont@perso.example", transfert.expediteur)
-        self.assertIn(AVOCATE, transfert.destinataires)
+        self.assertNotEqual(transfert.expediteur, mise_en_demeure.expediteur)
+        self.assertTrue(transfert.destinataires)
+        self.assertNotIn(ALIAS, transfert.destinataires)
         self.assertEqual(transfert.moment.date(), datetime.date(2026, 10, 7))
 
     def test_tel_quel(self):

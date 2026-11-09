@@ -59,9 +59,10 @@ jobs:
           A=/var/www/django_websites/Chronos
           # Les blobs installés par root viennent du MIROIR NU DE ROOT
           # (/var/lib/fleet-deploy, root:root 700), alimenté depuis GitHub au SHA
-          # déployé avec une clé de déploiement lecture seule possédée par root —
-          # jamais du .git de l'arbre django (refs, config, hooks réécrivables par
-          # django → escalade vers root).
+          # déployé, en HTTPS (dépôt public depuis le 2026-11-09, plus de clé de
+          # déploiement) — jamais du .git de l'arbre django (refs, config, hooks
+          # réécrivables par django → escalade vers root). L'arbre django lit aussi
+          # l'URL HTTPS en clair, pas le remote de son .git.
           M=/var/lib/fleet-deploy/Chronos.git
           G="git --git-dir=$M show $SHA"
           cat > /tmp/ssm-params.json <<EOF
@@ -69,10 +70,10 @@ jobs:
             "commands": [
               "set -eu",
               "chown -R -h django:www-data $A",
-              "sudo -u django bash -c 'umask 027; cd $A && git fetch --quiet && git reset --hard --quiet origin/main'",
+              "sudo -u django bash -c 'umask 027; cd $A && git fetch --quiet https://github.com/Foxugly/Chronos.git +main:refs/remotes/origin/main && git reset --hard --quiet origin/main'",
               "install -d -m 700 -o root -g root /var/lib/fleet-deploy",
               "[ -d $M ] || git init --quiet --bare $M",
-              "GIT_SSH_COMMAND='ssh -i /root/.ssh/github-chronos -o IdentitiesOnly=yes -o UserKnownHostsFile=/root/.ssh/known_hosts_github -o StrictHostKeyChecking=yes' git --git-dir=$M fetch --quiet --depth=1 git@github.com:Foxugly/Chronos.git $SHA",
+              "git --git-dir=$M fetch --quiet --depth=1 https://github.com/Foxugly/Chronos.git $SHA",
               "git --git-dir=$M cat-file -e $SHA^{commit}",
               "$G:deploy/chronos-env-fetch.service > /etc/systemd/system/chronos-env-fetch.service",
               "$G:deploy/chronos-gunicorn.service > /etc/systemd/system/chronos-gunicorn.service",

@@ -97,21 +97,11 @@ il faut le niveau avancé. Encodage : `base64 -w0 chronos-exchange.pfx`.
 install -d -o django -g www-data -m 750 /var/log/chronos
 install -d -o django -g www-data -m 700 /var/backups/chronos
 
-# Clé de déploiement (dépôt privé) : paire propre à Chronos, en lecture seule sur GitHub.
-sudo -u django ssh-keygen -t ed25519 -N '' -C chronos-deploy@foxugly -f ~django/.ssh/chronos_deploy
-sudo -u django bash -c 'ssh-keyscan github.com >> ~/.ssh/known_hosts'
-sudo -u django bash -c 'cat >> ~/.ssh/config' <<'CFG'
-Host github-chronos
-    HostName github.com
-    User git
-    IdentityFile ~/.ssh/chronos_deploy
-    IdentitiesOnly yes
-CFG
-# Depuis le PC : gh repo deploy-key add chronos_deploy.pub -R Foxugly/Chronos -t chronos-machine
-# (sans --allow-write : lecture seule)
+# Dépôt public depuis le 2026-11-09 : plus de clé de déploiement, clone en HTTPS.
+# (Avant : dépôt privé, clé lecture seule et alias SSH github-chronos.)
 
 # Premier clone et environnement, en django (§3.11 : amorçage)
-sudo -u django bash -c 'umask 027; cd /var/www/django_websites && git clone github-chronos:Foxugly/Chronos.git'
+sudo -u django bash -c 'umask 027; cd /var/www/django_websites && git clone https://github.com/Foxugly/Chronos.git'
 sudo -u django bash -c 'cd /var/www/django_websites/Chronos && python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt'
 
 # Depuis le blob git validé, jamais par cp depuis l'arborescence de django (§3.10).
