@@ -124,7 +124,9 @@ class CspTests(DocumentFixtureMixin, TestCase):
                 script_src = next(d for d in entete.split(";") if d.strip().startswith("script-src"))
                 self.assertNotIn("'unsafe-inline'", script_src)
                 html = reponse.content.decode()
-                en_ligne = re.findall(r"<script(?![^>]*\bsrc=)(?![^>]*application/json)([^>]*)>", html)
+                # Insensible à la casse : un <SCRIPT> sans nonce ne doit pas échapper au test.
+                en_ligne = re.findall(r"<script(?![^>]*\bsrc=)(?![^>]*application/json)([^>]*)>", html,
+                                      re.IGNORECASE)
                 self.assertTrue(en_ligne)
                 for attributs in en_ligne:
                     self.assertIn(f'nonce="{nonce}"', attributs)
