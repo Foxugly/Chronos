@@ -883,7 +883,8 @@ What is deliberately **not** done, and recorded in `backlog.md` (section « Ouve
   (Documents removed *through the application* do have their file deleted — see invariant 4.)
 - Production follow-ups (owner's side or fleet-wide): Sentry is wired since 2026-10-09
   (`chronos-backend`) and UptimeRobot watches `/health/`; `OPERATIONS.md` (repo `foxugly-ops`) lists
-  Chronos since 2026-10-09. Still open: no off-box backup (S3 — the owner declined to pursue it,
-  2026-10-10) and HSTS sent twice (Django and nginx). `chronos-gunicorn` carries the hardening
+  Chronos since 2026-10-09. Off-box backup is covered by the fleet-wide weekly S3 dump + EBS snapshot
+  (2026-10-15); HSTS is sent once, by Django (fixed 2026-10-11, `test_entetes_nginx.py`). Workflow
+  actions are pinned by commit SHA (2026-11-09). `chronos-gunicorn` carries the hardening
   block of `OPERATIONS.md §3.22` since 2026-10-10 (fleet backlog #17), guarded by
   `events/tests/test_durcissement_systemd.py`.
