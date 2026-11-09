@@ -802,6 +802,8 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   image as fallback), then `docker load` + `docker run`;
   deploy is the fleet's OIDC → SSM model (`deploy.yml`), units and nginx installed from the committed
   git blob. `.gitattributes` forces LF for everything under `deploy/` and `.github/`.
+  **CodeQL** (`codeql.yml`, Python + JavaScript, `static/vendor/` excluded) runs on PR, push and weekly
+  since 2026-11-09 — possible once the repo went public.
 - `manage.py verifier_integrite`: counts + SHA-256 of every document; run on both sides of a transfer.
 - **Retention** (audit M8): `manage.py purger_partages` (nightly, `chronos-purge.timer`, enabled by the
   deploy) erases invitations and share links dead for `RETENTION_PARTAGES_JOURS` (90) days — except a
