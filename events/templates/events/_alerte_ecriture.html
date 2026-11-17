@@ -1,0 +1,14 @@
+{% load i18n %}{% comment %}
+Mise en garde sous le choix du droit d'un lien anonyme. Visible d'emblée si le
+droit affiché est déjà l'écriture (`ecriture`) ; sinon cachée, et
+`_lien_partage_js.html` / la page de partage la montrent quand on choisit
+« Lecture et écriture ».
+{% endcomment %}
+<div class="alert alert-danger small py-2 mt-2 mb-0" data-alerte-ecriture {% if not ecriture %}hidden{% endif %}>
+    <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>
+    {% blocktranslate trimmed %}
+    En écriture, quiconque détient ce lien peut modifier des évènements et retirer
+    des pièces, <strong>sans compte</strong> : rien ne relie ces gestes à une personne,
+    seul le journal les attribue au lien.
+    {% endblocktranslate %}
+</div>

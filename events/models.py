@@ -653,11 +653,15 @@ class Invitation(models.Model):
     def __str__(self):
         return f"{self.email} — {self.dossier}"
 
+    @staticmethod
+    def nouveau_jeton():
+        # 32 octets d'entropie : un jeton d'invitation vaut un accès à des
+        # pièces de dossier, il ne doit pas se deviner.
+        return secrets.token_urlsafe(32)[:64]
+
     def save(self, *args, **kwargs):
         if not self.token:
-            # 32 octets d'entropie : un jeton d'invitation vaut un accès en
-            # lecture à des pièces de dossier, il ne doit pas se deviner.
-            self.token = secrets.token_urlsafe(32)[:64]
+            self.token = self.nouveau_jeton()
         if not self.expires_at:
             self.expires_at = timezone.now() + self.DUREE_PAR_DEFAUT
         return super().save(*args, **kwargs)

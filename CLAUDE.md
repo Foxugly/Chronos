@@ -149,6 +149,17 @@ number of `DossierAccess` rows granting another user `Role.READ` or `Role.WRITE`
    refused form re-renders with its errors (400), never silently — until 2026-10-11 the page did
    not render the required `role` field, so every click was refused without a word. A test now
    submits exactly what the page renders.
+   **Share page layout** (2026-11-18): three cards in the order of use — *Personnes ayant accès*
+   (each access has an inline role select, `dossier_access_role`, POST, journaled `ACCES_MODIFIE`;
+   auto-submits with JavaScript, a « Changer » button without), *Ajouter une personne* (direct
+   grant by verified address, then invitation; pending invitations listed, others folded) and
+   *Lien de consultation, sans compte* (active links, then « Anciens liens » folded in a native
+   `<details>`). « expire bientôt » flags links and pending invitations under 7 days
+   (`partage.BIENTOT`). Removing an access, revoking a link and cancelling an invitation ask
+   `confirm()` (`data-confirmer`; without JavaScript the form just posts). `invitation_resend`
+   re-sends a pending or expired invitation with a **new token** (the old mail stops working) and
+   a new 14-day expiry, all-or-nothing with the mail like issuing. A write link shows
+   `_alerte_ecriture.html` under its role select (create and edit). Add forms preselect *Lecture*.
    **Seeing and editing a link again** (2026-11-17): the list no longer prints each address; every
    active link has « Voir » (popup: address + copy, `_lien_partage_adresse.html`) and every
    non-revoked link « Modifier » (popup: label, role, validity, `_lien_partage_formulaire.html` +

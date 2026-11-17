@@ -1,6 +1,7 @@
 """Le partage, réservé au propriétaire (invariant 5) : accès, invitations, liens."""
 
 import logging
+from datetime import timedelta
 
 from allauth.account.models import EmailAddress
 from django.contrib import messages
@@ -22,6 +23,9 @@ from ..models import DossierAccess, Invitation, Journal
 from ..permissions import get_dossier_for_owner
 
 logger = logging.getLogger(__name__)
+
+#: En deçà de ce délai, un lien ou une invitation est signalé « expire bientôt ».
+BIENTOT = timedelta(days=7)
 
 
 # Le geste et sa trace au journal : une seule transaction (`journal.py`).
@@ -74,15 +78,25 @@ def _contexte_du_partage(request, dossier, **surcharges):
         "accesses": dossier.accesses.select_related(
             "user", "granted_by"
         ).order_by("user__username"),
-        "invitations": dossier.invitations.select_related("created_by"),
         "share_link_form": ShareLinkForm(),
-        "share_links": [
-            # Chaque lien non révoqué porte son formulaire de modification,
-            # rendu dans sa popup (`auto_id` : des identifiants uniques par lien).
-            (lien, None if lien.revoked_at else ShareLinkEditForm(instance=lien, auto_id=f"lien-{lien.pk}-%s"))
-            for lien in dossier.share_links.all()
-        ],
+        "roles": DossierAccess.Role.choices,
+        # Ce qui expire avant cette date est signalé « expire bientôt ».
+        "bientot": timezone.now() + BIENTOT,
     }
+    # Chaque lien non révoqué porte son formulaire de modification, rendu dans
+    # sa popup (`auto_id` : des identifiants uniques par lien). Les liens qui
+    # ne donnent plus accès, et les invitations qui ne servent plus, sont
+    # repliés sous « Anciens » : la liste ne fait que s'allonger.
+    liens = [
+        (lien, None if lien.revoked_at else ShareLinkEditForm(instance=lien, auto_id=f"lien-{lien.pk}-%s"))
+        for lien in dossier.share_links.all()
+    ]
+    contexte["share_links"] = liens
+    contexte["liens_actifs"] = [paire for paire in liens if paire[0].is_active]
+    contexte["liens_anciens"] = [paire for paire in liens if not paire[0].is_active]
+    invitations = list(dossier.invitations.select_related("created_by", "accepted_by"))
+    contexte["invitations_en_attente"] = [i for i in invitations if i.is_usable]
+    contexte["invitations_anciennes"] = [i for i in invitations if not i.is_usable]
     contexte.update(surcharges)
     return contexte
 
@@ -208,6 +222,74 @@ def dossier_invite(request, dossier_id):
 
     return render(request, "events/dossier_share.html",
                   _contexte_du_partage(request, dossier, invitation_form=form), status=400)
+
+
+@transaction.atomic
+def dossier_access_role(request, dossier_id, access_id):
+    """Change le droit d'une personne (lecture ↔ écriture) sans lui retirer
+    l'accès. POST uniquement, propriétaire seul, journalisé."""
+    if request.method != "POST":
+        return JsonResponse({"success": False}, status=405)
+
+    dossier = get_dossier_for_owner(request.user, dossier_id)
+    acces = get_object_or_404(dossier.accesses.select_related("user"), pk=access_id)
+    role = request.POST.get("role")
+    if role not in DossierAccess.Role.values:
+        messages.error(request, _("Droit inconnu : rien n'a changé."))
+        return redirect("dossier_share", dossier_id=dossier.pk)
+    if role != acces.role:
+        avant = acces.role
+        acces.role = role
+        acces.save(update_fields=["role"])
+        consigner(
+            dossier, Journal.Action.ACCES_MODIFIE, request=request,
+            objet=acces.user.get_username(),
+            details={"modele": "acces", "changements": {"role": [avant, role]}},
+        )
+        messages.success(
+            request,
+            _("%(compte)s : %(droit)s.") % {"compte": acces.user.get_username(),
+                                            "droit": acces.get_role_display()},
+        )
+    return redirect("dossier_share", dossier_id=dossier.pk)
+
+
+def invitation_resend(request, dossier_id, invitation_id):
+    """Renvoie une invitation en attente ou expirée : nouveau jeton (l'ancien
+    courriel ne sert plus), nouvelle échéance, nouveau courriel. Tout ou rien,
+    comme l'émission. Une invitation acceptée ou annulée ne se renvoie pas."""
+    if request.method != "POST":
+        return JsonResponse({"success": False}, status=405)
+
+    dossier = get_dossier_for_owner(request.user, dossier_id)
+    invitation = get_object_or_404(
+        dossier.invitations, pk=invitation_id, accepted_at__isnull=True, revoked_at__isnull=True
+    )
+    try:
+        with transaction.atomic():
+            invitation.token = Invitation.nouveau_jeton()
+            invitation.expires_at = timezone.now() + Invitation.DUREE_PAR_DEFAUT
+            invitation.save(update_fields=["token", "expires_at"])
+            consigner(
+                dossier, Journal.Action.INVITATION_EMISE, request=request,
+                objet=invitation.email,
+                details={"role": invitation.role, "expire": invitation.expires_at.isoformat(),
+                         "renvoi": True},
+            )
+            _envoyer_invitation(request, invitation)
+    except Exception:
+        logger.exception("Invitation : le courriel n'a pas pu repartir.")
+        messages.error(
+            request,
+            _("Le courriel d'invitation n'a pas pu partir : rien n'a été envoyé. Réessayez plus tard."),
+        )
+        return redirect("dossier_share", dossier_id=dossier.pk)
+    messages.success(
+        request,
+        _("Invitation renvoyée à %(email)s. Elle expire le %(date)s.")
+        % {"email": invitation.email, "date": _date_courte(invitation.expires_at)},
+    )
+    return redirect("dossier_share", dossier_id=dossier.pk)
 
 
 @transaction.atomic

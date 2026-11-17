@@ -20,9 +20,11 @@ from .parametres import (
 )
 from .partage import (
     dossier_access_revoke,
+    dossier_access_role,
     dossier_invite,
     dossier_share,
     invitation_accept,
+    invitation_resend,
     invitation_revoke,
     share_link_create,
     share_link_detail,
@@ -37,6 +39,7 @@ __all__ = [
     "document_detach",
     "document_download",
     "dossier_access_revoke",
+    "dossier_access_role",
     "dossier_alias",
     "dossier_alias_verifier",
     "dossier_creer",
@@ -57,6 +60,7 @@ __all__ = [
     "event_detail",
     "event_edit",
     "invitation_accept",
+    "invitation_resend",
     "invitation_revoke",
     "share_link_create",
     "share_link_detail",

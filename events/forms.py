@@ -217,6 +217,13 @@ class EventForm(forms.ModelForm):
         return super().save(commit)
 
 
+def lecture_par_defaut(champ):
+    """Le droit le plus prudent présélectionné, sans « - Choisir une option - »
+    : qui veut l'écriture la choisit."""
+    champ.choices = DossierAccess.Role.choices
+    champ.initial = DossierAccess.Role.READ
+
+
 class DossierAccessForm(forms.ModelForm):
     """Accorder un accès à un compte existant, désigné par son adresse.
 
@@ -248,6 +255,7 @@ class DossierAccessForm(forms.ModelForm):
     def __init__(self, *args, dossier=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.dossier = dossier
+        lecture_par_defaut(self.fields["role"])
 
     def clean_email(self):
         from allauth.account.models import EmailAddress
@@ -305,6 +313,7 @@ class InvitationForm(forms.ModelForm):
     def __init__(self, *args, dossier=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.dossier = dossier
+        lecture_par_defaut(self.fields["role"])
         # Proposée : la langue de l'interface. Facultative, comme `precision` dans
         # `EventForm` : un envoi direct sans ce champ garde l'ancien comportement.
         self.fields["langue"].required = False
