@@ -20,6 +20,7 @@ le champ date ; ils ne servent qu'avec JavaScript et restent cachés sans lui
         <label class="form-label" for="{{ form.role.id_for_label }}">{{ form.role.label }}</label>
         {{ form.role }}
         {{ form.role.errors }}
+        {% if form.role.value == "write" %}{% include "events/_alerte_ecriture.html" with ecriture=True %}{% else %}{% include "events/_alerte_ecriture.html" %}{% endif %}
     </div>
     <div class="mb-3">
         <label class="form-label" for="{{ form.expire_le.id_for_label }}">{{ form.expire_le.label }}</label>

@@ -1,0 +1,64 @@
+{% load i18n %}{% comment %}
+Un lien de partage dans la liste de la page de partage (actifs, ou repliés
+sous « Anciens liens »). `lien`, `form_lien` (None si révoqué), `bientot`.
+{% endcomment %}
+<li class="list-group-item px-0">
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+        <div class="flex-grow-1">
+            <span>
+                {% translate "Sans destinataire noté" as sans_destinataire %}
+                {{ lien.label|default:sans_destinataire }}
+                {% if lien.revoked_at %}
+                    <span class="badge text-bg-secondary ms-2">{% translate "Révoqué" %}</span>
+                {% elif lien.is_expired %}
+                    <span class="badge text-bg-secondary ms-2">{% translate "Expiré" %}</span>
+                {% else %}
+                    <span class="badge text-bg-warning ms-2">{% translate "Actif" %}</span>
+                    {% if lien.expires_at and lien.expires_at < bientot %}
+                        <span class="badge text-bg-danger ms-1" data-expire-bientot>{% translate "expire bientôt" %}</span>
+                    {% endif %}
+                {% endif %}
+                <span class="badge {% if lien.role == 'write' %}text-bg-danger-subtle text-danger-emphasis border border-danger-subtle{% else %}text-bg-light border{% endif %} ms-1">{{ lien.get_role_display }}</span>
+            </span>
+            <span class="d-block text-body-secondary small mt-1">
+                {% blocktranslate with quand=lien.created_at|date:"SHORT_DATE_FORMAT" %}Créé le {{ quand }}{% endblocktranslate %}
+                {% if lien.revoked_at %}
+                    · {% blocktranslate with quand=lien.revoked_at|date:"SHORT_DATE_FORMAT" %}révoqué le {{ quand }}{% endblocktranslate %}
+                {% elif lien.expires_at %}
+                    · {% blocktranslate with quand=lien.expires_at|date:"SHORT_DATE_FORMAT" %}expire le {{ quand }}{% endblocktranslate %}
+                {% else %}
+                    · <strong>{% translate "sans expiration" %}</strong>
+                {% endif %}
+                · {% blocktranslate count n=lien.use_count %}consulté {{ n }} fois{% plural %}consulté {{ n }} fois{% endblocktranslate %}
+                {% if lien.last_used_at %}
+                    ({% blocktranslate with quand=lien.last_used_at|date:"SHORT_DATETIME_FORMAT" %}dernier accès le {{ quand }}{% endblocktranslate %})
+                {% endif %}
+            </span>
+        </div>
+        {# Sans JavaScript, « Voir » et « Modifier » ouvrent une page ; avec, une popup. #}
+        <div class="d-flex gap-2 flex-wrap">
+            {% if lien.is_active %}
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'share_link_detail' dossier.pk lien.pk %}"
+                   data-bs-toggle="modal" data-bs-target="#lien-voir-{{ lien.pk }}">
+                    <i class="bi bi-eye me-1" aria-hidden="true"></i>{% translate "Voir" %}
+                </a>
+            {% endif %}
+            {% if form_lien %}
+                <a class="btn btn-sm btn-outline-info" href="{% url 'share_link_edit' dossier.pk lien.pk %}"
+                   data-bs-toggle="modal" data-bs-target="#lien-modifier-{{ lien.pk }}">
+                    <i class="bi bi-pencil me-1" aria-hidden="true"></i>{% if lien.is_active %}{% translate "Modifier" %}{% else %}{% translate "Prolonger" %}{% endif %}
+                </a>
+            {% endif %}
+            {% if lien.is_active %}
+                {% translate "Révoquer ce lien ? Il ne donnera plus accès à rien, tout de suite. Ce qui a déjà été lu ne se reprend pas." as confirmer_revocation %}
+                <form method="post" action="{% url 'share_link_revoke' dossier.pk lien.pk %}" class="m-0"
+                      data-confirmer="{{ confirmer_revocation }}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-x-circle me-1" aria-hidden="true"></i>{% translate "Révoquer" %}
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</li>

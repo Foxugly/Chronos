@@ -19,6 +19,17 @@ Sans flatpickr, le champ natif reste et les raccourcis le remplissent.
 <script nonce="{{ csp_nonce }}">
 "use strict";
 (function () {
+    // L'avertissement « écriture » (`_alerte_ecriture.html`) suit le choix du
+    // droit d'un lien : à la création comme à la modification.
+    document.querySelectorAll("[data-formulaire-creation-lien], [data-formulaire-lien]").forEach(function (formulaire) {
+        const choix = formulaire.querySelector('select[name="role"]');
+        const alerte = formulaire.querySelector("[data-alerte-ecriture]");
+        if (!choix || !alerte) { return; }
+        function suivre() { alerte.hidden = choix.value !== "write"; }
+        choix.addEventListener("change", suivre);
+        suivre();
+    });
+
     const langue = JSON.parse(document.getElementById("langue-courante").textContent);
 
     function enIso(jour) {

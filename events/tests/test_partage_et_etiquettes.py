@@ -28,7 +28,7 @@ class LienCreeTests(TestCase):
         exactement ce que la page propose, valeurs par défaut comprises."""
         html = self.client.get(self.partage).content.decode()
         formulaire = re.search(
-            r'<form method="post" action="%s">(.*?)</form>' % re.escape(
+            r'<form method="post" action="%s"[^>]*>(.*?)</form>' % re.escape(
                 reverse("share_link_create", args=[self.dossier.pk])), html, re.S).group(1)
         donnees = {}
         for nom, valeur in re.findall(r'<input[^>]*name="(\w+)"[^>]*value="([^"]*)"', formulaire):

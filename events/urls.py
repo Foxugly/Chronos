@@ -15,6 +15,7 @@ from .views import (
     document_detach,
     document_download,
     dossier_access_revoke,
+    dossier_access_role,
     dossier_creer,
     dossier_list,
     dossier_invite,
@@ -34,6 +35,7 @@ from .views import (
     event_add,
     event_detail,
     invitation_accept,
+    invitation_resend,
     invitation_revoke,
     share_link_create,
     share_link_detail,
@@ -101,6 +103,16 @@ urlpatterns = [
         name="share_link_revoke",
     ),
     path("invitation/<str:token>/", invitation_accept, name="invitation_accept"),
+    path(
+        "dossiers/<int:dossier_id>/partage/<int:access_id>/droit/",
+        dossier_access_role,
+        name="dossier_access_role",
+    ),
+    path(
+        "dossiers/<int:dossier_id>/partage/invitations/<int:invitation_id>/renvoyer/",
+        invitation_resend,
+        name="invitation_resend",
+    ),
     path(
         "dossiers/<int:dossier_id>/partage/<int:access_id>/retirer/",
         dossier_access_revoke,
