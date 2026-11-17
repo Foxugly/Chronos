@@ -313,6 +313,25 @@ class JournalAdmin(admin.ModelAdmin):
         return False
 
 
+class SuperutilisateurSeulMixin:
+    """Réservé aux superutilisateurs, quelles que soient les permissions Django.
+
+    Un lien ou une invitation étend l'accès à un dossier : cela revient au
+    propriétaire (invariant 5) et, ici, au seul superutilisateur. Un compte
+    d'équipe à qui l'on aurait donné « modifier lien de partage » ne doit pas
+    pouvoir passer un lien en écriture ni le prolonger.
+    """
+
+    def has_module_permission(self, request):
+        return request.user.is_active and request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_active and request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_active and request.user.is_superuser
+
+
 class ConsultationSeuleMixin:
     """Une fiche qui se consulte sans se créer, se modifier ni se supprimer.
 
@@ -349,7 +368,7 @@ def _etat_du_lien(lien):
 
 
 @admin.register(ShareLink)
-class ShareLinkAdmin(admin.ModelAdmin):
+class ShareLinkAdmin(SuperutilisateurSeulMixin, admin.ModelAdmin):
     """Tous les liens, actifs, expirés ou révoqués.
 
     Se modifient ici le destinataire, le droit et l'expiration ; la
@@ -435,7 +454,7 @@ class ShareLinkAdmin(admin.ModelAdmin):
 
 
 @admin.register(Invitation)
-class InvitationAdmin(ConsultationSeuleMixin, admin.ModelAdmin):
+class InvitationAdmin(ConsultationSeuleMixin, SuperutilisateurSeulMixin, admin.ModelAdmin):
     """Toutes les invitations, y compris expirées. Le jeton n'est pas affiché."""
 
     list_display = ("email", "dossier", "role", "statut", "created_by", "created_at",

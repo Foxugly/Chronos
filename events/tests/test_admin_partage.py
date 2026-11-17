@@ -175,3 +175,43 @@ class AdminDesInvitationsTests(TestCase):
         self.assertEqual(self.client.get(f"{LISTE_INVITATIONS}add/").status_code, 403)
         self.assertEqual(
             self.client.get(f"{LISTE_INVITATIONS}{self.invitation.pk}/delete/").status_code, 403)
+
+
+class AdminDuPartageReserveAuxSuperutilisateursTests(TestCase):
+    """Un compte d'équipe (staff) muni de toutes les permissions Django n'est
+    pas pour autant habilité à étendre l'accès à un dossier : seul un
+    superutilisateur voit et modifie les liens et invitations ici."""
+
+    def setUp(self):
+        from django.contrib.auth.models import Permission
+
+        proprietaire = make_user("proprio")
+        self.dossier = make_dossier(proprietaire, name="Litige")
+        self.lien = ShareLink.objects.create(dossier=self.dossier, label="Avocat",
+                                             created_by=proprietaire)
+        self.invitation = Invitation.objects.create(
+            dossier=self.dossier, email="a@example.com", role=DossierAccess.Role.READ,
+            created_by=proprietaire)
+        self.staff = make_user("equipe", is_staff=True)
+        self.staff.user_permissions.set(Permission.objects.filter(
+            content_type__app_label="events",
+            content_type__model__in=["sharelink", "invitation"]))
+        self.client.force_login(self.staff)
+
+    def test_ni_liste_ni_fiche(self):
+        for url in (LISTE_LIENS, f"{LISTE_LIENS}{self.lien.pk}/change/",
+                    LISTE_INVITATIONS, f"{LISTE_INVITATIONS}{self.invitation.pk}/change/"):
+            self.assertEqual(self.client.get(url).status_code, 403, url)
+
+    def test_ne_peut_pas_modifier_un_lien(self):
+        self.client.post(f"{LISTE_LIENS}{self.lien.pk}/change/", {
+            "label": "Pirate", "role": DossierAccess.Role.WRITE,
+            "expires_at_0": "", "expires_at_1": ""})
+        self.lien.refresh_from_db()
+        self.assertEqual((self.lien.label, self.lien.role), ("Avocat", DossierAccess.Role.READ))
+        self.assertFalse(Journal.objects.exists())
+
+    def test_absent_de_l_index_de_l_admin(self):
+        response = self.client.get("/admin/")
+        self.assertNotContains(response, "/admin/events/sharelink/")
+        self.assertNotContains(response, "/admin/events/invitation/")

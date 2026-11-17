@@ -150,7 +150,8 @@ number of `DossierAccess` rows granting another user `Role.READ` or `Role.WRITE`
    not render the required `role` field, so every click was refused without a word. A test now
    submits exactly what the page renders.
    **In the admin** (2026-11-17) share links and invitations are listed (all of them, expired and
-   revoked included, with a status column); the **token is never shown**, nothing is created or
+   revoked included, with a status column) **to superusers only** (`SuperutilisateurSeulMixin`:
+   a staff account granted the Django permissions still gets 403); the **token is never shown**, nothing is created or
    deleted there. Invitations are read-only. A link's label, role and expiry are editable
    (journaled `LIEN_MODIFIE`, `via_admin`, `details.modele = "lien"`; dates compared in UTC to
    the second, or a re-save would log a false change); revoking and un-revoking are the actions
