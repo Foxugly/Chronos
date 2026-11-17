@@ -128,6 +128,8 @@ number of `DossierAccess` rows granting another user `Role.READ` or `Role.WRITE`
 
    Removing a document from an event is `document_detach`, not a delete: the link goes, and the
    row and file go only when the last link does. The event comes from the URL, never inferred.
+   A document **not linked** to that event is a 404 (both paths, `retirer_piece`): it used to
+   journal a removal that never happened, and delete an orphan through any event id.
    **Django does not delete files when a row disappears** — the view removes the stored file
    explicitly. (Four unreferenced `.jpg` files from before this work still sit in `media/`.)
 
@@ -459,6 +461,8 @@ invitations, share links, dossier renames and owner changes, and exports. Everyt
   flags it as different. Deliberate — a replaced piece of evidence must show, and the journal says
   when and by whom. A document deleted in the admin leaves its file on disk (Django never deletes
   files); the journal keeps its name and hash.
+- A link's « consulté N fois » counts **GET** of its timeline only — not HEAD (bots, link
+  previews, mail scanners).
 - An anonymous share-link writer appears as the link, never as a user. Its name is **frozen** at
   write time (`consigner` stores `details["lien_nom"]`; older rows fall back to the live label), so
   renaming a link does not rewrite who did what. Only the owner sees that name — collaborators

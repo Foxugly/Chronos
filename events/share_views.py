@@ -84,7 +84,10 @@ def _proteger(reponse):
 @login_not_required
 def share_timeline(request, token):
     lien = _lien_actif(token)
-    lien.enregistrer_consultation()
+    # GET seulement : un HEAD (robot, aperçu de lien, antivirus de messagerie)
+    # n'est pas une consultation, et gonflerait le seul témoin de l'usage.
+    if request.method == "GET":
+        lien.enregistrer_consultation()
 
     # La chronologie sert les deux publics : ce drapeau retire tout ce qui
     # modifie, et bascule les URL vers ce chemin-ci.

@@ -274,6 +274,12 @@ def retirer_piece(event, document, **contexte):
     empreinte : c'est tout ce qui en reste. Partagé avec le chemin des liens
     de partage (`contexte` : `request=` ou `lien=`).
     """
+    # Une pièce que cet évènement ne cite pas n'a rien à en être retirée : sans
+    # ce contrôle, le journal inscrivait un retrait qui n'a pas eu lieu, et une
+    # pièce orpheline partait par n'importe quel évènement du dossier (audit du
+    # partage, 2026-11-17). Même réponse qu'un identifiant inconnu.
+    if not document.events.filter(pk=event.pk).exists():
+        raise Http404("Pièce non liée à cet évènement")
     with transaction.atomic():
         document.events.remove(event)
         if document.events.exists():
