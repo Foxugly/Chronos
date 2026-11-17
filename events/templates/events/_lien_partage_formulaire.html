@@ -1,0 +1,47 @@
+{% load i18n %}{% comment %}
+Le formulaire de modification d'un lien (destinataire, droit, validité).
+Partagé par sa popup sur la page de partage et par `lien_partage_modifier.html`.
+
+Les raccourcis de validité (7 / 30 / 90 jours, sans expiration) remplissent
+le champ date ; ils ne servent qu'avec JavaScript et restent cachés sans lui
+(`_lien_partage_js.html` les montre). Le champ seul suffit.
+{% endcomment %}
+<form method="post" action="{% url 'share_link_edit' dossier.pk lien.pk %}" data-formulaire-lien>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <div class="mb-3">
+        <label class="form-label" for="{{ form.label.id_for_label }}">{{ form.label.label }}</label>
+        {{ form.label }}
+        {{ form.label.errors }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="{{ form.role.id_for_label }}">{{ form.role.label }}</label>
+        {{ form.role }}
+        {{ form.role.errors }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="{{ form.expire_le.id_for_label }}">{{ form.expire_le.label }}</label>
+        {{ form.expire_le }}
+        {% if form.expire_le.errors %}<div class="invalid-feedback d-block">{{ form.expire_le.errors|join:" " }}</div>{% endif %}
+        <div class="form-text">{{ form.expire_le.help_text }}</div>
+        <div class="btn-group btn-group-sm mt-2 flex-wrap" role="group" data-raccourcis-validite hidden
+             aria-label="{% translate "Raccourcis de validité" %}">
+            <button type="button" class="btn btn-outline-secondary" data-raccourci-validite="7">{% translate "7 jours" %}</button>
+            <button type="button" class="btn btn-outline-secondary" data-raccourci-validite="30">{% translate "30 jours" %}</button>
+            <button type="button" class="btn btn-outline-secondary" data-raccourci-validite="90">{% translate "90 jours" %}</button>
+            <button type="button" class="btn btn-outline-secondary" data-raccourci-validite="">{% translate "Sans expiration" %}</button>
+        </div>
+    </div>
+    <div class="d-flex justify-content-end gap-2">
+        {% if dans_popup %}
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% translate "Annuler" %}</button>
+        {% else %}
+            <a class="btn btn-outline-secondary" href="{% url 'dossier_share' dossier.pk %}">{% translate "Annuler" %}</a>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1" aria-hidden="true"></i>{% translate "Enregistrer" %}
+        </button>
+    </div>
+</form>

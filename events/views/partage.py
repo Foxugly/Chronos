@@ -2,7 +2,8 @@
 
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -11,8 +12,8 @@ from django.utils import translation
 from django.utils.translation import gettext as _
 
 from ..filtres import identifiant
-from ..forms import DossierAccessForm, InvitationForm, ShareLinkForm
-from ..journal import consigner
+from ..forms import DossierAccessForm, InvitationForm, ShareLinkEditForm, ShareLinkForm
+from ..journal import changements, consigner, etat_du_lien
 from ..models import DossierAccess, Invitation, Journal
 from ..permissions import get_dossier_for_owner
 
@@ -66,7 +67,12 @@ def _contexte_du_partage(request, dossier, **surcharges):
         ).order_by("user__username"),
         "invitations": dossier.invitations.select_related("created_by"),
         "share_link_form": ShareLinkForm(),
-        "share_links": dossier.share_links.all(),
+        "share_links": [
+            # Chaque lien non révoqué porte son formulaire de modification,
+            # rendu dans sa popup (`auto_id` : des identifiants uniques par lien).
+            (lien, None if lien.revoked_at else ShareLinkEditForm(instance=lien, auto_id=f"lien-{lien.pk}-%s"))
+            for lien in dossier.share_links.all()
+        ],
     }
     contexte.update(surcharges)
     return contexte
@@ -282,6 +288,54 @@ def share_link_create(request, dossier_id):
     )
     # Le lien s'affiche en tête de la page, prêt à copier (`_lien_tout_juste_cree`).
     return redirect("%s?nouveau=%d" % (reverse("dossier_share", args=[dossier.pk]), lien.pk))
+
+
+def share_link_detail(request, dossier_id, link_id):
+    """Le lien à nouveau, prêt à copier : la page qu'ouvre « Voir » sans
+    JavaScript (avec, c'est une popup de la page de partage). Propriétaire
+    seul, lien actif seulement ; sinon 404, comme pour un lien inconnu."""
+    dossier = get_dossier_for_owner(request.user, dossier_id)
+    lien = get_object_or_404(dossier.share_links, pk=link_id)
+    if not lien.is_active:
+        raise Http404
+    return render(request, "events/lien_partage.html", {"dossier": dossier, "lien": lien})
+
+
+def share_link_edit(request, dossier_id, link_id):
+    """Modifie le destinataire, le droit ou la validité d'un lien.
+
+    Propriétaire seul (invariant 5) ; un lien révoqué ne se modifie pas — il
+    est coupé pour de bon (404). Prolonger un lien expiré le remet en service.
+    La page sert sans JavaScript et quand le formulaire est refusé ; sinon
+    la popup de la page de partage poste ici directement.
+    """
+    dossier = get_dossier_for_owner(request.user, dossier_id)
+    lien = get_object_or_404(dossier.share_links, pk=link_id, revoked_at__isnull=True)
+    ids = f"lien-{lien.pk}-%s"
+
+    if request.method != "POST":
+        form = ShareLinkEditForm(instance=lien, auto_id=ids)
+        return render(request, "events/lien_partage_modifier.html",
+                      {"dossier": dossier, "lien": lien, "form": form})
+
+    avant = etat_du_lien(lien)
+    form = ShareLinkEditForm(request.POST, instance=lien, auto_id=ids)
+    if not form.is_valid():
+        for nom in form.errors:
+            if nom in form.fields:
+                classes = form.fields[nom].widget.attrs.get("class", "")
+                form.fields[nom].widget.attrs["class"] = (classes + " is-invalid").strip()
+        return render(request, "events/lien_partage_modifier.html",
+                      {"dossier": dossier, "lien": lien, "form": form}, status=400)
+    with transaction.atomic():
+        form.save()
+        modifs = changements(avant, etat_du_lien(lien))
+        if modifs:
+            consigner(dossier, Journal.Action.LIEN_MODIFIE, request=request, lien=lien,
+                      objet=lien.label, details={"modele": "lien", "changements": modifs})
+    if modifs:
+        messages.success(request, _("Lien modifié."))
+    return redirect("dossier_share", dossier_id=dossier.pk)
 
 
 def share_link_revoke(request, dossier_id, link_id):

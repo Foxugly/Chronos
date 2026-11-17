@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Un lien de partage, à nouveau : la page qu'ouvre « Voir » sans JavaScript.
+Avec, c'est une popup de la page de partage (`dossier_share.html`).
+{% endcomment %}
+
+{% block title %}{% translate "Lien de partage" %}{% endblock %}
+
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+
+{% block content %}
+    <div class="mx-auto" style="max-width: 700px;">
+        <div class="page-header">
+            <div class="page-header__left"><a class="btn btn-outline-secondary btn-sm" href="{% url 'dossier_share' dossier.pk %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Retour au partage" %}</a></div>
+            <h1 class="page-header__title"><i class="bi bi-link-45deg" aria-hidden="true"></i>{% translate "Lien de partage" %}</h1>
+            <div class="page-header__right"></div>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                {% translate "Sans destinataire noté" as sans_destinataire %}
+                <h2 class="h6 mb-3">{{ lien.label|default:sans_destinataire }}</h2>
+                {% include "events/_lien_partage_adresse.html" %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

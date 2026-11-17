@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Modifier un lien de partage : la page qu'ouvre « Modifier » sans JavaScript,
+et celle qui revient avec ses erreurs quand la popup a été refusée.
+{% endcomment %}
+
+{% block title %}{% translate "Modifier le lien de partage" %}{% endblock %}
+
+{% block dossier_courant %}{{ dossier.name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css"
+      integrity="sha384-RkASv+6KfBMW9eknReJIJ6b3UnjKOKC5bOUaNgIY778NFbQ8MtWq9Lr/khUgqtTt"
+      crossorigin="anonymous">
+{% endblock %}
+
+{% block content %}
+    <div class="mx-auto" style="max-width: 700px;">
+        <div class="page-header">
+            <div class="page-header__left"><a class="btn btn-outline-secondary btn-sm" href="{% url 'dossier_share' dossier.pk %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% translate "Retour au partage" %}</a></div>
+            <h1 class="page-header__title"><i class="bi bi-pencil" aria-hidden="true"></i>{% translate "Modifier le lien de partage" %}</h1>
+            <div class="page-header__right"></div>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                {% include "events/_lien_partage_formulaire.html" %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}{% include "events/_lien_partage_js.html" %}{% endblock %}

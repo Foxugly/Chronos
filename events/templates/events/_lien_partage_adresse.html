@@ -1,0 +1,19 @@
+{% load i18n %}{% comment %}
+L'adresse d'un lien de partage, prête à copier (`data-copier`, géré dans
+`base.html`). Partagé par la popup « Voir » et la page `lien_partage.html`.
+{% endcomment %}{% url 'share_timeline' lien.token as chemin_du_lien %}
+<div class="input-group">
+    <input type="text" readonly class="form-control font-monospace"
+           aria-label="{% translate "Lien de consultation" %}"
+           value="{{ request.scheme }}://{{ request.get_host }}{{ chemin_du_lien }}">
+    <button type="button" class="btn btn-primary" data-copier="{{ request.scheme }}://{{ request.get_host }}{{ chemin_du_lien }}"
+            title="{% translate "Copier le lien" %}" aria-label="{% translate "Copier le lien" %}"><i class="bi bi-clipboard" aria-hidden="true"></i></button>
+</div>
+<p class="text-body-secondary small mt-2 mb-0">
+    {% if lien.expires_at %}
+        {% blocktranslate with quand=lien.expires_at|date:"SHORT_DATE_FORMAT" %}Valable jusqu'au {{ quand }}.{% endblocktranslate %}
+    {% else %}
+        <strong>{% translate "Sans expiration." %}</strong>
+    {% endif %}
+    {{ lien.get_role_display }}.
+</p>

@@ -36,6 +36,8 @@ from .views import (
     invitation_accept,
     invitation_revoke,
     share_link_create,
+    share_link_detail,
+    share_link_edit,
     share_link_revoke,
     event_delete,
     event_edit,
@@ -82,6 +84,16 @@ urlpatterns = [
         "dossiers/<int:dossier_id>/partage/liens/",
         share_link_create,
         name="share_link_create",
+    ),
+    path(
+        "dossiers/<int:dossier_id>/partage/liens/<int:link_id>/",
+        share_link_detail,
+        name="share_link_detail",
+    ),
+    path(
+        "dossiers/<int:dossier_id>/partage/liens/<int:link_id>/modifier/",
+        share_link_edit,
+        name="share_link_edit",
     ),
     path(
         "dossiers/<int:dossier_id>/partage/liens/<int:link_id>/revoquer/",

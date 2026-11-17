@@ -1,0 +1,69 @@
+{% load static %}{% comment %}
+Validité d'un lien : le champ date au format de la langue (flatpickr, comme
+le formulaire d'évènement — mêmes fichiers, mêmes empreintes que
+`_formulaire_js.html`) et ses raccourcis 7 / 30 / 90 jours, sans expiration.
+Sans flatpickr, le champ natif reste et les raccourcis le remplissent.
+{% endcomment %}
+<script src="{% static 'vendor/flatpickr-4.6.13/flatpickr.min.js' %}"
+        integrity="sha384-5JqMv4L/Xa0hfvtF06qboNdhvuYXUku9ZrhZh3bSk8VXF0A/RuSLHpLsSV9Zqhl6"
+        crossorigin="anonymous"></script>
+{% if langue.base == "fr" %}
+<script src="{% static 'vendor/flatpickr-4.6.13/l10n/fr.js' %}"
+        integrity="sha384-G+W4MJlWkqyxrTEDGqlYx0mcjIOCc60/SvgTHEM8GSs85gMIzcJ2FERdERxhEJ88"
+        crossorigin="anonymous"></script>
+{% elif langue.base == "nl" %}
+<script src="{% static 'vendor/flatpickr-4.6.13/l10n/nl.js' %}"
+        integrity="sha384-ruYBxJ4AlQrbf1c8gA96utojLvk8H61pctWDJc4SJJCi3+lNqUWavTdsjxOqbYia"
+        crossorigin="anonymous"></script>
+{% endif %}
+<script nonce="{{ csp_nonce }}">
+"use strict";
+(function () {
+    const langue = JSON.parse(document.getElementById("langue-courante").textContent);
+
+    function enIso(jour) {
+        const mm = String(jour.getMonth() + 1).padStart(2, "0");
+        const jj = String(jour.getDate()).padStart(2, "0");
+        return jour.getFullYear() + "-" + mm + "-" + jj;
+    }
+
+    document.querySelectorAll("[data-formulaire-lien]").forEach(function (formulaire) {
+        const champ = formulaire.querySelector('input[type="date"]');
+        if (!champ) { return; }
+        if (window.flatpickr) {
+            const locale = (flatpickr.l10ns && flatpickr.l10ns[langue.base]) || flatpickr.l10ns.default;
+            flatpickr(champ, {
+                dateFormat: "Y-m-d",
+                altFormat: langue.format_date || "Y-m-d",
+                altInput: true,
+                allowInput: true,
+                disableMobile: true,
+                locale: locale,
+                // Pas de `minDate` : flatpickr viderait en silence la date
+                // passée d'un lien expiré, qui s'afficherait « sans expiration ».
+                // Dans la popup : le calendrier reste dans la boîte de dialogue,
+                // que Bootstrap garde au premier plan et dont il retient le focus.
+                static: true
+            });
+        }
+        const raccourcis = formulaire.querySelector("[data-raccourcis-validite]");
+        if (raccourcis) { raccourcis.hidden = false; }
+        formulaire.querySelectorAll("[data-raccourci-validite]").forEach(function (bouton) {
+            bouton.addEventListener("click", function () {
+                const jours = bouton.dataset.raccourciValidite;
+                let valeur = "";
+                if (jours) {
+                    const jour = new Date();
+                    jour.setDate(jour.getDate() + Number(jours));
+                    valeur = enIso(jour);
+                }
+                if (champ._flatpickr) {
+                    if (valeur) { champ._flatpickr.setDate(valeur, true); } else { champ._flatpickr.clear(); }
+                } else {
+                    champ.value = valeur;
+                }
+            });
+        });
+    });
+})();
+</script>

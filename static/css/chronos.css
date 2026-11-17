@@ -275,3 +275,10 @@ body.app-shell { background: var(--surface-2); color: var(--ink); display: flex;
   border-left: 3px solid var(--bs-border-color);
   color: var(--bs-secondary-color);
 }
+
+/* Champ date d'un lien de partage (flatpickr `static`, dans une popup) :
+   son enveloppe prend toute la largeur, comme les autres champs. */
+[data-formulaire-lien] .flatpickr-wrapper {
+    display: block;
+    width: 100%;
+}

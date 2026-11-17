@@ -1,12 +1,10 @@
-import datetime
-
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _, gettext_lazy
-from .journal import consigner, differences, instantane
+from .journal import consigner, differences, etat_du_lien, instantane
 from .models import (
     Etiquette, Document, Dossier, DossierAccess, Event, Invitation, Journal, Profil, ShareLink,
 )
@@ -349,24 +347,6 @@ class ConsultationSeuleMixin:
         return False
 
 
-def _a_la_seconde(moment):
-    """Une date en UTC et à la seconde : la base la rend en UTC, le formulaire
-    de l'admin à l'heure locale et sans microsecondes — même instant."""
-    if moment is None:
-        return None
-    return moment.astimezone(datetime.UTC).isoformat(timespec="seconds")
-
-
-def _etat_du_lien(lien):
-    """Les champs d'un lien que l'admin peut changer, en valeurs simples."""
-    return {
-        "label": lien.label,
-        "role": lien.role,
-        "expires_at": _a_la_seconde(lien.expires_at),
-        "revoked_at": _a_la_seconde(lien.revoked_at),
-    }
-
-
 @admin.register(ShareLink)
 class ShareLinkAdmin(SuperutilisateurSeulMixin, admin.ModelAdmin):
     """Tous les liens, actifs, expirés ou révoqués.
@@ -399,9 +379,9 @@ class ShareLinkAdmin(SuperutilisateurSeulMixin, admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         with transaction.atomic():
-            avant = _etat_du_lien(ShareLink.objects.get(pk=obj.pk))
+            avant = etat_du_lien(ShareLink.objects.get(pk=obj.pk))
             super().save_model(request, obj, form, change)
-            changements = _champs_changes(avant, _etat_du_lien(obj))
+            changements = _champs_changes(avant, etat_du_lien(obj))
             if changements:
                 _journal_admin(request, obj.dossier, Journal.Action.LIEN_MODIFIE, lien=obj,
                                objet=obj.label, details={"modele": "lien", "changements": changements})
@@ -442,13 +422,13 @@ class ShareLinkAdmin(SuperutilisateurSeulMixin, admin.ModelAdmin):
         remis = 0
         for lien in queryset.filter(revoked_at__isnull=False).select_related("dossier"):
             with transaction.atomic():
-                avant = _etat_du_lien(lien)
+                avant = etat_du_lien(lien)
                 lien.revoked_at = None
                 lien.save(update_fields=["revoked_at"])
                 _journal_admin(request, lien.dossier, Journal.Action.LIEN_MODIFIE, lien=lien,
                                objet=lien.label,
                                details={"modele": "lien",
-                                        "changements": _champs_changes(avant, _etat_du_lien(lien))})
+                                        "changements": _champs_changes(avant, etat_du_lien(lien))})
             remis += 1
         self.message_user(request, _("%(n)s lien(s) remis en service.") % {"n": remis})
 

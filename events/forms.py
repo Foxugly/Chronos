@@ -1,5 +1,5 @@
 import re
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -368,6 +368,58 @@ class ShareLinkForm(forms.ModelForm):
         if not jours:
             return None
         return timezone.now() + timedelta(days=int(jours))
+
+
+class ShareLinkEditForm(forms.ModelForm):
+    """Modifier un lien existant : destinataire, droit, validité.
+
+    La validité est un **jour** (le lien vaut jusqu'à la fin de ce jour, heure
+    de Bruxelles), vide pour « sans expiration ». Garder le jour affiché garde
+    l'expiration telle quelle, à la seconde près : réenregistrer sans rien
+    toucher ne change rien et ne journalise rien. Un *nouveau* jour passé est
+    refusé — pour couper un lien, il y a « Révoquer » ; celui d'un lien déjà
+    expiré, laissé tel quel, est accepté.
+    """
+
+    expire_le = forms.DateField(
+        required=False,
+        label=gettext_lazy("Valable jusqu'au"),
+        help_text=gettext_lazy("Vide : sans expiration."),
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"},
+                               format=FORMAT_DATE_HTML),
+    )
+
+    class Meta:
+        model = ShareLink
+        fields = ["label", "role"]
+        widgets = ShareLinkForm.Meta.widgets
+        labels = ShareLinkForm.Meta.labels
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.expires_at:
+            self.initial["expire_le"] = timezone.localtime(self.instance.expires_at).date()
+
+    def clean_expire_le(self):
+        jour = self.cleaned_data.get("expire_le")
+        # Le jour déjà en place passe, même dépassé : on change le nom d'un
+        # lien expiré sans devoir toucher à sa validité.
+        actuel = self.initial.get("expire_le")
+        if jour is not None and jour != actuel and jour < timezone.localdate():
+            raise ValidationError(_("Choisissez aujourd'hui ou un jour à venir."))
+        return jour
+
+    def save(self, commit=True):
+        lien = super().save(commit=False)
+        jour = self.cleaned_data.get("expire_le")
+        actuel = lien.expires_at
+        if jour is None:
+            lien.expires_at = None
+        elif actuel is None or timezone.localtime(actuel).date() != jour:
+            lien.expires_at = timezone.make_aware(datetime.combine(jour, time(23, 59, 59)))
+        if commit:
+            lien.save()
+        return lien
 
 
 #: Le début d'un alias, avant le suffixe : minuscules, chiffres, tirets internes.
