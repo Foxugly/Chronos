@@ -461,7 +461,7 @@ invitations, share links, dossier renames and owner changes, and exports. Everyt
   flags it as different. Deliberate — a replaced piece of evidence must show, and the journal says
   when and by whom. A document deleted in the admin leaves its file on disk (Django never deletes
   files); the journal keeps its name and hash.
-- A link's « consulté N fois » counts **GET** of its timeline only — not HEAD (bots, link
+- A link's « consulté N fois » counts every GET of its timeline (`require_safe`: other methods get 405), not HEAD (bots, link
   previews, mail scanners).
 - An anonymous share-link writer appears as the link, never as a user. Its name is **frozen** at
   write time (`consigner` stores `details["lien_nom"]`; older rows fall back to the live label), so

@@ -81,6 +81,13 @@ class CompteurDesConsultationsTests(TestCase):
         self.assertEqual(self.lien.use_count, 0)
         self.assertIsNone(self.lien.last_used_at)
 
+    def test_les_autres_methodes_sont_refusees_et_ne_rendent_rien(self):
+        for methode in ("post", "options", "put", "delete"):
+            with self.subTest(methode=methode):
+                self.assertEqual(getattr(self.client, methode)(self.url).status_code, 405)
+        self.lien.refresh_from_db()
+        self.assertEqual(self.lien.use_count, 0)
+
     def test_un_get_compte(self):
         self.client.get(self.url)
         self.lien.refresh_from_db()
