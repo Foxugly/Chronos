@@ -27,6 +27,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.views.decorators.http import require_safe
 
 from .etiquettes import appliquer as poser_etiquettes
 from .etiquettes import contexte_du_formulaire as contexte_des_etiquettes
@@ -82,11 +83,13 @@ def _proteger(reponse):
 
 
 @login_not_required
+@require_safe
 def share_timeline(request, token):
     lien = _lien_actif(token)
-    # GET seulement : un HEAD (robot, aperçu de lien, antivirus de messagerie)
-    # n'est pas une consultation, et gonflerait le seul témoin de l'usage.
-    if request.method == "GET":
+    # GET et HEAD seulement (405 sinon) ; tout ce qui rend la page compte. Un
+    # HEAD (robot, aperçu de lien, antivirus de messagerie) ne rend rien : ce
+    # n'est pas une consultation, et il gonflerait le seul témoin de l'usage.
+    if request.method != "HEAD":
         lien.enregistrer_consultation()
 
     # La chronologie sert les deux publics : ce drapeau retire tout ce qui
