@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 02:08+0200\n"
+"POT-Creation-Date: 2026-11-17 21:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,17 +18,50 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\events\admin.py:30
+#: .\events\admin.py:36
 msgid "pièce liée"
 msgstr "gekoppeld stuk"
 
-#: .\events\admin.py:31
+#: .\events\admin.py:37
 msgid "pièces liées"
 msgstr "gekoppelde stukken"
 
-#: .\events\admin.py:238 .\events\models.py:503 .\events\models.py:961
+#: .\events\admin.py:244 .\events\models.py:503 .\events\models.py:961
 msgid "évènements"
 msgstr "gebeurtenissen"
+
+#: .\events\admin.py:349 .\events\admin.py:391
+msgid "statut"
+msgstr "status"
+
+#: .\events\admin.py:352 .\events\templates\events\dossier_share.html:153
+msgid "Révoqué"
+msgstr "Ingetrokken"
+
+#: .\events\admin.py:354 .\events\templates\events\dossier_share.html:155
+msgid "Expiré"
+msgstr "Vervallen"
+
+#: .\events\admin.py:355 .\events\templates\events\dossier_share.html:157
+msgid "Actif"
+msgstr "Actief"
+
+#: .\events\admin.py:360
+msgid "Révoquer les liens sélectionnés"
+msgstr "Geselecteerde links intrekken"
+
+#: .\events\admin.py:374
+#, python-format
+msgid "%(n)s lien(s) révoqué(s)."
+msgstr "%(n)s link(s) ingetrokken."
+
+#: .\events\admin.py:394 .\events\templates\events\dossier_share.html:263
+msgid "Expirée"
+msgstr "Vervallen"
+
+#: .\events\admin.py:407 .\events\models.py:1003
+msgid "profil"
+msgstr "profiel"
 
 #: .\events\alertes.py:51
 #, python-format
@@ -265,7 +298,7 @@ msgstr ""
 "Let op: %(n)s stuk(ken) komen niet meer overeen met de vingerafdruk die bij "
 "het indienen werd opgeslagen. Zie ‘Integriteitscontrole’."
 
-#: .\events\export.py:354 .\events\views\dossiers.py:90
+#: .\events\export.py:354 .\events\views\dossiers.py:94
 msgid "Chronologie"
 msgstr "Chronologie"
 
@@ -578,7 +611,7 @@ msgstr "dossier"
 msgid "dossiers"
 msgstr "dossiers"
 
-#: .\events\models.py:90 .\events\views\dossiers.py:254
+#: .\events\models.py:90 .\events\views\dossiers.py:264
 msgid "Lecture"
 msgstr "Lezen"
 
@@ -600,7 +633,7 @@ msgstr "Uitnodiging per e-mail"
 msgid "Lien de partage"
 msgstr "Deellink"
 
-#: .\events\models.py:103
+#: .\events\models.py:103 .\events\models.py:986
 msgid "utilisateur"
 msgstr "gebruiker"
 
@@ -1000,6 +1033,31 @@ msgstr "label"
 msgid "étiquettes"
 msgstr "labels"
 
+#: .\events\models.py:994
+msgid "Nombre maximum de dossiers"
+msgstr "Maximumaantal dossiers"
+
+#: .\events\models.py:997
+msgid ""
+"Nombre de dossiers dont ce compte peut être propriétaire. 0 : il ne peut pas "
+"en créer."
+msgstr ""
+"Aantal dossiers waarvan dit account eigenaar mag zijn. 0: het kan er geen "
+"aanmaken."
+
+#: .\events\models.py:1004
+msgid "profils"
+msgstr "profielen"
+
+#: .\events\quotas.py:34
+msgid "La création de dossiers n'est pas activée pour votre compte."
+msgstr "Het aanmaken van dossiers is niet geactiveerd voor uw account."
+
+#: .\events\quotas.py:35
+#, python-format
+msgid "Vous avez atteint le nombre maximum de dossiers (%(maximum)d)."
+msgstr "U hebt het maximumaantal dossiers bereikt (%(maximum)d)."
+
 #: .\events\share_views.py:286
 #, python-format
 msgid "le lien de partage « %(nom)s »"
@@ -1011,7 +1069,9 @@ msgstr "een deellink"
 
 #: .\events\share_views.py:297
 msgid "Un export vient d'être fait par ce lien : réessayez dans une minute."
-msgstr "Er is net een export via deze link gemaakt: probeer het over een minuut opnieuw."
+msgstr ""
+"Er is net een export via deze link gemaakt: probeer het over een minuut "
+"opnieuw."
 
 #: .\events\templates\events\_alias_affiche.html:5
 msgid "Copier l'adresse"
@@ -1309,7 +1369,7 @@ msgid "Saisi à la main"
 msgstr "Handmatig ingevoerd"
 
 #: .\events\templates\events\_doublon_cote.html:26
-#: .\events\templates\events\dossier_list.html:36
+#: .\events\templates\events\dossier_list.html:50
 #: .\events\templates\events\vue_semaine.html:60
 #, python-format
 msgid "%(n)s pièce"
@@ -1318,6 +1378,7 @@ msgstr[0] "%(n)s stuk"
 msgstr[1] "%(n)s stukken"
 
 #: .\events\templates\events\_entete_dossier.html:16
+#: .\events\templates\events\dossier_creer.html:13
 #: .\events\templates\events\dossier_list.html:10
 #: .\events\templates\events\dossier_list.html:15 .\templates\base.html:96
 #: .\templates\base.html:128
@@ -1549,7 +1610,7 @@ msgid "Couleur de %(nom)s"
 msgstr "Kleur van %(nom)s"
 
 #: .\events\templates\events\_expediteurs.html:34
-#: .\events\templates\events\dossier_list.html:35
+#: .\events\templates\events\dossier_list.html:49
 #: .\events\templates\events\parametres.html:62
 #, python-format
 msgid "%(n)s évènement"
@@ -1603,7 +1664,7 @@ msgstr "als lijst"
 msgid "Frise"
 msgstr "Tijdlijn"
 
-#: .\events\templates\events\calendrier.html:223 .\events\views\dossiers.py:92
+#: .\events\templates\events\calendrier.html:223 .\events\views\dossiers.py:96
 msgid "Liste"
 msgstr "Lijst"
 
@@ -1622,15 +1683,24 @@ msgid_plural ""
 "Ce compte possède %(n)s dossiers. Un dossier de preuves ne disparaît pas "
 "avec son propriétaire : confiez-les d'abord à quelqu'un d'autre en écrivant "
 "à hello@foxugly.com."
-msgstr[0] "Dit account is eigenaar van een dossier. Een bewijsdossier verdwijnt niet met zijn eigenaar: vertrouw het eerst aan iemand anders toe door te schrijven naar hello@foxugly.com."
-msgstr[1] "Dit account is eigenaar van %(n)s dossiers. Een bewijsdossier verdwijnt niet met zijn eigenaar: vertrouw ze eerst aan iemand anders toe door te schrijven naar hello@foxugly.com."
+msgstr[0] ""
+"Dit account is eigenaar van een dossier. Een bewijsdossier verdwijnt niet "
+"met zijn eigenaar: vertrouw het eerst aan iemand anders toe door te "
+"schrijven naar hello@foxugly.com."
+msgstr[1] ""
+"Dit account is eigenaar van %(n)s dossiers. Een bewijsdossier verdwijnt niet "
+"met zijn eigenaar: vertrouw ze eerst aan iemand anders toe door te schrijven "
+"naar hello@foxugly.com."
 
 #: .\events\templates\events\compte_supprimer.html:31
 msgid ""
 "Votre compte, votre adresse e-mail et vos accès aux dossiers seront "
 "supprimés définitivement. Le journal des dossiers garde ce qui s'y est "
 "passé, sans votre compte."
-msgstr "Uw account, uw e-mailadres en uw toegang tot dossiers worden definitief verwijderd. Het logboek van de dossiers bewaart wat er gebeurd is, zonder uw account."
+msgstr ""
+"Uw account, uw e-mailadres en uw toegang tot dossiers worden definitief "
+"verwijderd. Het logboek van de dossiers bewaart wat er gebeurd is, zonder uw "
+"account."
 
 #: .\events\templates\events\compte_supprimer.html:45
 msgid "Supprimer définitivement mon compte"
@@ -1646,34 +1716,59 @@ msgstr "Mijn account definitief verwijderen"
 msgid "Retour au dossier"
 msgstr "Terug naar het dossier"
 
-#: .\events\templates\events\dossier_list.html:41
+#: .\events\templates\events\dossier_creer.html:9
+#: .\events\templates\events\dossier_creer.html:14
+msgid "Nouveau dossier"
+msgstr "Nieuw dossier"
+
+#: .\events\templates\events\dossier_creer.html:29
+#: .\events\templates\events\parametres.html:29
+msgid "Nom du dossier"
+msgstr "Naam van het dossier"
+
+#: .\events\templates\events\dossier_creer.html:36
+#: .\events\templates\events\dossier_list.html:29
+#, python-format
+msgid "%(n)s / %(maximum)s dossiers"
+msgstr "%(n)s / %(maximum)s dossiers"
+
+#: .\events\templates\events\dossier_creer.html:38
+msgid "Créer le dossier"
+msgstr "Dossier aanmaken"
+
+#: .\events\templates\events\dossier_list.html:19
+#: .\events\templates\events\dossier_list.html:23
+msgid "Ajouter un dossier"
+msgstr "Dossier toevoegen"
+
+#: .\events\templates\events\dossier_list.html:55
 #, python-format
 msgid "%(n)s doublon possible à examiner"
 msgid_plural "%(n)s doublons possibles à examiner"
 msgstr[0] "%(n)s mogelijk dubbel te bekijken"
 msgstr[1] "%(n)s mogelijke dubbels te bekijken"
 
-#: .\events\templates\events\dossier_list.html:46
+#: .\events\templates\events\dossier_list.html:60
 msgid "Derniers faits"
 msgstr "Laatste feiten"
 
-#: .\events\templates\events\dossier_list.html:56
+#: .\events\templates\events\dossier_list.html:70
 msgid "Aucun fait pour l'instant."
 msgstr "Nog geen feiten."
 
-#: .\events\templates\events\dossier_list.html:60
+#: .\events\templates\events\dossier_list.html:74
 msgid "Derniers courriels importés"
 msgstr "Laatst geïmporteerde e-mails"
 
-#: .\events\templates\events\dossier_list.html:75
+#: .\events\templates\events\dossier_list.html:89
 msgid "Import par courriel :"
 msgstr "Import per e-mail:"
 
-#: .\events\templates\events\dossier_list.html:79
+#: .\events\templates\events\dossier_list.html:93
 msgid "Activer l'import par courriel"
 msgstr "Import per e-mail inschakelen"
 
-#: .\events\templates\events\dossier_list.html:90
+#: .\events\templates\events\dossier_list.html:104
 msgid ""
 "Aucun dossier ne vous est accessible pour l'instant. Le propriétaire d'un "
 "dossier peut vous y donner accès."
@@ -1695,7 +1790,7 @@ msgid "Personnes ayant accès"
 msgstr "Personen met toegang"
 
 #: .\events\templates\events\dossier_share.html:34
-#: .\events\views\dossiers.py:253
+#: .\events\views\dossiers.py:263
 msgid "Propriétaire"
 msgstr "Eigenaar"
 
@@ -1785,18 +1880,6 @@ msgstr "Bestaande links"
 msgid "Sans destinataire noté"
 msgstr "Geen ontvanger genoteerd"
 
-#: .\events\templates\events\dossier_share.html:153
-msgid "Révoqué"
-msgstr "Ingetrokken"
-
-#: .\events\templates\events\dossier_share.html:155
-msgid "Expiré"
-msgstr "Vervallen"
-
-#: .\events\templates\events\dossier_share.html:157
-msgid "Actif"
-msgstr "Actief"
-
 #: .\events\templates\events\dossier_share.html:171
 #, python-format
 msgid "Créé le %(quand)s"
@@ -1854,10 +1937,6 @@ msgstr "Verstuurde uitnodigingen"
 #: .\events\templates\events\dossier_share.html:261
 msgid "Annulée"
 msgstr "Geannuleerd"
-
-#: .\events\templates\events\dossier_share.html:263
-msgid "Expirée"
-msgstr "Vervallen"
 
 #: .\events\templates\events\dossier_share.html:269
 #, python-format
@@ -2134,10 +2213,6 @@ msgstr "Instellingen van het dossier"
 msgid "Général"
 msgstr "Algemeen"
 
-#: .\events\templates\events\parametres.html:29
-msgid "Nom du dossier"
-msgstr "Naam van het dossier"
-
 #: .\events\templates\events\parametres.html:50
 msgid ""
 "Elles se créent depuis le formulaire d'un évènement. Supprimer une étiquette "
@@ -2381,28 +2456,33 @@ msgstr "Onjuist wachtwoord."
 
 #: .\events\views\compte.py:60
 msgid "Ce compte possède un dossier : il ne peut pas être supprimé."
-msgstr "Dit account is eigenaar van een dossier: het kan niet worden verwijderd."
+msgstr ""
+"Dit account is eigenaar van een dossier: het kan niet worden verwijderd."
 
 #: .\events\views\compte.py:63
 msgid "Votre compte a été supprimé."
 msgstr "Uw account is verwijderd."
 
-#: .\events\views\dossiers.py:91
+#: .\events\views\dossiers.py:95
 msgid "Calendrier"
 msgstr "Kalender"
 
-#: .\events\views\dossiers.py:93
+#: .\events\views\dossiers.py:97
 msgid "Documents"
 msgstr "Stukken"
 
-#: .\events\views\dossiers.py:118
+#: .\events\views\dossiers.py:122
 #, python-format
 msgid "Semaine du %(date)s"
 msgstr "Week van %(date)s"
 
-#: .\events\views\dossiers.py:254
+#: .\events\views\dossiers.py:264
 msgid "Écriture"
 msgstr "Schrijven"
+
+#: .\events\views\dossiers.py:295
+msgid "Dossier créé."
+msgstr "Dossier aangemaakt."
 
 #: .\events\views\doublons.py:59
 #, python-format
@@ -2423,14 +2503,18 @@ msgstr "Gebeurtenis ‘%(titre)s’ verwijderd."
 msgid ""
 "Exchange a refusé l'alias %(alias)s : rien n'a été enregistré. Le détail est "
 "dans le journal du serveur."
-msgstr "Exchange heeft de alias %(alias)s geweigerd: er is niets opgeslagen. Het detail staat in het serverlogboek."
+msgstr ""
+"Exchange heeft de alias %(alias)s geweigerd: er is niets opgeslagen. Het "
+"detail staat in het serverlogboek."
 
 #: .\events\views\parametres.py:93
 #, python-format
 msgid ""
 "L'ancien alias %(alias)s n'a pas pu être retiré d'Exchange : retirez-le à la "
 "main. Ses courriels ne créent plus d'évènement."
-msgstr "De oude alias %(alias)s kon niet uit Exchange worden verwijderd: verwijder hem handmatig. E-mails naar die alias worden geen gebeurtenissen meer."
+msgstr ""
+"De oude alias %(alias)s kon niet uit Exchange worden verwijderd: verwijder "
+"hem handmatig. E-mails naar die alias worden geen gebeurtenissen meer."
 
 #: .\events\views\parametres.py:98
 #, python-format
@@ -2638,6 +2722,45 @@ msgstr "Terug naar de startpagina"
 msgid "Langue"
 msgstr "Taal"
 
+#: .\templates\account\email_confirm.html:12
+#: .\templates\account\email_confirm.html:16
+msgid "Confirm Email Address"
+msgstr "Bevestig e-mailadres"
+
+#: .\templates\account\email_confirm.html:22
+#, python-format
+msgid ""
+"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an email "
+"address for user %(user_display)s."
+msgstr ""
+"Bevestig dat <a href=\"mailto:%(email)s\">%(email)s</a> een e-mailadres is "
+"voor gebruiker %(user_display)s."
+
+#: .\templates\account\email_confirm.html:30
+msgid "Confirm"
+msgstr "Bevestigen"
+
+#: .\templates\account\email_confirm.html:36
+#, python-format
+msgid ""
+"Unable to confirm %(email)s because it is already confirmed by a different "
+"account."
+msgstr ""
+"Het e-mail adres %(email)s kon niet worden geverifieerd omdat het gekoppeld "
+"is aan een ander account."
+
+#: .\templates\account\email_confirm.html:40
+msgid ""
+"Ce lien de confirmation a expiré ou n'est pas valide. Connectez-vous : un "
+"nouveau lien vous sera envoyé."
+msgstr ""
+"Deze bevestigingslink is verlopen of ongeldig. Meld u aan: u ontvangt een "
+"nieuwe link."
+
+#: .\templates\account\email_confirm.html:41 .\templates\base.html:146
+msgid "Se connecter"
+msgstr "Aanmelden"
+
 #: .\templates\account\login.html:19 .\templates\account\login.html:59
 #: .\templates\account\login.html:110
 msgid "Sign In"
@@ -2691,10 +2814,6 @@ msgstr "Beheer"
 #: .\templates\base.html:138
 msgid "Se déconnecter"
 msgstr "Afmelden"
-
-#: .\templates\base.html:146
-msgid "Se connecter"
-msgstr "Aanmelden"
 
 #: .\templates\base.html:151
 msgid "Afficher le menu"
@@ -2831,63 +2950,15 @@ msgstr ""
 msgid ""
 "Vous pouvez aussi supprimer vous-même votre compte (menu du compte, "
 "« Supprimer mon compte »), sauf s'il possède un dossier."
-msgstr "U kunt uw account ook zelf verwijderen (accountmenu, « Mijn account verwijderen »), behalve als het eigenaar is van een dossier."
+msgstr ""
+"U kunt uw account ook zelf verwijderen (accountmenu, « Mijn account "
+"verwijderen »), behalve als het eigenaar is van een dossier."
 
 #: .\templates\confidentialite.html:71
 #, python-format
 msgid ""
 "Les invitations et les liens de partage qui ne servent plus (acceptés, "
 "annulés, révoqués ou expirés) sont effacés %(jours)s jours après leur fin."
-msgstr "Uitnodigingen en deellinks die niet meer dienen (aanvaard, geannuleerd, ingetrokken of verlopen) worden %(jours)s dagen na hun einde gewist."
-
-msgid "profil"
-msgstr "profiel"
-
-msgid "profils"
-msgstr "profielen"
-
-msgid "Nombre maximum de dossiers"
-msgstr "Maximumaantal dossiers"
-
-msgid "Nombre de dossiers dont ce compte peut être propriétaire. 0 : il ne peut pas en créer."
-msgstr "Aantal dossiers waarvan dit account eigenaar mag zijn. 0: het kan er geen aanmaken."
-
-msgid "La création de dossiers n'est pas activée pour votre compte."
-msgstr "Het aanmaken van dossiers is niet geactiveerd voor uw account."
-
-#, python-format
-msgid "Vous avez atteint le nombre maximum de dossiers (%(maximum)d)."
-msgstr "U hebt het maximumaantal dossiers bereikt (%(maximum)d)."
-
-msgid "Nouveau dossier"
-msgstr "Nieuw dossier"
-
-#, python-format
-msgid "%(n)s / %(maximum)s dossiers"
-msgstr "%(n)s / %(maximum)s dossiers"
-
-msgid "Créer le dossier"
-msgstr "Dossier aanmaken"
-
-msgid "Ajouter un dossier"
-msgstr "Dossier toevoegen"
-
-msgid "Dossier créé."
-msgstr "Dossier aangemaakt."
-
-msgid "Ce lien de confirmation a expiré ou n'est pas valide. Connectez-vous : un nouveau lien vous sera envoyé."
-msgstr "Deze bevestigingslink is verlopen of ongeldig. Meld u aan: u ontvangt een nieuwe link."
-
-msgid "Confirm Email Address"
-msgstr "Bevestig e-mailadres"
-
-msgid "Confirm"
-msgstr "Bevestigen"
-
-#, python-format
-msgid "Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an email address for user %(user_display)s."
-msgstr "Bevestig dat <a href=\"mailto:%(email)s\">%(email)s</a> een e-mailadres is voor gebruiker %(user_display)s."
-
-#, python-format
-msgid "Unable to confirm %(email)s because it is already confirmed by a different account."
-msgstr "Het e-mail adres %(email)s kon niet worden geverifieerd omdat het gekoppeld is aan een ander account."
+msgstr ""
+"Uitnodigingen en deellinks die niet meer dienen (aanvaard, geannuleerd, "
+"ingetrokken of verlopen) worden %(jours)s dagen na hun einde gewist."
