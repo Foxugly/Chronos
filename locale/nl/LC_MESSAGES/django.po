@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 22:09+0100\n"
+"POT-Creation-Date: 2026-11-17 22:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,57 +18,57 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\events\admin.py:38
+#: .\events\admin.py:36
 msgid "pièce liée"
 msgstr "gekoppeld stuk"
 
-#: .\events\admin.py:39
+#: .\events\admin.py:37
 msgid "pièces liées"
 msgstr "gekoppelde stukken"
 
-#: .\events\admin.py:246 .\events\models.py:503 .\events\models.py:962
+#: .\events\admin.py:244 .\events\models.py:503 .\events\models.py:962
 msgid "évènements"
 msgstr "gebeurtenissen"
 
-#: .\events\admin.py:390 .\events\admin.py:451
+#: .\events\admin.py:389 .\events\admin.py:450
 msgid "statut"
 msgstr "status"
 
-#: .\events\admin.py:393 .\events\templates\events\dossier_share.html:153
+#: .\events\admin.py:392 .\events\templates\events\dossier_share.html:159
 msgid "Révoqué"
 msgstr "Ingetrokken"
 
-#: .\events\admin.py:395 .\events\templates\events\dossier_share.html:155
+#: .\events\admin.py:394 .\events\templates\events\dossier_share.html:161
 msgid "Expiré"
 msgstr "Vervallen"
 
-#: .\events\admin.py:396 .\events\templates\events\dossier_share.html:157
+#: .\events\admin.py:395 .\events\templates\events\dossier_share.html:163
 msgid "Actif"
 msgstr "Actief"
 
-#: .\events\admin.py:401
+#: .\events\admin.py:400
 msgid "Révoquer les liens sélectionnés"
 msgstr "Geselecteerde links intrekken"
 
-#: .\events\admin.py:415
+#: .\events\admin.py:414
 #, python-format
 msgid "%(n)s lien(s) révoqué(s)."
 msgstr "%(n)s link(s) ingetrokken."
 
-#: .\events\admin.py:420
+#: .\events\admin.py:419
 msgid "Remettre en service les liens révoqués sélectionnés"
 msgstr "Geselecteerde ingetrokken links opnieuw activeren"
 
-#: .\events\admin.py:434
+#: .\events\admin.py:433
 #, python-format
 msgid "%(n)s lien(s) remis en service."
 msgstr "%(n)s link(s) opnieuw geactiveerd."
 
-#: .\events\admin.py:454 .\events\templates\events\dossier_share.html:263
+#: .\events\admin.py:453 .\events\templates\events\dossier_share.html:314
 msgid "Expirée"
 msgstr "Vervallen"
 
-#: .\events\admin.py:467 .\events\models.py:1004
+#: .\events\admin.py:466 .\events\models.py:1004
 msgid "profil"
 msgstr "profiel"
 
@@ -533,18 +533,22 @@ msgid "Une invitation est déjà en attente pour cette adresse."
 msgstr "Er staat al een uitnodiging open voor dit adres."
 
 #: .\events\forms.py:334
+#: .\events\templates\events\_lien_partage_formulaire.html:31
 msgid "7 jours"
 msgstr "7 dagen"
 
 #: .\events\forms.py:335
+#: .\events\templates\events\_lien_partage_formulaire.html:32
 msgid "30 jours"
 msgstr "30 dagen"
 
 #: .\events\forms.py:336
+#: .\events\templates\events\_lien_partage_formulaire.html:33
 msgid "90 jours"
 msgstr "90 dagen"
 
 #: .\events\forms.py:337
+#: .\events\templates\events\_lien_partage_formulaire.html:34
 msgid "Sans expiration"
 msgstr "Zonder vervaldatum"
 
@@ -560,12 +564,24 @@ msgstr "Meester Dupont, expert, Test Aankoop…"
 msgid "Destinataire"
 msgstr "Ontvanger"
 
-#: .\events\forms.py:416
+#: .\events\forms.py:386
+msgid "Valable jusqu'au"
+msgstr "Geldig tot"
+
+#: .\events\forms.py:387
+msgid "Vide : sans expiration."
+msgstr "Leeg: zonder vervaldatum."
+
+#: .\events\forms.py:409
+msgid "Choisissez aujourd'hui ou un jour à venir."
+msgstr "Kies vandaag of een latere dag."
+
+#: .\events\forms.py:468
 #, python-format
 msgid "L'alias doit se terminer par %(suffixe)s."
 msgstr "De alias moet eindigen op %(suffixe)s."
 
-#: .\events\forms.py:419
+#: .\events\forms.py:471
 msgid ""
 "Le début de l'alias ne peut contenir que des lettres minuscules sans accent, "
 "des chiffres et des tirets (64 caractères au plus)."
@@ -573,7 +589,7 @@ msgstr ""
 "Het begin van de alias mag alleen kleine letters zonder accent, cijfers en "
 "koppeltekens bevatten (hoogstens 64 tekens)."
 
-#: .\events\forms.py:429
+#: .\events\forms.py:481
 msgid ""
 "C'est l'adresse de la boîte d'import elle-même : choisissez un alias propre "
 "à ce dossier."
@@ -581,11 +597,11 @@ msgstr ""
 "Dit is het adres van de importmailbox zelf: kies een alias die eigen is aan "
 "dit dossier."
 
-#: .\events\forms.py:432
+#: .\events\forms.py:484
 msgid "Cet alias est déjà utilisé par un autre dossier."
 msgstr "Deze alias wordt al door een ander dossier gebruikt."
 
-#: .\events\forms.py:447
+#: .\events\forms.py:499
 msgid "Le nom du dossier ne peut pas être vide."
 msgstr "De naam van het dossier mag niet leeg zijn."
 
@@ -624,8 +640,8 @@ msgstr "dossiers"
 msgid "Lecture"
 msgstr "Lezen"
 
-#: .\events\models.py:91 .\events\templates\events\dossier_share.html:46
-#: .\events\templates\events\dossier_share.html:342
+#: .\events\models.py:91 .\events\templates\events\dossier_share.html:52
+#: .\events\templates\events\dossier_share.html:393
 #: .\events\templates\events\invitation_accept.html:36
 msgid "Lecture et écriture"
 msgstr "Lezen en schrijven"
@@ -638,7 +654,8 @@ msgstr "Gekozen account"
 msgid "Invitation par e-mail"
 msgstr "Uitnodiging per e-mail"
 
-#: .\events\models.py:96
+#: .\events\models.py:96 .\events\templates\events\lien_partage.html:9
+#: .\events\templates\events\lien_partage.html:17
 msgid "Lien de partage"
 msgstr "Deellink"
 
@@ -777,11 +794,11 @@ msgstr "document"
 msgid "documents"
 msgstr "documenten"
 
-#: .\events\models.py:598 .\events\templates\events\dossier_share.html:265
+#: .\events\models.py:598 .\events\templates\events\dossier_share.html:316
 msgid "En attente"
 msgstr "In afwachting"
 
-#: .\events\models.py:599 .\events\templates\events\dossier_share.html:259
+#: .\events\models.py:599 .\events\templates\events\dossier_share.html:310
 msgid "Acceptée"
 msgstr "Aanvaard"
 
@@ -1229,7 +1246,9 @@ msgstr ""
 
 #: .\events\templates\events\_confirmer_suppression.html:53
 #: .\events\templates\events\_event_form.html:232
-#: .\events\templates\events\dossier_share.html:285
+#: .\events\templates\events\_lien_partage_formulaire.html:39
+#: .\events\templates\events\_lien_partage_formulaire.html:41
+#: .\events\templates\events\dossier_share.html:336
 msgid "Annuler"
 msgstr "Annuleren"
 
@@ -1255,6 +1274,7 @@ msgid "Afficher en pleine page"
 msgstr "Op volledige pagina tonen"
 
 #: .\events\templates\events\_detail_evenement.html:47
+#: .\events\templates\events\dossier_share.html:191
 #: .\events\templates\events\vue_liste.html:155
 msgid "Modifier"
 msgstr "Bewerken"
@@ -1547,6 +1567,7 @@ msgstr "%(extensions)s — maximaal %(taille)s MB per bestand."
 
 #: .\events\templates\events\_event_form.html:233
 #: .\events\templates\events\_expediteurs.html:40
+#: .\events\templates\events\_lien_partage_formulaire.html:44
 #: .\events\templates\events\parametres.html:38
 msgid "Enregistrer"
 msgstr "Opslaan"
@@ -1645,7 +1666,32 @@ msgstr "Het formulier kon niet worden geladen."
 msgid "Modifier l'évènement"
 msgstr "Gebeurtenis bewerken"
 
-#: .\events\templates\events\_modal_evenement.html:25 .\templates\base.html:164
+#: .\events\templates\events\_lien_partage_adresse.html:7
+#: .\events\templates\events\dossier_share.html:104
+msgid "Lien de consultation"
+msgstr "Raadplegingslink"
+
+#: .\events\templates\events\_lien_partage_adresse.html:10
+#: .\events\templates\events\dossier_share.html:107
+msgid "Copier le lien"
+msgstr "Link kopiëren"
+
+#: .\events\templates\events\_lien_partage_adresse.html:14
+#, python-format
+msgid "Valable jusqu'au %(quand)s."
+msgstr "Geldig tot %(quand)s."
+
+#: .\events\templates\events\_lien_partage_adresse.html:16
+msgid "Sans expiration."
+msgstr "Zonder vervaldatum."
+
+#: .\events\templates\events\_lien_partage_formulaire.html:30
+msgid "Raccourcis de validité"
+msgstr "Snelkeuze geldigheid"
+
+#: .\events\templates\events\_modal_evenement.html:25
+#: .\events\templates\events\dossier_share.html:224
+#: .\events\templates\events\dossier_share.html:241 .\templates\base.html:164
 msgid "Fermer"
 msgstr "Sluiten"
 
@@ -1720,7 +1766,7 @@ msgid "Supprimer définitivement mon compte"
 msgstr "Mijn account definitief verwijderen"
 
 #: .\events\templates\events\detail_evenement.html:23
-#: .\events\templates\events\dossier_share.html:21
+#: .\events\templates\events\dossier_share.html:27
 #: .\events\templates\events\doublons.html:18
 #: .\events\templates\events\expediteurs.html:19
 #: .\events\templates\events\journal.html:31
@@ -1794,58 +1840,58 @@ msgstr ""
 msgid "Partage — %(nom)s"
 msgstr "Delen — %(nom)s"
 
-#: .\events\templates\events\dossier_share.html:22
+#: .\events\templates\events\dossier_share.html:28
 msgid "Partage du dossier"
 msgstr "Dossier delen"
 
-#: .\events\templates\events\dossier_share.html:28
+#: .\events\templates\events\dossier_share.html:34
 msgid "Personnes ayant accès"
 msgstr "Personen met toegang"
 
-#: .\events\templates\events\dossier_share.html:34
+#: .\events\templates\events\dossier_share.html:40
 #: .\events\views\dossiers.py:263
 msgid "Propriétaire"
 msgstr "Eigenaar"
 
-#: .\events\templates\events\dossier_share.html:37
+#: .\events\templates\events\dossier_share.html:43
 msgid "Ne peut pas être retiré"
 msgstr "Kan niet worden verwijderd"
 
-#: .\events\templates\events\dossier_share.html:48
-#: .\events\templates\events\dossier_share.html:334
+#: .\events\templates\events\dossier_share.html:54
+#: .\events\templates\events\dossier_share.html:385
 #: .\events\templates\events\invitation_accept.html:45
 msgid "Lecture seule"
 msgstr "Alleen lezen"
 
-#: .\events\templates\events\dossier_share.html:51
+#: .\events\templates\events\dossier_share.html:57
 #, python-format
 msgid "Accordé le %(quand)s"
 msgstr "Toegekend op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:52
-#: .\events\templates\events\dossier_share.html:270
+#: .\events\templates\events\dossier_share.html:58
+#: .\events\templates\events\dossier_share.html:321
 #: .\events\templates\events\journal.html:63
 #, python-format
 msgid "par %(nom)s"
 msgstr "door %(nom)s"
 
-#: .\events\templates\events\dossier_share.html:60
+#: .\events\templates\events\dossier_share.html:66
 msgid "Retirer l'accès"
 msgstr "Toegang intrekken"
 
-#: .\events\templates\events\dossier_share.html:65
+#: .\events\templates\events\dossier_share.html:71
 msgid "Personne d'autre n'a accès à ce dossier."
 msgstr "Niemand anders heeft toegang tot dit dossier."
 
-#: .\events\templates\events\dossier_share.html:74
+#: .\events\templates\events\dossier_share.html:80
 msgid "Lien de consultation, sans compte"
 msgstr "Link om te raadplegen, zonder account"
 
-#: .\events\templates\events\dossier_share.html:77
+#: .\events\templates\events\dossier_share.html:83
 msgid "C'est le seul accès anonyme de l'application."
 msgstr "Dit is de enige anonieme toegang van de toepassing."
 
-#: .\events\templates\events\dossier_share.html:78
+#: .\events\templates\events\dossier_share.html:84
 msgid ""
 "Toute personne qui détient le lien consulte le dossier, sans compte et sans "
 "que vous sachiez qui elle est. Un lien se retransfère, se copie, se retrouve "
@@ -1859,11 +1905,11 @@ msgstr ""
 "— lezen, of lezen en schrijven — en u kunt hem op elk moment intrekken, maar "
 "wat al gelezen is, kunt u niet terugnemen."
 
-#: .\events\templates\events\dossier_share.html:94
+#: .\events\templates\events\dossier_share.html:100
 msgid "Votre lien est prêt."
 msgstr "Uw link is klaar."
 
-#: .\events\templates\events\dossier_share.html:95
+#: .\events\templates\events\dossier_share.html:101
 msgid ""
 "Copiez-le et transmettez-le à son destinataire (par courriel, par exemple). "
 "Vous le retrouverez aussi plus bas, dans « Liens existants »."
@@ -1871,63 +1917,66 @@ msgstr ""
 "Kopieer hem en bezorg hem aan de ontvanger (bijvoorbeeld per e-mail). U "
 "vindt hem ook hieronder terug, bij ‘Bestaande links’."
 
-#: .\events\templates\events\dossier_share.html:98
-#: .\events\templates\events\dossier_share.html:164
-msgid "Lien de consultation"
-msgstr "Raadplegingslink"
-
-#: .\events\templates\events\dossier_share.html:101
-#: .\events\templates\events\dossier_share.html:167
-msgid "Copier le lien"
-msgstr "Link kopiëren"
-
-#: .\events\templates\events\dossier_share.html:135
+#: .\events\templates\events\dossier_share.html:141
 msgid "Créer un lien"
 msgstr "Link aanmaken"
 
-#: .\events\templates\events\dossier_share.html:143
+#: .\events\templates\events\dossier_share.html:149
 msgid "Liens existants"
 msgstr "Bestaande links"
 
-#: .\events\templates\events\dossier_share.html:150
+#: .\events\templates\events\dossier_share.html:156
+#: .\events\templates\events\dossier_share.html:215
+#: .\events\templates\events\lien_partage.html:22
 msgid "Sans destinataire noté"
 msgstr "Geen ontvanger genoteerd"
 
-#: .\events\templates\events\dossier_share.html:171
+#: .\events\templates\events\dossier_share.html:168
 #, python-format
 msgid "Créé le %(quand)s"
 msgstr "Aangemaakt op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:173
+#: .\events\templates\events\dossier_share.html:170
 #, python-format
 msgid "expire le %(quand)s"
 msgstr "vervalt op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:175
+#: .\events\templates\events\dossier_share.html:172
 msgid "sans expiration"
 msgstr "zonder vervaldatum"
 
-#: .\events\templates\events\dossier_share.html:177
+#: .\events\templates\events\dossier_share.html:174
 #, python-format
 msgid "consulté %(n)s fois"
 msgid_plural "consulté %(n)s fois"
 msgstr[0] "%(n)s keer geraadpleegd"
 msgstr[1] "%(n)s keer geraadpleegd"
 
-#: .\events\templates\events\dossier_share.html:179
+#: .\events\templates\events\dossier_share.html:176
 #, python-format
 msgid "dernier accès le %(quand)s"
 msgstr "laatste toegang op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:189
+#: .\events\templates\events\dossier_share.html:185
+#: .\events\templates\events\vue_liste.html:151
+msgid "Voir"
+msgstr "Bekijken"
+
+#: .\events\templates\events\dossier_share.html:200
 msgid "Révoquer"
 msgstr "Intrekken"
 
-#: .\events\templates\events\dossier_share.html:203
+#: .\events\templates\events\dossier_share.html:239
+#: .\events\templates\events\lien_partage_modifier.html:9
+#: .\events\templates\events\lien_partage_modifier.html:23
+msgid "Modifier le lien de partage"
+msgstr "Deellink wijzigen"
+
+#: .\events\templates\events\dossier_share.html:254
 msgid "Inviter par courriel"
 msgstr "Uitnodigen per e-mail"
 
-#: .\events\templates\events\dossier_share.html:206
+#: .\events\templates\events\dossier_share.html:257
 msgid ""
 "L'invitation part par courriel et contient un lien. <strong>Qui détient ce "
 "lien peut s'en servir</strong>, avec le compte sous lequel il est connecté : "
@@ -1939,41 +1988,41 @@ msgstr ""
 "aangemeld: een e-mail kan worden doorgestuurd. Voor iemand van wie u het "
 "account al kent, is de rechtstreekse toekenning hieronder veiliger."
 
-#: .\events\templates\events\dossier_share.html:245
+#: .\events\templates\events\dossier_share.html:296
 msgid "Inviter"
 msgstr "Uitnodigen"
 
-#: .\events\templates\events\dossier_share.html:252
+#: .\events\templates\events\dossier_share.html:303
 msgid "Invitations émises"
 msgstr "Verstuurde uitnodigingen"
 
-#: .\events\templates\events\dossier_share.html:261
+#: .\events\templates\events\dossier_share.html:312
 msgid "Annulée"
 msgstr "Geannuleerd"
 
-#: .\events\templates\events\dossier_share.html:269
+#: .\events\templates\events\dossier_share.html:320
 #, python-format
 msgid "Acceptée le %(quand)s"
 msgstr "Aanvaard op %(quand)s"
 
-#: .\events\templates\events\dossier_share.html:272
+#: .\events\templates\events\dossier_share.html:323
 #, python-format
 msgid "Émise le %(emise)s, expire le %(expire)s"
 msgstr "Verstuurd op %(emise)s, vervalt op %(expire)s"
 
-#: .\events\templates\events\dossier_share.html:298
+#: .\events\templates\events\dossier_share.html:349
 msgid "Donner accès à un compte existant"
 msgstr "Toegang geven aan een bestaand account"
 
-#: .\events\templates\events\dossier_share.html:324
+#: .\events\templates\events\dossier_share.html:375
 msgid "Accorder"
 msgstr "Toekennen"
 
-#: .\events\templates\events\dossier_share.html:331
+#: .\events\templates\events\dossier_share.html:382
 msgid "Ce que chaque droit permet"
 msgstr "Wat elk recht toelaat"
 
-#: .\events\templates\events\dossier_share.html:335
+#: .\events\templates\events\dossier_share.html:386
 msgid ""
 "consulter la chronologie, les évènements et les pièces. Aucune modification, "
 "aucun retrait, aucun ajout."
@@ -1981,7 +2030,7 @@ msgstr ""
 "de chronologie, de gebeurtenissen en de stukken raadplegen. Geen wijziging, "
 "geen verwijdering, geen toevoeging."
 
-#: .\events\templates\events\dossier_share.html:343
+#: .\events\templates\events\dossier_share.html:394
 msgid ""
 "tout ce qui précède, plus créer et modifier des évènements, ajouter des "
 "pièces et en retirer. Ne permet pas de partager le dossier : vous seul "
@@ -1991,7 +2040,7 @@ msgstr ""
 "en verwijderen. Het dossier delen kan niet: alleen u beslist wie er toegang "
 "toe heeft."
 
-#: .\events\templates\events\dossier_share.html:353
+#: .\events\templates\events\dossier_share.html:404
 msgid ""
 "Tous les comptes existants ont déjà accès à ce dossier. Les comptes se "
 "créent dans l'administration."
@@ -2175,6 +2224,11 @@ msgstr "Waarde"
 msgid "contenu déjà présent dans le dossier : rattaché, pas stocké deux fois"
 msgstr ""
 "inhoud al aanwezig in het dossier: gekoppeld, niet twee keer opgeslagen"
+
+#: .\events\templates\events\lien_partage.html:16
+#: .\events\templates\events\lien_partage_modifier.html:22
+msgid "Retour au partage"
+msgstr "Terug naar delen"
 
 #: .\events\templates\events\manquants.html:10
 #, python-format
@@ -2425,10 +2479,6 @@ msgstr "geen gebeurtenis"
 msgid "Ce dossier ne contient encore aucune pièce."
 msgstr "Dit dossier bevat nog geen enkel stuk."
 
-#: .\events\templates\events\vue_liste.html:151
-msgid "Voir"
-msgstr "Bekijken"
-
 #: .\events\templates\events\vue_liste.html:167
 msgid "Ce dossier ne contient encore aucun évènement."
 msgstr "Dit dossier bevat nog geen gebeurtenissen."
@@ -2621,22 +2671,22 @@ msgstr "Label hernoemd."
 msgid "Couleur invalide pour %(nom)s."
 msgstr "Ongeldige kleur voor %(nom)s."
 
-#: .\events\views\partage.py:43
+#: .\events\views\partage.py:44
 #, python-format
 msgid "Accès accordé à %(compte)s (%(droit)s)."
 msgstr "Toegang toegekend aan %(compte)s (%(droit)s)."
 
-#: .\events\views\partage.py:102
+#: .\events\views\partage.py:108
 #, python-format
 msgid "Accès retiré à %(compte)s."
 msgstr "Toegang ingetrokken voor %(compte)s."
 
-#: .\events\views\partage.py:129
+#: .\events\views\partage.py:135
 #, python-format
 msgid "Accès au dossier « %(dossier)s »"
 msgstr "Toegang tot het dossier ‘%(dossier)s’"
 
-#: .\events\views\partage.py:133
+#: .\events\views\partage.py:139
 #, python-format
 msgid ""
 "%(auteur)s vous donne accès au dossier « %(dossier)s ».\n"
@@ -2657,22 +2707,26 @@ msgstr ""
 "\n"
 "Deze link vervalt op %(date)s. Hij kan maar één keer worden gebruikt.\n"
 
-#: .\events\views\partage.py:173
+#: .\events\views\partage.py:179
 #, python-format
 msgid "Invitation envoyée à %(email)s. Elle expire le %(date)s."
 msgstr "Uitnodiging verstuurd naar %(email)s. Ze vervalt op %(date)s."
 
-#: .\events\views\partage.py:201
+#: .\events\views\partage.py:207
 #, python-format
 msgid "Invitation annulée pour %(email)s."
 msgstr "Uitnodiging geannuleerd voor %(email)s."
 
-#: .\events\views\partage.py:241
+#: .\events\views\partage.py:247
 #, python-format
 msgid "Vous avez désormais accès au dossier « %(dossier)s »."
 msgstr "U hebt nu toegang tot het dossier ‘%(dossier)s’."
 
-#: .\events\views\partage.py:301
+#: .\events\views\partage.py:337
+msgid "Lien modifié."
+msgstr "Link gewijzigd."
+
+#: .\events\views\partage.py:355
 msgid "Lien révoqué. Il ne donne plus accès à rien."
 msgstr "Link ingetrokken. Hij geeft geen toegang meer."
 

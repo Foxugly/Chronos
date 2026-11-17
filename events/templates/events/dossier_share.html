@@ -15,6 +15,12 @@ seul endroit où cela se décide.
 
 {% block dossier_courant %}{{ dossier.name }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css"
+      integrity="sha384-RkASv+6KfBMW9eknReJIJ6b3UnjKOKC5bOUaNgIY778NFbQ8MtWq9Lr/khUgqtTt"
+      crossorigin="anonymous">
+{% endblock %}
+
 {% block content %}
     <div class="mx-auto" style="max-width: 900px;">
         <div class="page-header">
@@ -142,9 +148,9 @@ seul endroit où cela se décide.
                     <hr class="my-4">
                     <h3 class="h6 mb-3">{% translate "Liens existants" %}</h3>
                     <ul class="list-group list-group-flush mb-0">
-                        {% for lien in share_links %}
+                        {% for lien, form_lien in share_links %}
                             <li class="list-group-item px-0">
-                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                                     <div class="flex-grow-1">
                                         <span>
                                             {% translate "Sans destinataire noté" as sans_destinataire %}
@@ -156,17 +162,8 @@ seul endroit où cela se décide.
                                             {% else %}
                                                 <span class="badge text-bg-warning ms-2">{% translate "Actif" %}</span>
                                             {% endif %}
+                                            <span class="badge text-bg-light border ms-1">{{ lien.get_role_display }}</span>
                                         </span>
-                                        {% if lien.is_active %}
-                                            {% url 'share_timeline' lien.token as chemin_du_lien %}
-                                            <div class="input-group input-group-sm mt-2">
-                                                <input type="text" readonly class="form-control font-monospace"
-                                                       aria-label="{% translate "Lien de consultation" %}"
-                                                       value="{{ request.scheme }}://{{ request.get_host }}{{ chemin_du_lien }}">
-                                                <button type="button" class="btn btn-outline-secondary" data-copier="{{ request.scheme }}://{{ request.get_host }}{{ chemin_du_lien }}"
-                                                        title="{% translate "Copier le lien" %}" aria-label="{% translate "Copier le lien" %}"><i class="bi bi-clipboard" aria-hidden="true"></i></button>
-                                            </div>
-                                        {% endif %}
                                         <span class="d-block text-body-secondary small mt-1">
                                             {% blocktranslate with quand=lien.created_at|date:"SHORT_DATE_FORMAT" %}Créé le {{ quand }}{% endblocktranslate %}
                                             {% if lien.expires_at %}
@@ -180,16 +177,31 @@ seul endroit où cela se décide.
                                             {% endif %}
                                         </span>
                                     </div>
-                                    {% if lien.is_active %}
-                                        <form method="post"
-                                              action="{% url 'share_link_revoke' dossier.pk lien.pk %}"
-                                              class="m-0">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                <i class="bi bi-x-circle me-1" aria-hidden="true"></i>{% translate "Révoquer" %}
-                                            </button>
-                                        </form>
-                                    {% endif %}
+                                    {# Sans JavaScript, « Voir » et « Modifier » ouvrent une page ; avec, une popup. #}
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        {% if lien.is_active %}
+                                            <a class="btn btn-sm btn-outline-primary" href="{% url 'share_link_detail' dossier.pk lien.pk %}"
+                                               data-bs-toggle="modal" data-bs-target="#lien-voir-{{ lien.pk }}">
+                                                <i class="bi bi-eye me-1" aria-hidden="true"></i>{% translate "Voir" %}
+                                            </a>
+                                        {% endif %}
+                                        {% if form_lien %}
+                                            <a class="btn btn-sm btn-outline-info" href="{% url 'share_link_edit' dossier.pk lien.pk %}"
+                                               data-bs-toggle="modal" data-bs-target="#lien-modifier-{{ lien.pk }}">
+                                                <i class="bi bi-pencil me-1" aria-hidden="true"></i>{% translate "Modifier" %}
+                                            </a>
+                                        {% endif %}
+                                        {% if lien.is_active %}
+                                            <form method="post"
+                                                  action="{% url 'share_link_revoke' dossier.pk lien.pk %}"
+                                                  class="m-0">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-x-circle me-1" aria-hidden="true"></i>{% translate "Révoquer" %}
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </li>
                         {% endfor %}
@@ -197,6 +209,45 @@ seul endroit où cela se décide.
                 {% endif %}
             </div>
         </div>
+
+        {# Les popups « Voir » et « Modifier », une paire par lien, hors de la liste. #}
+        {% for lien, form_lien in share_links %}
+            {% translate "Sans destinataire noté" as sans_destinataire %}
+            {% if lien.is_active %}
+                <div class="modal fade" id="lien-voir-{{ lien.pk }}" tabindex="-1" aria-labelledby="lien-voir-{{ lien.pk }}-titre" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h2 class="modal-title h5" id="lien-voir-{{ lien.pk }}-titre">
+                                    <i class="bi bi-link-45deg me-1" aria-hidden="true"></i>{{ lien.label|default:sans_destinataire }}
+                                </h2>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% translate "Fermer" %}"></button>
+                            </div>
+                            <div class="modal-body">
+                                {% include "events/_lien_partage_adresse.html" %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            {% if form_lien %}
+                <div class="modal fade" id="lien-modifier-{{ lien.pk }}" tabindex="-1" aria-labelledby="lien-modifier-{{ lien.pk }}-titre" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h2 class="modal-title h5" id="lien-modifier-{{ lien.pk }}-titre">
+                                    <i class="bi bi-pencil me-1" aria-hidden="true"></i>{% translate "Modifier le lien de partage" %}
+                                </h2>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% translate "Fermer" %}"></button>
+                            </div>
+                            <div class="modal-body">
+                                {% include "events/_lien_partage_formulaire.html" with form=form_lien dans_popup=True %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
 
         <div class="card shadow-sm mb-4">
             <div class="card-body">
@@ -361,3 +412,5 @@ seul endroit où cela se décide.
 
     </div>
 {% endblock %}
+
+{% block extra_js %}{% include "events/_lien_partage_js.html" %}{% endblock %}

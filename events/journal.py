@@ -5,6 +5,8 @@ la même transaction que le geste quand il y en a une : un changement sans
 trace, ou une trace sans changement, ne doivent pas pouvoir exister.
 """
 
+import datetime
+
 from .models import Journal
 
 #: Les champs d'un évènement dont on garde l'avant et l'après.
@@ -84,3 +86,27 @@ def consigner_pieces(event, pieces, source=None, **contexte):
             },
             **contexte,
         )
+
+
+def _a_la_seconde(moment):
+    """Une date en UTC et à la seconde : la base la rend en UTC, le formulaire
+    de l'admin à l'heure locale et sans microsecondes — même instant."""
+    if moment is None:
+        return None
+    return moment.astimezone(datetime.UTC).isoformat(timespec="seconds")
+
+
+def etat_du_lien(lien):
+    """Les champs modifiables d'un lien (admin, page de partage), en valeurs
+    simples, pour un journal « avant → après »."""
+    return {
+        "label": lien.label,
+        "role": lien.role,
+        "expires_at": _a_la_seconde(lien.expires_at),
+        "revoked_at": _a_la_seconde(lien.revoked_at),
+    }
+
+
+def changements(avant, apres):
+    """`{champ: [avant, après]}` pour deux états de même forme."""
+    return {champ: [avant[champ], apres[champ]] for champ in avant if avant[champ] != apres[champ]}

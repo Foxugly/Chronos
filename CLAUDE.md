@@ -149,6 +149,18 @@ number of `DossierAccess` rows granting another user `Role.READ` or `Role.WRITE`
    refused form re-renders with its errors (400), never silently — until 2026-10-11 the page did
    not render the required `role` field, so every click was refused without a word. A test now
    submits exactly what the page renders.
+   **Seeing and editing a link again** (2026-11-17): the list no longer prints each address; every
+   active link has « Voir » (popup: address + copy, `_lien_partage_adresse.html`) and every
+   non-revoked link « Modifier » (popup: label, role, validity, `_lien_partage_formulaire.html` +
+   `_lien_partage_js.html`). Both buttons are `<a href>` with `data-bs-toggle="modal"`: without
+   JavaScript they open `share_link_detail` / `share_link_edit` pages (owner only, 404 otherwise;
+   revoked → 404). Validity is a **day** (`ShareLinkEditForm.expire_le`, valid until 23:59:59
+   Brussels; empty = unlimited; shortcuts 7/30/90 days fill it). Keeping the shown day keeps the
+   stored expiry to the second (no false journal entry), and an expired link's own past day is
+   accepted so it can be renamed — only a *new* past day is refused. **No flatpickr `minDate`**:
+   it silently blanked an expired link's past date, which then read as « sans expiration ».
+   Journaled `LIEN_MODIFIE` (not `via_admin`) through `journal.etat_du_lien` / `changements`,
+   shared with the admin.
    **In the admin** (2026-11-17) share links and invitations are listed (all of them, expired and
    revoked included, with a status column) **to superusers only** (`SuperutilisateurSeulMixin`:
    a staff account granted the Django permissions still gets 403); the **token is never shown**, nothing is created or

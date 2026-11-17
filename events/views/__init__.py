@@ -25,6 +25,8 @@ from .partage import (
     invitation_accept,
     invitation_revoke,
     share_link_create,
+    share_link_detail,
+    share_link_edit,
     share_link_revoke,
 )
 from .pieces import document_detach, document_download
@@ -57,6 +59,8 @@ __all__ = [
     "invitation_accept",
     "invitation_revoke",
     "share_link_create",
+    "share_link_detail",
+    "share_link_edit",
     "share_link_revoke",
     "timeline",
 ]
