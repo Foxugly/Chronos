@@ -238,6 +238,13 @@ older allauth the login page would redirect to itself.
   dossier » on the home page, disabled at the limit) creates through `creer_un_dossier`, which re-checks
   under a row lock — any future creation path (API, copy, import) must go through it too. The admin is
   exempt. Migration `0025` set 5 for `rvilain@foxugly.com`.
+- **A login form sent after logging in is not an error** (2026-11-17, `config/csrf.py`,
+  `CSRF_FAILURE_VIEW`): logging in rotates the CSRF token, so a second submit (double click,
+  password manager) or a login tab left open elsewhere came back 403 although the user was
+  logged in (prod 16 and 17/11). A CSRF failure on a POST to the login page by an
+  **authenticated** user now redirects to a same-site `next` (else `/`); everywhere else, and for
+  anonymous users, Django's 403 stands. The login form also submits once (`data-un-seul-envoi`,
+  re-armed on `pageshow`).
 - allauth does **not** use `templates/base.html` — its templates go through its self-contained
   `allauth/layouts/*` chain. Changing the project base will not restyle the login pages.
 

@@ -65,7 +65,7 @@ reprendre le gabarit d'allauth comme base.
                 </div>
             {% endif %}
 
-            <form method="post" action="{% url 'account_login' %}" novalidate>
+            <form method="post" action="{% url 'account_login' %}" novalidate data-un-seul-envoi>
                 {% csrf_token %}
                 {{ redirect_field }}
 
@@ -123,6 +123,25 @@ reprendre le gabarit d'allauth comme base.
     <script nonce="{{ csp_nonce }}">
     "use strict";
     // L'œil affiche ou masque le mot de passe ; sans JavaScript, le champ reste masqué.
+    // Un seul envoi : la connexion renouvelle le jeton CSRF, un second envoi
+    // (double clic, gestionnaire de mots de passe) partirait avec l'ancien et
+    // finirait en 403 alors que la personne est connectée. Le bouton se
+    // réactive au retour arrière (cache de page du navigateur).
+    document.querySelectorAll("[data-un-seul-envoi]").forEach(function (formulaire) {
+        const bouton = formulaire.querySelector('button[type="submit"]');
+        formulaire.addEventListener("submit", function (evenement) {
+            if (formulaire.dataset.envoye) {
+                evenement.preventDefault();
+                return;
+            }
+            formulaire.dataset.envoye = "1";
+            if (bouton) { setTimeout(function () { bouton.disabled = true; }, 0); }
+        });
+        window.addEventListener("pageshow", function () {
+            delete formulaire.dataset.envoye;
+            if (bouton) { bouton.disabled = false; }
+        });
+    });
     document.querySelectorAll("[data-afficher-mot-de-passe]").forEach(function (bouton) {
         const champ = document.getElementById(bouton.getAttribute("aria-controls"));
         const icone = bouton.querySelector("i");
