@@ -320,6 +320,9 @@ RETENTION_PARTAGES_JOURS = int(os.environ.get("RETENTION_PARTAGES_JOURS", "90"))
 
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
+# Un formulaire de connexion renvoyé après la connexion (jeton CSRF renouvelé)
+# ramène où l'on allait au lieu d'un 403 trompeur : `config/csrf.py`.
+CSRF_FAILURE_VIEW = "config.csrf.echec_csrf"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 
