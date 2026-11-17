@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 22:32+0100\n"
+"POT-Creation-Date: 2026-11-17 23:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,49 +26,49 @@ msgstr "linked document"
 msgid "pièces liées"
 msgstr "linked documents"
 
-#: .\events\admin.py:244 .\events\models.py:503 .\events\models.py:962
+#: .\events\admin.py:270 .\events\models.py:511 .\events\models.py:970
 msgid "évènements"
 msgstr "events"
 
-#: .\events\admin.py:389 .\events\admin.py:450
+#: .\events\admin.py:396 .\events\admin.py:457
 msgid "statut"
 msgstr "status"
 
-#: .\events\admin.py:392 .\events\templates\events\dossier_share.html:159
+#: .\events\admin.py:399 .\events\templates\events\dossier_share.html:159
 msgid "Révoqué"
 msgstr "Revoked"
 
-#: .\events\admin.py:394 .\events\templates\events\dossier_share.html:161
+#: .\events\admin.py:401 .\events\templates\events\dossier_share.html:161
 msgid "Expiré"
 msgstr "Expired"
 
-#: .\events\admin.py:395 .\events\templates\events\dossier_share.html:163
+#: .\events\admin.py:402 .\events\templates\events\dossier_share.html:163
 msgid "Actif"
 msgstr "Active"
 
-#: .\events\admin.py:400
+#: .\events\admin.py:407
 msgid "Révoquer les liens sélectionnés"
 msgstr "Revoke selected links"
 
-#: .\events\admin.py:414
+#: .\events\admin.py:421
 #, python-format
 msgid "%(n)s lien(s) révoqué(s)."
 msgstr "%(n)s link(s) revoked."
 
-#: .\events\admin.py:419
+#: .\events\admin.py:426
 msgid "Remettre en service les liens révoqués sélectionnés"
 msgstr "Reactivate selected revoked links"
 
-#: .\events\admin.py:433
+#: .\events\admin.py:440
 #, python-format
 msgid "%(n)s lien(s) remis en service."
 msgstr "%(n)s link(s) reactivated."
 
-#: .\events\admin.py:453 .\events\templates\events\dossier_share.html:314
+#: .\events\admin.py:460 .\events\templates\events\dossier_share.html:314
 msgid "Expirée"
 msgstr "Expired"
 
-#: .\events\admin.py:466 .\events\models.py:1004
+#: .\events\admin.py:473 .\events\models.py:1012
 msgid "profil"
 msgstr "profile"
 
@@ -236,54 +236,58 @@ msgstr "Exported on %(date)s by %(auteur)s."
 msgid "lien de partage « %(nom)s »"
 msgstr "share link “%(nom)s”"
 
-#: .\events\export.py:265
+#: .\events\export.py:264 .\events\share_views.py:292
+msgid "un lien de partage"
+msgstr "a share link"
+
+#: .\events\export.py:266
 msgid "import de courriels"
 msgstr "email import"
 
-#: .\events\export.py:267 .\events\templates\events\journal.html:73
+#: .\events\export.py:268 .\events\templates\events\journal.html:73
 msgid "auteur inconnu"
 msgstr "unknown author"
 
-#: .\events\export.py:269 .\events\models.py:847
+#: .\events\export.py:270 .\events\models.py:855
 #: .\events\templates\events\journal.html:76
 msgid "via l'administration"
 msgstr "via the administration"
 
-#: .\events\export.py:284 .\events\templates\events\journal.html:121
+#: .\events\export.py:285 .\events\templates\events\journal.html:121
 msgid "Rien n'a encore été inscrit au journal."
 msgstr "Nothing has been recorded in the log yet."
 
-#: .\events\export.py:299
+#: .\events\export.py:300
 #, python-format
 msgid "Transfert de : %(titre)s (%(periode)s)"
 msgstr "Forwarded from: %(titre)s (%(periode)s)"
 
-#: .\events\export.py:302
+#: .\events\export.py:303
 #, python-format
 msgid "Transféré ensuite : %(titre)s (%(periode)s)"
 msgstr "Forwarded later: %(titre)s (%(periode)s)"
 
-#: .\events\export.py:308
+#: .\events\export.py:309
 #, python-format
 msgid "En réponse à : %(titre)s (%(periode)s)"
 msgstr "In reply to: %(titre)s (%(periode)s)"
 
-#: .\events\export.py:311
+#: .\events\export.py:312
 #, python-format
 msgid "Réponse : %(titre)s (%(periode)s)"
 msgstr "Reply: %(titre)s (%(periode)s)"
 
-#: .\events\export.py:332
+#: .\events\export.py:333
 #, python-format
 msgid "Chronologie exportée le %(date)s par %(auteur)s."
 msgstr "Chronology exported on %(date)s by %(auteur)s."
 
-#: .\events\export.py:334
+#: .\events\export.py:335
 #, python-format
 msgid "%(n)s évènements, %(p)s pièces."
 msgstr "%(n)s events, %(p)s documents."
 
-#: .\events\export.py:340
+#: .\events\export.py:341
 #, python-format
 msgid ""
 "Export partiel — sélection : %(selection)s. %(n)s évènement sur %(total)s."
@@ -294,7 +298,7 @@ msgstr[0] ""
 msgstr[1] ""
 "Partial export — selection: %(selection)s. %(n)s events out of %(total)s."
 
-#: .\events\export.py:349
+#: .\events\export.py:350
 #, python-format
 msgid ""
 "Attention : %(n)s pièce(s) ne correspondent plus à l'empreinte enregistrée "
@@ -303,34 +307,34 @@ msgstr ""
 "Warning: %(n)s document(s) no longer match the hash recorded when they were "
 "uploaded. See “Integrity check”."
 
-#: .\events\export.py:354 .\events\views\dossiers.py:94
+#: .\events\export.py:355 .\events\views\dossiers.py:94
 msgid "Chronologie"
 msgstr "Chronology"
 
-#: .\events\export.py:363
+#: .\events\export.py:364
 #, python-format
 msgid "Étiquettes : %(noms)s"
 msgstr "Tags: %(noms)s"
 
-#: .\events\export.py:365
+#: .\events\export.py:366
 #, python-format
 msgid "Destinataires : %(qui)s"
 msgstr "Recipients: %(qui)s"
 
-#: .\events\export.py:369
+#: .\events\export.py:370
 msgid "hors de cette sélection"
 msgstr "outside this selection"
 
-#: .\events\export.py:376
+#: .\events\export.py:377
 #, python-format
 msgid "Pièce %(numero)s : %(nom)s"
 msgstr "Document %(numero)s: %(nom)s"
 
-#: .\events\export.py:383
+#: .\events\export.py:384
 msgid "Contrôle d'intégrité"
 msgstr "Integrity check"
 
-#: .\events\export.py:385
+#: .\events\export.py:386
 msgid ""
 "Pour chaque pièce, l'empreinte SHA-256 du fichier exporté a été recalculée "
 "et comparée à celle enregistrée lors de son dépôt."
@@ -338,27 +342,27 @@ msgstr ""
 "For each document, the SHA-256 hash of the exported file was recomputed and "
 "compared with the one recorded when it was uploaded."
 
-#: .\events\export.py:389 .\events\templates\events\vue_documents.html:41
+#: .\events\export.py:390 .\events\templates\events\vue_documents.html:41
 msgid "N°"
 msgstr "No."
 
-#: .\events\export.py:389 .\events\templates\events\vue_documents.html:42
+#: .\events\export.py:390 .\events\templates\events\vue_documents.html:42
 msgid "Pièce"
 msgstr "Document"
 
-#: .\events\export.py:389
+#: .\events\export.py:390
 msgid "SHA-256"
 msgstr "SHA-256"
 
-#: .\events\export.py:389
+#: .\events\export.py:390
 msgid "Contrôle"
 msgstr "Check"
 
-#: .\events\export.py:395
+#: .\events\export.py:396
 msgid "conforme"
 msgstr "matches"
 
-#: .\events\export.py:395
+#: .\events\export.py:396
 msgid "DIFFÉRENTE"
 msgstr "DIFFERENT"
 
@@ -396,11 +400,11 @@ msgstr "until %(au)s"
 msgid "saisis à la main"
 msgstr "entered by hand"
 
-#: .\events\filtres.py:177 .\events\models.py:203 .\events\models.py:508
+#: .\events\filtres.py:177 .\events\models.py:213 .\events\models.py:516
 msgid "titre"
 msgstr "title"
 
-#: .\events\filtres.py:178 .\events\models.py:220
+#: .\events\filtres.py:178 .\events\models.py:230
 msgid "description"
 msgstr "description"
 
@@ -434,8 +438,8 @@ msgstr "Emails"
 msgid "Bureautique"
 msgstr "Office documents"
 
-#: .\events\filtres.py:329 .\events\models.py:49 .\events\models.py:164
-#: .\events\models.py:960
+#: .\events\filtres.py:329 .\events\models.py:50 .\events\models.py:174
+#: .\events\models.py:968
 msgid "nom"
 msgstr "name"
 
@@ -486,97 +490,107 @@ msgstr "Enter the time, or choose “a date”."
 msgid "Indiquez la date de fin, ou choisissez un autre mode."
 msgstr "Enter the end date, or choose another mode."
 
-#: .\events\forms.py:170 .\events\forms.py:177 .\events\models.py:455
-#: .\events\models.py:465
+#: .\events\forms.py:170 .\events\forms.py:177 .\events\models.py:463
+#: .\events\models.py:473
 msgid "La fin ne peut pas précéder le début."
 msgstr "The end cannot come before the start."
 
-#: .\events\forms.py:237
-msgid "Compte"
-msgstr "Account"
+#: .\events\forms.py:231
+msgid "Adresse du compte"
+msgstr "Account address"
 
-#: .\events\forms.py:238 .\events\forms.py:282 .\events\forms.py:362
-msgid "Droit accordé"
-msgstr "Access granted"
-
-#: .\events\forms.py:253
-msgid "Choisir un compte…"
-msgstr "Choose an account…"
-
-#: .\events\forms.py:275
+#: .\events\forms.py:234 .\events\forms.py:294
 msgid "adresse@exemple.be"
 msgstr "address@example.com"
 
-#: .\events\forms.py:281
+#: .\events\forms.py:245 .\events\forms.py:301 .\events\forms.py:381
+msgid "Droit accordé"
+msgstr "Access granted"
+
+#: .\events\forms.py:262
+msgid ""
+"Aucun compte vérifié ne répond à cette adresse. Envoyez plutôt une "
+"invitation : elle vaut aussi pour un compte à créer."
+msgstr "No verified account has this address. Send an invitation instead: it also works for an account yet to be created."
+
+#: .\events\forms.py:268
+msgid "C'est vous : vous êtes propriétaire du dossier."
+msgstr "That is you: you own this case file."
+
+#: .\events\forms.py:270
+msgid "Ce compte a déjà accès au dossier."
+msgstr "This account already has access to the case file."
+
+#: .\events\forms.py:300
 msgid "Adresse électronique"
 msgstr "Email address"
 
-#: .\events\forms.py:283
+#: .\events\forms.py:302
 msgid "Langue du courriel"
 msgstr "Email language"
 
-#: .\events\forms.py:304
+#: .\events\forms.py:323
 msgid "Cette adresse est la vôtre : vous êtes déjà propriétaire du dossier."
 msgstr "This is your own address: you already own this case file."
 
-#: .\events\forms.py:310
+#: .\events\forms.py:329
 msgid "Un compte portant cette adresse a déjà accès à ce dossier."
 msgstr "An account with this address already has access to this case file."
 
-#: .\events\forms.py:320
+#: .\events\forms.py:339
 msgid "Une invitation est déjà en attente pour cette adresse."
 msgstr "An invitation is already pending for this address."
 
-#: .\events\forms.py:334
+#: .\events\forms.py:353
 #: .\events\templates\events\_lien_partage_formulaire.html:31
 msgid "7 jours"
 msgstr "7 days"
 
-#: .\events\forms.py:335
+#: .\events\forms.py:354
 #: .\events\templates\events\_lien_partage_formulaire.html:32
 msgid "30 jours"
 msgstr "30 days"
 
-#: .\events\forms.py:336
+#: .\events\forms.py:355
 #: .\events\templates\events\_lien_partage_formulaire.html:33
 msgid "90 jours"
 msgstr "90 days"
 
-#: .\events\forms.py:337
+#: .\events\forms.py:356
 #: .\events\templates\events\_lien_partage_formulaire.html:34
 msgid "Sans expiration"
 msgstr "No expiry"
 
-#: .\events\forms.py:344
+#: .\events\forms.py:363
 msgid "Validité"
 msgstr "Validity"
 
-#: .\events\forms.py:355
+#: .\events\forms.py:374
 msgid "Maître Dupont, expert, TestAchats…"
 msgstr "Mr Dupont, expert, consumer body…"
 
-#: .\events\forms.py:361
+#: .\events\forms.py:380
 msgid "Destinataire"
 msgstr "Recipient"
 
-#: .\events\forms.py:386
+#: .\events\forms.py:405
 msgid "Valable jusqu'au"
 msgstr "Valid until"
 
-#: .\events\forms.py:387
+#: .\events\forms.py:406
 msgid "Vide : sans expiration."
 msgstr "Empty: no expiry."
 
-#: .\events\forms.py:409
+#: .\events\forms.py:428
 msgid "Choisissez aujourd'hui ou un jour à venir."
 msgstr "Choose today or a later day."
 
-#: .\events\forms.py:468
+#: .\events\forms.py:487
 #, python-format
 msgid "L'alias doit se terminer par %(suffixe)s."
 msgstr "The alias must end with %(suffixe)s."
 
-#: .\events\forms.py:471
+#: .\events\forms.py:490
 msgid ""
 "Le début de l'alias ne peut contenir que des lettres minuscules sans accent, "
 "des chiffres et des tirets (64 caractères au plus)."
@@ -584,7 +598,7 @@ msgstr ""
 "The start of the alias may only contain lowercase letters without accents, "
 "digits and hyphens (64 characters at most)."
 
-#: .\events\forms.py:481
+#: .\events\forms.py:500
 msgid ""
 "C'est l'adresse de la boîte d'import elle-même : choisissez un alias propre "
 "à ce dossier."
@@ -592,478 +606,482 @@ msgstr ""
 "This is the import mailbox's own address: choose an alias specific to this "
 "case file."
 
-#: .\events\forms.py:484
+#: .\events\forms.py:503
 msgid "Cet alias est déjà utilisé par un autre dossier."
 msgstr "This alias is already used by another case file."
 
-#: .\events\forms.py:499
+#: .\events\forms.py:518
 msgid "Le nom du dossier ne peut pas être vide."
 msgstr "The case file's name cannot be empty."
 
-#: .\events\models.py:52
+#: .\events\models.py:53
 msgid "propriétaire"
 msgstr "owner"
 
-#: .\events\models.py:56 .\events\models.py:734
+#: .\events\models.py:57 .\events\models.py:742
 msgid "créé le"
 msgstr "created on"
 
-#: .\events\models.py:63
+#: .\events\models.py:64
 msgid "alias de courriel"
 msgstr "email alias"
 
-#: .\events\models.py:68
+#: .\events\models.py:69
 msgid ""
 "Les courriels transférés à cette adresse deviennent des évènements du "
 "dossier."
 msgstr "Emails forwarded to this address become events of the case file."
 
-#: .\events\models.py:81 .\events\models.py:160 .\events\models.py:201
-#: .\events\models.py:497 .\events\models.py:604 .\events\models.py:709
-#: .\events\models.py:834 .\events\models.py:885 .\events\models.py:924
-#: .\events\models.py:957
+#: .\events\models.py:82 .\events\models.py:170 .\events\models.py:211
+#: .\events\models.py:505 .\events\models.py:612 .\events\models.py:717
+#: .\events\models.py:842 .\events\models.py:893 .\events\models.py:932
+#: .\events\models.py:965
 msgid "dossier"
 msgstr "case file"
 
-#: .\events\models.py:82
+#: .\events\models.py:83
 msgid "dossiers"
 msgstr "case files"
 
-#: .\events\models.py:90 .\events\views\dossiers.py:264
+#: .\events\models.py:91 .\events\views\dossiers.py:264
 msgid "Lecture"
 msgstr "Read"
 
-#: .\events\models.py:91 .\events\templates\events\dossier_share.html:52
-#: .\events\templates\events\dossier_share.html:393
+#: .\events\models.py:92 .\events\templates\events\dossier_share.html:52
+#: .\events\templates\events\dossier_share.html:392
 #: .\events\templates\events\invitation_accept.html:36
 msgid "Lecture et écriture"
 msgstr "Read and write"
 
-#: .\events\models.py:94
+#: .\events\models.py:95
 msgid "Compte choisi"
 msgstr "Chosen account"
 
-#: .\events\models.py:95
+#: .\events\models.py:96
 msgid "Invitation par e-mail"
 msgstr "Email invitation"
 
-#: .\events\models.py:96 .\events\templates\events\lien_partage.html:9
+#: .\events\models.py:97 .\events\templates\events\lien_partage.html:9
 #: .\events\templates\events\lien_partage.html:17
 msgid "Lien de partage"
 msgstr "Share link"
 
-#: .\events\models.py:103 .\events\models.py:987
+#: .\events\models.py:104 .\events\models.py:995
 msgid "utilisateur"
 msgstr "user"
 
-#: .\events\models.py:107 .\events\models.py:610
+#: .\events\models.py:108 .\events\models.py:618
 msgid "rôle"
 msgstr "role"
 
-#: .\events\models.py:109
+#: .\events\models.py:110
 msgid "origine"
 msgstr "origin"
 
-#: .\events\models.py:111
+#: .\events\models.py:112
 msgid "accordé le"
 msgstr "granted on"
 
-#: .\events\models.py:114
+#: .\events\models.py:115
 msgid "accordé par"
 msgstr "granted by"
 
-#: .\events\models.py:128 .\events\models.py:129
+#: .\events\models.py:129 .\events\models.py:130
 msgid "accès"
 msgstr "access"
 
-#: .\events\models.py:163
+#: .\events\models.py:141
+msgid "Le propriétaire a déjà tous les droits : il ne reçoit pas d'accès."
+msgstr "The owner already has every right: they are not granted access."
+
+#: .\events\models.py:173
 msgid "adresse"
 msgstr "address"
 
-#: .\events\models.py:166 .\events\models.py:238
+#: .\events\models.py:176 .\events\models.py:248
 msgid "couleur"
 msgstr "colour"
 
-#: .\events\models.py:171 .\events\models.py:234 .\events\models.py:893
+#: .\events\models.py:181 .\events\models.py:244 .\events\models.py:901
 msgid "expéditeur"
 msgstr "sender"
 
-#: .\events\models.py:172
+#: .\events\models.py:182
 msgid "expéditeurs"
 msgstr "senders"
 
-#: .\events\models.py:205
+#: .\events\models.py:215
 msgid "date"
 msgstr "date"
 
-#: .\events\models.py:207
+#: .\events\models.py:217
 msgid "heure"
 msgstr "time"
 
-#: .\events\models.py:210
+#: .\events\models.py:220
 msgid "Laissez vide si l'heure n'a pas d'importance."
 msgstr "Leave empty if the time does not matter."
 
-#: .\events\models.py:213
+#: .\events\models.py:223
 msgid "date de fin"
 msgstr "end date"
 
-#: .\events\models.py:216
+#: .\events\models.py:226
 msgid "Pour un fait qui s'étend sur plusieurs jours."
 msgstr "For a fact that spans several days."
 
-#: .\events\models.py:218
+#: .\events\models.py:228
 msgid "heure de fin"
 msgstr "end time"
 
-#: .\events\models.py:228
+#: .\events\models.py:238
 msgid "version"
 msgstr "version"
 
-#: .\events\models.py:244
+#: .\events\models.py:254
 msgid "transfert de"
 msgstr "forwarded from"
 
-#: .\events\models.py:248
+#: .\events\models.py:258
 msgid "destinataires"
 msgstr "recipients"
 
-#: .\events\models.py:252
+#: .\events\models.py:262
 msgid "en réponse à"
 msgstr "in reply to"
 
-#: .\events\models.py:322
+#: .\events\models.py:332
 #, python-format
 msgid "%(date)s à %(heure)s"
 msgstr "%(date)s at %(heure)s"
 
-#: .\events\models.py:328
+#: .\events\models.py:338
 #, python-format
 msgid "le %(date)s de %(debut)s à %(fin)s"
 msgstr "on %(date)s from %(debut)s to %(fin)s"
 
-#: .\events\models.py:334
+#: .\events\models.py:344
 #, python-format
 msgid "du %(debut)s à %(heure_debut)s au %(fin)s à %(heure_fin)s"
 msgstr "from %(debut)s at %(heure_debut)s to %(fin)s at %(heure_fin)s"
 
-#: .\events\models.py:340
+#: .\events\models.py:350
 #, python-format
 msgid "du %(debut)s au %(fin)s"
 msgstr "from %(debut)s to %(fin)s"
 
-#: .\events\models.py:447
+#: .\events\models.py:455
 msgid "Un transfert ne peut renvoyer qu'à un évènement du même dossier."
 msgstr "A forward can only refer to an event in the same case file."
 
-#: .\events\models.py:451
+#: .\events\models.py:459
 msgid "Une réponse ne peut renvoyer qu'à un évènement du même dossier."
 msgstr "A reply can only refer to an event in the same case file."
 
-#: .\events\models.py:470
+#: .\events\models.py:478
 msgid "Renseignez l'heure de début, ou une date de fin."
 msgstr "Enter a start time, or an end date."
 
-#: .\events\models.py:509
+#: .\events\models.py:517
 msgid "fichier"
 msgstr "file"
 
-#: .\events\models.py:511
+#: .\events\models.py:519
 msgid "empreinte du contenu"
 msgstr "content hash"
 
-#: .\events\models.py:520
+#: .\events\models.py:528
 msgid "numéro"
 msgstr "number"
 
-#: .\events\models.py:533
+#: .\events\models.py:541
 msgid "document"
 msgstr "document"
 
-#: .\events\models.py:534
+#: .\events\models.py:542
 msgid "documents"
 msgstr "documents"
 
-#: .\events\models.py:598 .\events\templates\events\dossier_share.html:316
+#: .\events\models.py:606 .\events\templates\events\dossier_share.html:316
 msgid "En attente"
 msgstr "Pending"
 
-#: .\events\models.py:599 .\events\templates\events\dossier_share.html:310
+#: .\events\models.py:607 .\events\templates\events\dossier_share.html:310
 msgid "Acceptée"
 msgstr "Accepted"
 
-#: .\events\models.py:600
+#: .\events\models.py:608
 msgid "Révoquée"
 msgstr "Revoked"
 
-#: .\events\models.py:608
+#: .\events\models.py:616
 msgid "adresse invitée"
 msgstr "invited address"
 
-#: .\events\models.py:612 .\events\models.py:726
+#: .\events\models.py:620 .\events\models.py:734
 msgid "jeton"
 msgstr "token"
 
-#: .\events\models.py:616
+#: .\events\models.py:624
 msgid "langue du courriel"
 msgstr "email language"
 
-#: .\events\models.py:622
+#: .\events\models.py:630
 msgid "émise par"
 msgstr "sent by"
 
-#: .\events\models.py:626
+#: .\events\models.py:634
 msgid "émise le"
 msgstr "sent on"
 
-#: .\events\models.py:627 .\events\models.py:735
+#: .\events\models.py:635 .\events\models.py:743
 msgid "expire le"
 msgstr "expires on"
 
-#: .\events\models.py:629
+#: .\events\models.py:637
 msgid "acceptée le"
 msgstr "accepted on"
 
-#: .\events\models.py:632
+#: .\events\models.py:640
 msgid "acceptée par"
 msgstr "accepted by"
 
-#: .\events\models.py:638
+#: .\events\models.py:646
 msgid "révoquée le"
 msgstr "revoked on"
 
-#: .\events\models.py:642
+#: .\events\models.py:650
 msgid "invitation"
 msgstr "invitation"
 
-#: .\events\models.py:643
+#: .\events\models.py:651
 msgid "invitations"
 msgstr "invitations"
 
-#: .\events\models.py:715
+#: .\events\models.py:723
 msgid "droit accordé"
 msgstr "access granted"
 
-#: .\events\models.py:721
+#: .\events\models.py:729
 msgid "destinataire"
 msgstr "recipient"
 
-#: .\events\models.py:724
+#: .\events\models.py:732
 msgid "Pour vous souvenir à qui ce lien a été transmis."
 msgstr "To remember who this link was given to."
 
-#: .\events\models.py:730
+#: .\events\models.py:738
 msgid "créé par"
 msgstr "created by"
 
-#: .\events\models.py:736
+#: .\events\models.py:744
 msgid "révoqué le"
 msgstr "revoked on"
 
-#: .\events\models.py:738
+#: .\events\models.py:746
 msgid "dernier accès"
 msgstr "last accessed"
 
-#: .\events\models.py:739
+#: .\events\models.py:747
 msgid "consultations"
 msgstr "views"
 
-#: .\events\models.py:743 .\events\models.py:843
+#: .\events\models.py:751 .\events\models.py:851
 msgid "lien de partage"
 msgstr "share link"
 
-#: .\events\models.py:744
+#: .\events\models.py:752
 msgid "liens de partage"
 msgstr "share links"
 
-#: .\events\models.py:747
+#: .\events\models.py:755
 #, python-format
 msgid "Lien vers %(dossier)s"
 msgstr "Link to %(dossier)s"
 
-#: .\events\models.py:801
+#: .\events\models.py:809
 msgid "Évènement créé"
 msgstr "Event created"
 
-#: .\events\models.py:802
+#: .\events\models.py:810
 msgid "Évènement modifié"
 msgstr "Event edited"
 
-#: .\events\models.py:803
+#: .\events\models.py:811
 msgid "Évènement supprimé"
 msgstr "Event deleted"
 
-#: .\events\models.py:804
+#: .\events\models.py:812
 msgid "Pièce ajoutée"
 msgstr "Document added"
 
-#: .\events\models.py:805
+#: .\events\models.py:813
 msgid "Pièce retirée d'un évènement"
 msgstr "Document removed from an event"
 
-#: .\events\models.py:806
+#: .\events\models.py:814
 msgid "Pièce supprimée"
 msgstr "Document deleted"
 
-#: .\events\models.py:807
+#: .\events\models.py:815
 msgid "Pièce modifiée"
 msgstr "Document edited"
 
-#: .\events\models.py:808
+#: .\events\models.py:816
 msgid "Accès accordé"
 msgstr "Access granted"
 
-#: .\events\models.py:809
+#: .\events\models.py:817
 msgid "Accès retiré"
 msgstr "Access removed"
 
-#: .\events\models.py:810
+#: .\events\models.py:818
 msgid "Accès modifié"
 msgstr "Access changed"
 
-#: .\events\models.py:811
+#: .\events\models.py:819
 msgid "Invitation envoyée"
 msgstr "Invitation sent"
 
-#: .\events\models.py:812
+#: .\events\models.py:820
 msgid "Invitation annulée"
 msgstr "Invitation cancelled"
 
-#: .\events\models.py:813
+#: .\events\models.py:821
 msgid "Invitation acceptée"
 msgstr "Invitation accepted"
 
-#: .\events\models.py:814
+#: .\events\models.py:822
 msgid "Lien de partage créé"
 msgstr "Share link created"
 
-#: .\events\models.py:815
+#: .\events\models.py:823
 msgid "Lien de partage révoqué"
 msgstr "Share link revoked"
 
-#: .\events\models.py:816
+#: .\events\models.py:824
 msgid "Lien de partage modifié"
 msgstr "Share link modified"
 
-#: .\events\models.py:817
+#: .\events\models.py:825
 msgid "Dossier exporté"
 msgstr "Case file exported"
 
-#: .\events\models.py:818
+#: .\events\models.py:826
 msgid "Évènement importé par courriel"
 msgstr "Event imported by email"
 
-#: .\events\models.py:819
+#: .\events\models.py:827
 msgid "Courriels relevés"
 msgstr "Emails fetched"
 
-#: .\events\models.py:820
+#: .\events\models.py:828
 msgid "Dossier créé"
 msgstr "Case file created"
 
-#: .\events\models.py:821
+#: .\events\models.py:829
 msgid "Dossier modifié"
 msgstr "Case file edited"
 
-#: .\events\models.py:822
+#: .\events\models.py:830
 msgid "Évènements fusionnés"
 msgstr "Events merged"
 
-#: .\events\models.py:823
+#: .\events\models.py:831
 msgid "Doublon possible écarté"
 msgstr "Possible duplicate dismissed"
 
-#: .\events\models.py:837
+#: .\events\models.py:845
 msgid "moment"
 msgstr "time"
 
-#: .\events\models.py:839
+#: .\events\models.py:847
 msgid "auteur"
 msgstr "author"
 
-#: .\events\models.py:848
+#: .\events\models.py:856
 msgid "action"
 msgstr "action"
 
-#: .\events\models.py:850 .\events\models.py:890
+#: .\events\models.py:858 .\events\models.py:898
 msgid "évènement"
 msgstr "event"
 
-#: .\events\models.py:853
+#: .\events\models.py:861
 msgid "objet"
 msgstr "subject"
 
-#: .\events\models.py:854
+#: .\events\models.py:862
 msgid "détails"
 msgstr "details"
 
-#: .\events\models.py:860
+#: .\events\models.py:868
 msgid "entrée du journal"
 msgstr "log entry"
 
-#: .\events\models.py:861
+#: .\events\models.py:869
 msgid "journal"
 msgstr "log"
 
-#: .\events\models.py:888
+#: .\events\models.py:896
 msgid "identifiant du courriel"
 msgstr "email ID"
 
-#: .\events\models.py:896
+#: .\events\models.py:904
 msgid "cite : expéditeur"
 msgstr "quotes: sender"
 
-#: .\events\models.py:897
+#: .\events\models.py:905
 msgid "cite : date"
 msgstr "quotes: date"
 
-#: .\events\models.py:898
+#: .\events\models.py:906
 msgid "cite : objet"
 msgstr "quotes: subject"
 
-#: .\events\models.py:901
+#: .\events\models.py:909
 msgid "cite : destinataires"
 msgstr "quotes: recipients"
 
-#: .\events\models.py:902
+#: .\events\models.py:910
 msgid "importé le"
 msgstr "imported on"
 
-#: .\events\models.py:905
+#: .\events\models.py:913
 msgid "courriel importé"
 msgstr "imported email"
 
-#: .\events\models.py:906
+#: .\events\models.py:914
 msgid "courriels importés"
 msgstr "imported emails"
 
-#: .\events\models.py:936
+#: .\events\models.py:944
 msgid "paire de doublons écartée"
 msgstr "dismissed duplicate pair"
 
-#: .\events\models.py:937
+#: .\events\models.py:945
 msgid "paires de doublons écartées"
 msgstr "dismissed duplicate pairs"
 
-#: .\events\models.py:967
+#: .\events\models.py:975
 msgid "étiquette"
 msgstr "tag"
 
-#: .\events\models.py:968 .\events\views\journal.py:70
+#: .\events\models.py:976 .\events\views\journal.py:70
 msgid "étiquettes"
 msgstr "tags"
 
-#: .\events\models.py:995
+#: .\events\models.py:1003
 msgid "Nombre maximum de dossiers"
 msgstr "Maximum number of dossiers"
 
-#: .\events\models.py:998
+#: .\events\models.py:1006
 msgid ""
 "Nombre de dossiers dont ce compte peut être propriétaire. 0 : il ne peut pas "
 "en créer."
 msgstr "Number of dossiers this account may own. 0: it cannot create any."
 
-#: .\events\models.py:1005
+#: .\events\models.py:1013
 msgid "profils"
 msgstr "profiles"
 
@@ -1076,16 +1094,12 @@ msgstr "Creating dossiers is not enabled for your account."
 msgid "Vous avez atteint le nombre maximum de dossiers (%(maximum)d)."
 msgstr "You have reached the maximum number of dossiers (%(maximum)d)."
 
-#: .\events\share_views.py:286
+#: .\events\share_views.py:290
 #, python-format
 msgid "le lien de partage « %(nom)s »"
 msgstr "the share link “%(nom)s”"
 
-#: .\events\share_views.py:288
-msgid "un lien de partage"
-msgstr "a share link"
-
-#: .\events\share_views.py:297
+#: .\events\share_views.py:301
 msgid "Un export vient d'être fait par ce lien : réessayez dans une minute."
 msgstr "An export was just made through this link: try again in a minute."
 
@@ -1838,7 +1852,7 @@ msgid "Ne peut pas être retiré"
 msgstr "Cannot be removed"
 
 #: .\events\templates\events\dossier_share.html:54
-#: .\events\templates\events\dossier_share.html:385
+#: .\events\templates\events\dossier_share.html:384
 #: .\events\templates\events\invitation_accept.html:45
 msgid "Lecture seule"
 msgstr "Read only"
@@ -1994,15 +2008,15 @@ msgstr "Sent on %(emise)s, expires on %(expire)s"
 msgid "Donner accès à un compte existant"
 msgstr "Give access to an existing account"
 
-#: .\events\templates\events\dossier_share.html:375
+#: .\events\templates\events\dossier_share.html:374
 msgid "Accorder"
 msgstr "Grant"
 
-#: .\events\templates\events\dossier_share.html:382
+#: .\events\templates\events\dossier_share.html:381
 msgid "Ce que chaque droit permet"
 msgstr "What each right allows"
 
-#: .\events\templates\events\dossier_share.html:386
+#: .\events\templates\events\dossier_share.html:385
 msgid ""
 "consulter la chronologie, les évènements et les pièces. Aucune modification, "
 "aucun retrait, aucun ajout."
@@ -2010,7 +2024,7 @@ msgstr ""
 "view the chronology, the events and the documents. No changes, no removals, "
 "no additions."
 
-#: .\events\templates\events\dossier_share.html:394
+#: .\events\templates\events\dossier_share.html:393
 msgid ""
 "tout ce qui précède, plus créer et modifier des évènements, ajouter des "
 "pièces et en retirer. Ne permet pas de partager le dossier : vous seul "
@@ -2019,14 +2033,6 @@ msgstr ""
 "everything above, plus creating and editing events, adding and removing "
 "documents. Does not allow sharing the case file: only you decide who has "
 "access."
-
-#: .\events\templates\events\dossier_share.html:404
-msgid ""
-"Tous les comptes existants ont déjà accès à ce dossier. Les comptes se "
-"créent dans l'administration."
-msgstr ""
-"Every existing account already has access to this case file. Accounts are "
-"created in the administration."
 
 #: .\events\templates\events\doublons.html:12
 #, python-format
@@ -2137,7 +2143,19 @@ msgid ""
 "%(auteur)s."
 msgstr "This invitation expired on %(quand)s. Ask %(auteur)s for a new one."
 
-#: .\events\templates\events\invitation_accept.html:94
+#: .\events\templates\events\invitation_accept.html:95
+#, python-format
+msgid ""
+"Cette invitation a été envoyée à <strong>%(email)s</strong>. Le compte "
+"<strong>%(nom)s</strong> ne possède pas cette adresse (vérifiée) : connectez-"
+"vous avec le compte de cette adresse, ou créez-le, puis rouvrez ce lien."
+msgstr "This invitation was sent to <strong>%(email)s</strong>. The account <strong>%(nom)s</strong> does not have this (verified) address: sign in with that address's account, or create it, then open this link again."
+
+#: .\events\templates\events\invitation_accept.html:106
+msgid "Changer de compte"
+msgstr "Switch account"
+
+#: .\events\templates\events\invitation_accept.html:112
 #, python-format
 msgid ""
 "Vous êtes connecté en tant que <strong>%(nom)s</strong>. C'est ce compte qui "
@@ -2146,7 +2164,7 @@ msgstr ""
 "You are signed in as <strong>%(nom)s</strong>. This account will receive the "
 "access."
 
-#: .\events\templates\events\invitation_accept.html:103
+#: .\events\templates\events\invitation_accept.html:121
 msgid "Accepter l'invitation"
 msgstr "Accept the invitation"
 
@@ -2643,22 +2661,22 @@ msgstr "Tag renamed."
 msgid "Couleur invalide pour %(nom)s."
 msgstr "Invalid colour for %(nom)s."
 
-#: .\events\views\partage.py:44
+#: .\events\views\partage.py:53
 #, python-format
 msgid "Accès accordé à %(compte)s (%(droit)s)."
 msgstr "Access granted to %(compte)s (%(droit)s)."
 
-#: .\events\views\partage.py:108
+#: .\events\views\partage.py:118
 #, python-format
 msgid "Accès retiré à %(compte)s."
 msgstr "Access removed for %(compte)s."
 
-#: .\events\views\partage.py:135
+#: .\events\views\partage.py:145
 #, python-format
 msgid "Accès au dossier « %(dossier)s »"
 msgstr "Access to the case file “%(dossier)s”"
 
-#: .\events\views\partage.py:139
+#: .\events\views\partage.py:149
 #, python-format
 msgid ""
 "%(auteur)s vous donne accès au dossier « %(dossier)s ».\n"
@@ -2679,26 +2697,32 @@ msgstr ""
 "\n"
 "This link expires on %(date)s. It can only be used once.\n"
 
-#: .\events\views\partage.py:179
+#: .\events\views\partage.py:196
+msgid ""
+"Le courriel d'invitation n'a pas pu partir : rien n'a été envoyé. Réessayez "
+"plus tard."
+msgstr "The invitation email could not be sent: nothing was sent. Try again later."
+
+#: .\events\views\partage.py:201
 #, python-format
 msgid "Invitation envoyée à %(email)s. Elle expire le %(date)s."
 msgstr "Invitation sent to %(email)s. It expires on %(date)s."
 
-#: .\events\views\partage.py:207
+#: .\events\views\partage.py:230
 #, python-format
 msgid "Invitation annulée pour %(email)s."
 msgstr "Invitation cancelled for %(email)s."
 
-#: .\events\views\partage.py:247
+#: .\events\views\partage.py:262
 #, python-format
 msgid "Vous avez désormais accès au dossier « %(dossier)s »."
 msgstr "You now have access to the case file “%(dossier)s”."
 
-#: .\events\views\partage.py:337
+#: .\events\views\partage.py:393
 msgid "Lien modifié."
 msgstr "Link updated."
 
-#: .\events\views\partage.py:355
+#: .\events\views\partage.py:412
 msgid "Lien révoqué. Il ne donne plus accès à rien."
 msgstr "Link revoked. It no longer gives access to anything."
 
@@ -2803,7 +2827,7 @@ msgid "Sign In"
 msgstr "Sign In"
 
 #: .\templates\account\login.html:92 .\templates\account\login.html:93
-#: .\templates\account\login.html:129
+#: .\templates\account\login.html:148
 msgid "Afficher le mot de passe"
 msgstr "Show password"
 
@@ -2819,7 +2843,7 @@ msgstr "No account yet?"
 msgid "Créer un compte"
 msgstr "Create an account"
 
-#: .\templates\account\login.html:130
+#: .\templates\account\login.html:149
 msgid "Masquer le mot de passe"
 msgstr "Hide password"
 

@@ -3,6 +3,7 @@ import secrets
 from datetime import timedelta
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -130,6 +131,15 @@ class DossierAccess(models.Model):
 
     def __str__(self):
         return f"{self.user} — {self.dossier} ({self.get_role_display()})"
+
+    def clean(self):
+        """Invariant 1 : le propriétaire n'a **pas** de ligne d'accès — ses
+        droits viennent de `Dossier.owner`. L'admin le vérifie ici."""
+        super().clean()
+        if self.dossier_id and self.user_id and self.user_id == self.dossier.owner_id:
+            raise ValidationError(
+                gettext_lazy("Le propriétaire a déjà tous les droits : il ne reçoit pas d'accès.")
+            )
 
 
 def _jour(valeur):
@@ -439,8 +449,6 @@ class Event(models.Model):
         return element
 
     def clean(self):
-        from django.core.exceptions import ValidationError
-
         if self.transfert_de_id and self.transfert_de.dossier_id != self.dossier_id:
             # Un lien vers un autre dossier ouvrirait une fenêtre d'une affaire sur l'autre.
             raise ValidationError(

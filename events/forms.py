@@ -218,39 +218,58 @@ class EventForm(forms.ModelForm):
 
 
 class DossierAccessForm(forms.ModelForm):
-    """Accorder un accès à un compte existant.
+    """Accorder un accès à un compte existant, désigné par son adresse.
 
-    Le choix est volontairement restreint aux comptes qui n'ont pas
-    déjà accès, propriétaire compris : proposer un compte déjà
-    autorisé mènerait à une violation de la contrainte d'unicité,
-    c'est-à-dire à une erreur serveur pour un geste légitime.
+    Plus de liste déroulante de tous les comptes : l'inscription est ouverte,
+    et la liste montrait à chaque propriétaire de dossier les noms de tous
+    les inscrits (audit 2026-11-17). Le propriétaire tape l'adresse exacte ;
+    seule une adresse **vérifiée** désigne un compte. Le refus ne dit pas si
+    un compte existe : il renvoie vers l'invitation, qui couvre les deux cas.
     """
+
+    email = forms.EmailField(
+        label=gettext_lazy("Adresse du compte"),
+        widget=forms.EmailInput(attrs={
+            "class": "form-control", "autocomplete": "off",
+            "placeholder": gettext_lazy("adresse@exemple.be"),
+        }),
+    )
 
     class Meta:
         model = DossierAccess
-        fields = ["user", "role"]
+        fields = ["role"]
         widgets = {
-            "user": forms.Select(attrs={"class": "form-select"}),
             "role": forms.Select(attrs={"class": "form-select"}),
         }
         labels = {
-            "user": gettext_lazy("Compte"),
             "role": gettext_lazy("Droit accordé"),
         }
 
     def __init__(self, *args, dossier=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.dossier = dossier
-        if dossier is not None:
-            deja = list(
-                dossier.accesses.values_list("user_id", flat=True)
-            ) + [dossier.owner_id]
-            self.fields["user"].queryset = (
-                get_user_model()
-                .objects.exclude(pk__in=deja)
-                .order_by("username")
-            )
-            self.fields["user"].empty_label = _("Choisir un compte…")
+
+    def clean_email(self):
+        from allauth.account.models import EmailAddress
+
+        email = self.cleaned_data["email"].strip()
+        comptes = list(
+            EmailAddress.objects.filter(email__iexact=email, verified=True)
+            .values_list("user_id", flat=True).distinct()
+        )
+        if len(comptes) != 1:
+            raise forms.ValidationError(_(
+                "Aucun compte vérifié ne répond à cette adresse. "
+                "Envoyez plutôt une invitation : elle vaut aussi pour un compte à créer."
+            ))
+        utilisateur = get_user_model().objects.get(pk=comptes[0])
+        if self.dossier is not None:
+            if utilisateur.pk == self.dossier.owner_id:
+                raise forms.ValidationError(_("C'est vous : vous êtes propriétaire du dossier."))
+            if self.dossier.accesses.filter(user=utilisateur).exists():
+                raise forms.ValidationError(_("Ce compte a déjà accès au dossier."))
+        self.instance.user = utilisateur
+        return email
 
 
 def langue_courante():

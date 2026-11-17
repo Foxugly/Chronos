@@ -100,12 +100,18 @@ class InvitationEtInscriptionTests(TestCase):
         self.assertEqual(reponse["Location"], reverse("account_login"))
 
     def test_adresse_d_inscription_differente_de_l_adresse_invitee(self):
-        """Comportement inchangé : le jeton vaut autorisation, quelle que soit
-        l'adresse du compte qui l'utilise."""
+        """Depuis l'audit du 2026-11-17 : l'invitation vaut pour l'adresse
+        invitée. Un compte d'une autre adresse retrouve la page, apprend à
+        quelle adresse elle a été envoyée, et ne reçoit rien."""
         lien = self._s_inscrire(email="autre@example.test")
         reponse = self.client.post(lien)
         self.assertRedirects(reponse, self.url, fetch_redirect_response=False)
-        self._accepter()
+        page = self.client.get(self.url)
+        self.assertContains(page, self.invitation.email)
+        self.client.post(self.url)
+        self.invitation.refresh_from_db()
+        self.assertIsNone(self.invitation.accepted_at)
+        self.assertFalse(DossierAccess.objects.filter(dossier=self.dossier).exists())
 
     def test_adresse_differente_confirmee_ailleurs_ne_devine_pas_l_invitation(self):
         """L'invitation n'est retrouvée que par l'adresse prouvée."""

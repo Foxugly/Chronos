@@ -13,7 +13,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from events.models import DossierAccess, Event
-from events.tests.factories import grant, make_dossier, make_user
+from events.tests.factories import grant, make_dossier, make_user, verifier_adresse
 
 
 class WhoMaySeeTheSharingScreenTests(TestCase):
@@ -63,6 +63,7 @@ class GrantingAccessTests(TestCase):
     def setUp(self):
         self.owner = make_user("owner")
         self.invite = make_user("invite")
+        verifier_adresse(self.invite)
         self.dossier = make_dossier(self.owner, name="Dossier adverse")
         self.event = Event.objects.create(
             dossier=self.dossier, title="Devis signe", date="2026-06-02"
@@ -72,7 +73,7 @@ class GrantingAccessTests(TestCase):
     def _accorder(self, role):
         return self.client.post(
             reverse("dossier_share", args=[self.dossier.pk]),
-            {"user": self.invite.pk, "role": role},
+            {"email": self.invite.email, "role": role},
         )
 
     def test_granting_read_creates_the_access_and_records_its_origin(self):
@@ -127,20 +128,44 @@ class GrantingAccessTests(TestCase):
             404,
         )
 
-    def test_the_picker_hides_accounts_that_already_have_access(self):
-        """Proposer un compte déjà autorisé mènerait à une violation de la
-        contrainte d'unicité, c'est-à-dire à une erreur serveur pour un geste
-        légitime."""
+    def test_an_account_that_already_has_access_is_refused_not_a_500(self):
+        """Accorder deux fois mènerait à la contrainte d'unicité, c'est-à-dire
+        à une erreur serveur pour un geste légitime : c'est un refus du formulaire."""
         self._accorder(DossierAccess.Role.READ)
-        page = self.client.get(
-            reverse("dossier_share", args=[self.dossier.pk])
-        )
-        choix = page.context["form"].fields["user"].queryset
-        self.assertNotIn(self.invite, choix)
+        reponse = self._accorder(DossierAccess.Role.WRITE)
+        self.assertEqual(reponse.status_code, 200)
+        self.assertContains(reponse, "déjà accès")
+        self.assertEqual(DossierAccess.objects.filter(user=self.invite).count(), 1)
 
-    def test_the_picker_hides_the_owner(self):
-        page = self.client.get(reverse("dossier_share", args=[self.dossier.pk]))
-        self.assertNotIn(self.owner, page.context["form"].fields["user"].queryset)
+    def test_the_owner_is_refused(self):
+        verifier_adresse(self.owner)
+        reponse = self.client.post(reverse("dossier_share", args=[self.dossier.pk]),
+                                   {"email": self.owner.email, "role": DossierAccess.Role.READ})
+        self.assertEqual(reponse.status_code, 200)
+        self.assertFalse(DossierAccess.objects.exists())
+
+    def test_the_page_no_longer_lists_every_account(self):
+        """L'inscription est ouverte : la liste déroulante montrait à chaque
+        propriétaire les noms de tous les inscrits (audit 2026-11-17)."""
+        make_user("inconnu-du-proprietaire")
+        page = self.client.get(reverse("dossier_share", args=[self.dossier.pk])).content.decode()
+        self.assertNotIn('name="user"', page)
+        self.assertNotIn("inconnu-du-proprietaire", page)
+
+    def test_an_unknown_or_unverified_address_is_refused_with_the_same_words(self):
+        """Le refus ne distingue pas « aucun compte » de « compte non vérifié »."""
+        make_user("non-verifie")
+        for adresse in ("personne@example.test", "non-verifie@example.test"):
+            reponse = self.client.post(reverse("dossier_share", args=[self.dossier.pk]),
+                                       {"email": adresse, "role": DossierAccess.Role.READ})
+            self.assertContains(reponse, "Aucun compte vérifié")
+        self.assertFalse(DossierAccess.objects.exists())
+
+    def test_the_address_is_matched_case_insensitively(self):
+        reponse = self.client.post(reverse("dossier_share", args=[self.dossier.pk]),
+                                   {"email": self.invite.email.upper(), "role": DossierAccess.Role.READ})
+        self.assertEqual(reponse.status_code, 302)
+        self.assertTrue(DossierAccess.objects.filter(user=self.invite).exists())
 
     def test_a_writer_cannot_grant_through_a_direct_post(self):
         """L'écran est caché à un contributeur ; la vue doit l'être aussi."""
@@ -151,7 +176,7 @@ class GrantingAccessTests(TestCase):
         self.client.force_login(writer)
         reponse = self.client.post(
             reverse("dossier_share", args=[self.dossier.pk]),
-            {"user": complice.pk, "role": DossierAccess.Role.WRITE},
+            {"email": complice.email, "role": DossierAccess.Role.WRITE},
         )
         self.assertEqual(reponse.status_code, 404)
         self.assertFalse(

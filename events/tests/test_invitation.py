@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from events.models import DossierAccess, Event, Invitation
-from events.tests.factories import grant, make_dossier, make_user
+from events.tests.factories import grant, make_dossier, make_user, verifier_adresse
 
 
 class IssuingAnInvitationTests(TestCase):
@@ -105,6 +105,7 @@ class AcceptingAnInvitationTests(TestCase):
             created_by=self.owner,
         )
         self.invite = make_user("avocat")
+        verifier_adresse(self.invite)
 
     def _url(self):
         return reverse("invitation_accept", args=[self.invitation.token])

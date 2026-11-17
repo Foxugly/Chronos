@@ -16,6 +16,7 @@ cela reste l'affaire du propriétaire, authentifié.
 
 from datetime import timedelta
 
+from django.utils.cache import add_never_cache_headers
 from django.contrib.auth.decorators import login_not_required
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.core.exceptions import ValidationError
@@ -74,6 +75,9 @@ def _proteger(reponse):
     """
     reponse["Referrer-Policy"] = "no-referrer"
     reponse["X-Robots-Tag"] = "noindex, nofollow"
+    # Ni cache du navigateur ni d'un proxy : une page servie par un lien ne
+    # doit pas rester lisible dans l'historique une fois le lien coupé.
+    add_never_cache_headers(reponse)
     return reponse
 
 

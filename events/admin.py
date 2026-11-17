@@ -95,8 +95,34 @@ def _consigner_acces(request, dossier, avant, apres):
                            objet=etat["user"], details={"role": etat["role"]})
 
 
+class SuperutilisateurSeulMixin:
+    """Réservé aux superutilisateurs, quelles que soient les permissions Django.
+
+    Un accès, un lien, une invitation, le propriétaire d'un dossier : tout cela
+    décide qui lit les pièces. Cela revient au propriétaire (invariant 5) et,
+    ici, au seul superutilisateur. Un compte d'équipe à qui l'on aurait donné
+    « modifier accès » ou « modifier lien de partage » ne doit pas pouvoir
+    accorder l'écriture, prolonger un lien ni changer de propriétaire.
+    """
+
+    def has_module_permission(self, request):
+        return request.user.is_active and request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_active and request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_active and request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_active and request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_active and request.user.is_superuser
+
+
 @admin.register(Dossier)
-class DossierAdmin(admin.ModelAdmin):
+class DossierAdmin(SuperutilisateurSeulMixin, admin.ModelAdmin):
     list_display = ("name", "owner", "created_at")
     search_fields = ("name",)
     inlines = [DossierAccessInline]
@@ -138,7 +164,7 @@ class DossierAdmin(admin.ModelAdmin):
 
 
 @admin.register(DossierAccess)
-class DossierAccessAdmin(admin.ModelAdmin):
+class DossierAccessAdmin(SuperutilisateurSeulMixin, admin.ModelAdmin):
     list_display = ("dossier", "user", "role", "origin", "granted_at")
     list_filter = ("role", "origin")
 
@@ -309,25 +335,6 @@ class JournalAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-
-
-class SuperutilisateurSeulMixin:
-    """Réservé aux superutilisateurs, quelles que soient les permissions Django.
-
-    Un lien ou une invitation étend l'accès à un dossier : cela revient au
-    propriétaire (invariant 5) et, ici, au seul superutilisateur. Un compte
-    d'équipe à qui l'on aurait donné « modifier lien de partage » ne doit pas
-    pouvoir passer un lien en écriture ni le prolonger.
-    """
-
-    def has_module_permission(self, request):
-        return request.user.is_active and request.user.is_superuser
-
-    def has_view_permission(self, request, obj=None):
-        return request.user.is_active and request.user.is_superuser
-
-    def has_change_permission(self, request, obj=None):
-        return request.user.is_active and request.user.is_superuser
 
 
 class ConsultationSeuleMixin:

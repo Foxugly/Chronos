@@ -207,6 +207,17 @@ older allauth the login page would redirect to itself.
   carries the right to share — see invariant 5 below. The invitation mail goes out in
   `Invitation.langue` (chosen by the owner, defaulting to their interface language; rendered under
   `translation.override`), while the owner's own confirmation stays in theirs.
+  **Since the sharing audit (2026-11-17):** an invitation is accepted only by an account holding
+  the invited address **verified** (`_adresse_invitee`; a forwarded mail or another account gets
+  a « Changer de compte » page, nothing else), under `select_for_update` in one transaction (a
+  double click or two accounts racing no longer give two accesses or a 500). Issuing is
+  all-or-nothing with the mail: if `send_mail` fails, no invitation, no journal entry, an error
+  message. Direct grants take the account's **verified address**, typed in full — the dropdown
+  listed every registered account to every owner; the refusal does not tell « no account » from
+  « unverified ». Every share view is `@transaction.atomic` (change + journal together), the
+  token-bearing pages are `never_cache` (`_proteger` adds the headers on the share path), and
+  `DossierAdmin` / `DossierAccessAdmin` are superuser-only like links and invitations;
+  `DossierAccess.clean` refuses a row for the owner (invariant 1).
 - **`/accounts/email/` is shadowed to 404** in `config/urls.py`, registered *before*
   `include("allauth.urls")`. That view would otherwise let any authenticated user attach arbitrary
   unconfirmed email addresses to their account. **This protection depends on URL declaration order** —
@@ -437,7 +448,10 @@ invitations, share links, dossier renames and owner changes, and exports. Everyt
   flags it as different. Deliberate — a replaced piece of evidence must show, and the journal says
   when and by whom. A document deleted in the admin leaves its file on disk (Django never deletes
   files); the journal keeps its name and hash.
-- An anonymous share-link writer appears as the link (its label), never as a user.
+- An anonymous share-link writer appears as the link, never as a user. Its name is **frozen** at
+  write time (`consigner` stores `details["lien_nom"]`; older rows fall back to the live label), so
+  renaming a link does not rewrite who did what. Only the owner sees that name — collaborators
+  read « par un lien de partage », in the page and in `journal.pdf` (invariant 5).
 
 ## Architecture: export
 

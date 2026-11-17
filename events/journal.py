@@ -52,6 +52,11 @@ def consigner(dossier, action, *, request=None, lien=None, via_admin=False,
     le lien qui est noté — on ne sait pas qui le tenait.
     """
     utilisateur = getattr(request, "user", None)
+    details = dict(details or {})
+    if lien is not None:
+        # Le nom du lien tel qu'il était au moment des faits : le lien peut
+        # être renommé ensuite, l'auteur d'une entrée ne doit pas changer.
+        details.setdefault("lien_nom", lien.label)
     return Journal.objects.create(
         dossier=dossier,
         action=action,
@@ -60,7 +65,7 @@ def consigner(dossier, action, *, request=None, lien=None, via_admin=False,
         via_admin=via_admin,
         objet=str(objet)[:255],
         evenement=evenement,
-        details=details or {},
+        details=details,
     )
 
 
