@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 21:59+0100\n"
+"POT-Creation-Date: 2026-11-17 22:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,48 +18,57 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\events\admin.py:36
+#: .\events\admin.py:38
 msgid "pièce liée"
 msgstr "linked document"
 
-#: .\events\admin.py:37
+#: .\events\admin.py:39
 msgid "pièces liées"
 msgstr "linked documents"
 
-#: .\events\admin.py:244 .\events\models.py:503 .\events\models.py:961
+#: .\events\admin.py:246 .\events\models.py:503 .\events\models.py:962
 msgid "évènements"
 msgstr "events"
 
-#: .\events\admin.py:349 .\events\admin.py:391
+#: .\events\admin.py:390 .\events\admin.py:451
 msgid "statut"
 msgstr "status"
 
-#: .\events\admin.py:352 .\events\templates\events\dossier_share.html:153
+#: .\events\admin.py:393 .\events\templates\events\dossier_share.html:153
 msgid "Révoqué"
 msgstr "Revoked"
 
-#: .\events\admin.py:354 .\events\templates\events\dossier_share.html:155
+#: .\events\admin.py:395 .\events\templates\events\dossier_share.html:155
 msgid "Expiré"
 msgstr "Expired"
 
-#: .\events\admin.py:355 .\events\templates\events\dossier_share.html:157
+#: .\events\admin.py:396 .\events\templates\events\dossier_share.html:157
 msgid "Actif"
 msgstr "Active"
 
-#: .\events\admin.py:360
+#: .\events\admin.py:401
 msgid "Révoquer les liens sélectionnés"
 msgstr "Revoke selected links"
 
-#: .\events\admin.py:374
+#: .\events\admin.py:415
 #, python-format
 msgid "%(n)s lien(s) révoqué(s)."
 msgstr "%(n)s link(s) revoked."
 
-#: .\events\admin.py:394 .\events\templates\events\dossier_share.html:263
+#: .\events\admin.py:420
+msgid "Remettre en service les liens révoqués sélectionnés"
+msgstr "Reactivate selected revoked links"
+
+#: .\events\admin.py:434
+#, python-format
+msgid "%(n)s lien(s) remis en service."
+msgstr "%(n)s link(s) reactivated."
+
+#: .\events\admin.py:454 .\events\templates\events\dossier_share.html:263
 msgid "Expirée"
 msgstr "Expired"
 
-#: .\events\admin.py:407 .\events\models.py:1003
+#: .\events\admin.py:467 .\events\models.py:1004
 msgid "profil"
 msgstr "profile"
 
@@ -235,7 +244,7 @@ msgstr "email import"
 msgid "auteur inconnu"
 msgstr "unknown author"
 
-#: .\events\export.py:269 .\events\models.py:846
+#: .\events\export.py:269 .\events\models.py:847
 #: .\events\templates\events\journal.html:76
 msgid "via l'administration"
 msgstr "via the administration"
@@ -426,7 +435,7 @@ msgid "Bureautique"
 msgstr "Office documents"
 
 #: .\events\filtres.py:329 .\events\models.py:49 .\events\models.py:164
-#: .\events\models.py:959
+#: .\events\models.py:960
 msgid "nom"
 msgstr "name"
 
@@ -595,8 +604,8 @@ msgstr "Emails forwarded to this address become events of the case file."
 
 #: .\events\models.py:81 .\events\models.py:160 .\events\models.py:201
 #: .\events\models.py:497 .\events\models.py:604 .\events\models.py:709
-#: .\events\models.py:833 .\events\models.py:884 .\events\models.py:923
-#: .\events\models.py:956
+#: .\events\models.py:834 .\events\models.py:885 .\events\models.py:924
+#: .\events\models.py:957
 msgid "dossier"
 msgstr "case file"
 
@@ -626,7 +635,7 @@ msgstr "Email invitation"
 msgid "Lien de partage"
 msgstr "Share link"
 
-#: .\events\models.py:103 .\events\models.py:986
+#: .\events\models.py:103 .\events\models.py:987
 msgid "utilisateur"
 msgstr "user"
 
@@ -658,7 +667,7 @@ msgstr "address"
 msgid "couleur"
 msgstr "colour"
 
-#: .\events\models.py:171 .\events\models.py:234 .\events\models.py:892
+#: .\events\models.py:171 .\events\models.py:234 .\events\models.py:893
 msgid "expéditeur"
 msgstr "sender"
 
@@ -842,7 +851,7 @@ msgstr "last accessed"
 msgid "consultations"
 msgstr "views"
 
-#: .\events\models.py:743 .\events\models.py:842
+#: .\events\models.py:743 .\events\models.py:843
 msgid "lien de partage"
 msgstr "share link"
 
@@ -916,124 +925,128 @@ msgid "Lien de partage révoqué"
 msgstr "Share link revoked"
 
 #: .\events\models.py:816
+msgid "Lien de partage modifié"
+msgstr "Share link modified"
+
+#: .\events\models.py:817
 msgid "Dossier exporté"
 msgstr "Case file exported"
 
-#: .\events\models.py:817
+#: .\events\models.py:818
 msgid "Évènement importé par courriel"
 msgstr "Event imported by email"
 
-#: .\events\models.py:818
+#: .\events\models.py:819
 msgid "Courriels relevés"
 msgstr "Emails fetched"
 
-#: .\events\models.py:819
+#: .\events\models.py:820
 msgid "Dossier créé"
 msgstr "Case file created"
 
-#: .\events\models.py:820
+#: .\events\models.py:821
 msgid "Dossier modifié"
 msgstr "Case file edited"
 
-#: .\events\models.py:821
+#: .\events\models.py:822
 msgid "Évènements fusionnés"
 msgstr "Events merged"
 
-#: .\events\models.py:822
+#: .\events\models.py:823
 msgid "Doublon possible écarté"
 msgstr "Possible duplicate dismissed"
 
-#: .\events\models.py:836
+#: .\events\models.py:837
 msgid "moment"
 msgstr "time"
 
-#: .\events\models.py:838
+#: .\events\models.py:839
 msgid "auteur"
 msgstr "author"
 
-#: .\events\models.py:847
+#: .\events\models.py:848
 msgid "action"
 msgstr "action"
 
-#: .\events\models.py:849 .\events\models.py:889
+#: .\events\models.py:850 .\events\models.py:890
 msgid "évènement"
 msgstr "event"
 
-#: .\events\models.py:852
+#: .\events\models.py:853
 msgid "objet"
 msgstr "subject"
 
-#: .\events\models.py:853
+#: .\events\models.py:854
 msgid "détails"
 msgstr "details"
 
-#: .\events\models.py:859
+#: .\events\models.py:860
 msgid "entrée du journal"
 msgstr "log entry"
 
-#: .\events\models.py:860
+#: .\events\models.py:861
 msgid "journal"
 msgstr "log"
 
-#: .\events\models.py:887
+#: .\events\models.py:888
 msgid "identifiant du courriel"
 msgstr "email ID"
 
-#: .\events\models.py:895
+#: .\events\models.py:896
 msgid "cite : expéditeur"
 msgstr "quotes: sender"
 
-#: .\events\models.py:896
+#: .\events\models.py:897
 msgid "cite : date"
 msgstr "quotes: date"
 
-#: .\events\models.py:897
+#: .\events\models.py:898
 msgid "cite : objet"
 msgstr "quotes: subject"
 
-#: .\events\models.py:900
+#: .\events\models.py:901
 msgid "cite : destinataires"
 msgstr "quotes: recipients"
 
-#: .\events\models.py:901
+#: .\events\models.py:902
 msgid "importé le"
 msgstr "imported on"
 
-#: .\events\models.py:904
+#: .\events\models.py:905
 msgid "courriel importé"
 msgstr "imported email"
 
-#: .\events\models.py:905
+#: .\events\models.py:906
 msgid "courriels importés"
 msgstr "imported emails"
 
-#: .\events\models.py:935
+#: .\events\models.py:936
 msgid "paire de doublons écartée"
 msgstr "dismissed duplicate pair"
 
-#: .\events\models.py:936
+#: .\events\models.py:937
 msgid "paires de doublons écartées"
 msgstr "dismissed duplicate pairs"
 
-#: .\events\models.py:966
+#: .\events\models.py:967
 msgid "étiquette"
 msgstr "tag"
 
-#: .\events\models.py:967 .\events\views\journal.py:65
+#: .\events\models.py:968 .\events\views\journal.py:70
 msgid "étiquettes"
 msgstr "tags"
 
-#: .\events\models.py:994
+#: .\events\models.py:995
 msgid "Nombre maximum de dossiers"
 msgstr "Maximum number of dossiers"
 
-#: .\events\models.py:997
+#: .\events\models.py:998
 msgid ""
 "Nombre de dossiers dont ce compte peut être propriétaire. 0 : il ne peut pas "
 "en créer."
 msgstr "Number of dossiers this account may own. 0: it cannot create any."
 
-#: .\events\models.py:1004
+#: .\events\models.py:1005
 msgid "profils"
 msgstr "profiles"
 

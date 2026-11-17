@@ -813,6 +813,7 @@ class Journal(models.Model):
         INVITATION_ACCEPTEE = "invitation_acceptee", gettext_lazy("Invitation acceptée")
         LIEN_CREE = "lien_cree", gettext_lazy("Lien de partage créé")
         LIEN_REVOQUE = "lien_revoque", gettext_lazy("Lien de partage révoqué")
+        LIEN_MODIFIE = "lien_modifie", gettext_lazy("Lien de partage modifié")
         EXPORT = "export", gettext_lazy("Dossier exporté")
         COURRIEL_IMPORTE = "courriel_importe", gettext_lazy("Évènement importé par courriel")
         COURRIELS_RELEVES = "courriels_releves", gettext_lazy("Courriels relevés")
@@ -826,7 +827,7 @@ class Journal(models.Model):
     ACTIONS_DE_PARTAGE = frozenset({
         Action.ACCES_ACCORDE, Action.ACCES_RETIRE, Action.ACCES_MODIFIE,
         Action.INVITATION_EMISE, Action.INVITATION_ANNULEE, Action.INVITATION_ACCEPTEE,
-        Action.LIEN_CREE, Action.LIEN_REVOQUE,
+        Action.LIEN_CREE, Action.LIEN_REVOQUE, Action.LIEN_MODIFIE,
     })
 
     dossier = models.ForeignKey(

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 21:59+0100\n"
+"POT-Creation-Date: 2026-11-17 22:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,48 +18,57 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\events\admin.py:36
+#: .\events\admin.py:38
 msgid "pièce liée"
 msgstr "gekoppeld stuk"
 
-#: .\events\admin.py:37
+#: .\events\admin.py:39
 msgid "pièces liées"
 msgstr "gekoppelde stukken"
 
-#: .\events\admin.py:244 .\events\models.py:503 .\events\models.py:961
+#: .\events\admin.py:246 .\events\models.py:503 .\events\models.py:962
 msgid "évènements"
 msgstr "gebeurtenissen"
 
-#: .\events\admin.py:349 .\events\admin.py:391
+#: .\events\admin.py:390 .\events\admin.py:451
 msgid "statut"
 msgstr "status"
 
-#: .\events\admin.py:352 .\events\templates\events\dossier_share.html:153
+#: .\events\admin.py:393 .\events\templates\events\dossier_share.html:153
 msgid "Révoqué"
 msgstr "Ingetrokken"
 
-#: .\events\admin.py:354 .\events\templates\events\dossier_share.html:155
+#: .\events\admin.py:395 .\events\templates\events\dossier_share.html:155
 msgid "Expiré"
 msgstr "Vervallen"
 
-#: .\events\admin.py:355 .\events\templates\events\dossier_share.html:157
+#: .\events\admin.py:396 .\events\templates\events\dossier_share.html:157
 msgid "Actif"
 msgstr "Actief"
 
-#: .\events\admin.py:360
+#: .\events\admin.py:401
 msgid "Révoquer les liens sélectionnés"
 msgstr "Geselecteerde links intrekken"
 
-#: .\events\admin.py:374
+#: .\events\admin.py:415
 #, python-format
 msgid "%(n)s lien(s) révoqué(s)."
 msgstr "%(n)s link(s) ingetrokken."
 
-#: .\events\admin.py:394 .\events\templates\events\dossier_share.html:263
+#: .\events\admin.py:420
+msgid "Remettre en service les liens révoqués sélectionnés"
+msgstr "Geselecteerde ingetrokken links opnieuw activeren"
+
+#: .\events\admin.py:434
+#, python-format
+msgid "%(n)s lien(s) remis en service."
+msgstr "%(n)s link(s) opnieuw geactiveerd."
+
+#: .\events\admin.py:454 .\events\templates\events\dossier_share.html:263
 msgid "Expirée"
 msgstr "Vervallen"
 
-#: .\events\admin.py:407 .\events\models.py:1003
+#: .\events\admin.py:467 .\events\models.py:1004
 msgid "profil"
 msgstr "profiel"
 
@@ -237,7 +246,7 @@ msgstr "e-mailimport"
 msgid "auteur inconnu"
 msgstr "onbekende auteur"
 
-#: .\events\export.py:269 .\events\models.py:846
+#: .\events\export.py:269 .\events\models.py:847
 #: .\events\templates\events\journal.html:76
 msgid "via l'administration"
 msgstr "via het beheer"
@@ -431,7 +440,7 @@ msgid "Bureautique"
 msgstr "Kantoordocumenten"
 
 #: .\events\filtres.py:329 .\events\models.py:49 .\events\models.py:164
-#: .\events\models.py:959
+#: .\events\models.py:960
 msgid "nom"
 msgstr "naam"
 
@@ -602,8 +611,8 @@ msgstr ""
 
 #: .\events\models.py:81 .\events\models.py:160 .\events\models.py:201
 #: .\events\models.py:497 .\events\models.py:604 .\events\models.py:709
-#: .\events\models.py:833 .\events\models.py:884 .\events\models.py:923
-#: .\events\models.py:956
+#: .\events\models.py:834 .\events\models.py:885 .\events\models.py:924
+#: .\events\models.py:957
 msgid "dossier"
 msgstr "dossier"
 
@@ -633,7 +642,7 @@ msgstr "Uitnodiging per e-mail"
 msgid "Lien de partage"
 msgstr "Deellink"
 
-#: .\events\models.py:103 .\events\models.py:986
+#: .\events\models.py:103 .\events\models.py:987
 msgid "utilisateur"
 msgstr "gebruiker"
 
@@ -665,7 +674,7 @@ msgstr "adres"
 msgid "couleur"
 msgstr "kleur"
 
-#: .\events\models.py:171 .\events\models.py:234 .\events\models.py:892
+#: .\events\models.py:171 .\events\models.py:234 .\events\models.py:893
 msgid "expéditeur"
 msgstr "afzender"
 
@@ -852,7 +861,7 @@ msgstr "laatste toegang"
 msgid "consultations"
 msgstr "raadplegingen"
 
-#: .\events\models.py:743 .\events\models.py:842
+#: .\events\models.py:743 .\events\models.py:843
 msgid "lien de partage"
 msgstr "deellink"
 
@@ -926,118 +935,122 @@ msgid "Lien de partage révoqué"
 msgstr "Deellink ingetrokken"
 
 #: .\events\models.py:816
+msgid "Lien de partage modifié"
+msgstr "Deellink gewijzigd"
+
+#: .\events\models.py:817
 msgid "Dossier exporté"
 msgstr "Dossier geëxporteerd"
 
-#: .\events\models.py:817
+#: .\events\models.py:818
 msgid "Évènement importé par courriel"
 msgstr "Gebeurtenis geïmporteerd per e-mail"
 
-#: .\events\models.py:818
+#: .\events\models.py:819
 msgid "Courriels relevés"
 msgstr "E-mails opgehaald"
 
-#: .\events\models.py:819
+#: .\events\models.py:820
 msgid "Dossier créé"
 msgstr "Dossier aangemaakt"
 
-#: .\events\models.py:820
+#: .\events\models.py:821
 msgid "Dossier modifié"
 msgstr "Dossier gewijzigd"
 
-#: .\events\models.py:821
+#: .\events\models.py:822
 msgid "Évènements fusionnés"
 msgstr "Gebeurtenissen samengevoegd"
 
-#: .\events\models.py:822
+#: .\events\models.py:823
 msgid "Doublon possible écarté"
 msgstr "Mogelijk dubbel afgewezen"
 
-#: .\events\models.py:836
+#: .\events\models.py:837
 msgid "moment"
 msgstr "tijdstip"
 
-#: .\events\models.py:838
+#: .\events\models.py:839
 msgid "auteur"
 msgstr "auteur"
 
-#: .\events\models.py:847
+#: .\events\models.py:848
 msgid "action"
 msgstr "actie"
 
-#: .\events\models.py:849 .\events\models.py:889
+#: .\events\models.py:850 .\events\models.py:890
 msgid "évènement"
 msgstr "gebeurtenis"
 
-#: .\events\models.py:852
+#: .\events\models.py:853
 msgid "objet"
 msgstr "onderwerp"
 
-#: .\events\models.py:853
+#: .\events\models.py:854
 msgid "détails"
 msgstr "details"
 
-#: .\events\models.py:859
+#: .\events\models.py:860
 msgid "entrée du journal"
 msgstr "logboekregel"
 
-#: .\events\models.py:860
+#: .\events\models.py:861
 msgid "journal"
 msgstr "logboek"
 
-#: .\events\models.py:887
+#: .\events\models.py:888
 msgid "identifiant du courriel"
 msgstr "e-mail-ID"
 
-#: .\events\models.py:895
+#: .\events\models.py:896
 msgid "cite : expéditeur"
 msgstr "citeert: afzender"
 
-#: .\events\models.py:896
+#: .\events\models.py:897
 msgid "cite : date"
 msgstr "citeert: datum"
 
-#: .\events\models.py:897
+#: .\events\models.py:898
 msgid "cite : objet"
 msgstr "citeert: onderwerp"
 
-#: .\events\models.py:900
+#: .\events\models.py:901
 msgid "cite : destinataires"
 msgstr "citeert: geadresseerden"
 
-#: .\events\models.py:901
+#: .\events\models.py:902
 msgid "importé le"
 msgstr "geïmporteerd op"
 
-#: .\events\models.py:904
+#: .\events\models.py:905
 msgid "courriel importé"
 msgstr "geïmporteerde e-mail"
 
-#: .\events\models.py:905
+#: .\events\models.py:906
 msgid "courriels importés"
 msgstr "geïmporteerde e-mails"
 
-#: .\events\models.py:935
+#: .\events\models.py:936
 msgid "paire de doublons écartée"
 msgstr "afgewezen paar dubbels"
 
-#: .\events\models.py:936
+#: .\events\models.py:937
 msgid "paires de doublons écartées"
 msgstr "afgewezen paren dubbels"
 
-#: .\events\models.py:966
+#: .\events\models.py:967
 msgid "étiquette"
 msgstr "label"
 
-#: .\events\models.py:967 .\events\views\journal.py:65
+#: .\events\models.py:968 .\events\views\journal.py:70
 msgid "étiquettes"
 msgstr "labels"
 
-#: .\events\models.py:994
+#: .\events\models.py:995
 msgid "Nombre maximum de dossiers"
 msgstr "Maximumaantal dossiers"
 
-#: .\events\models.py:997
+#: .\events\models.py:998
 msgid ""
 "Nombre de dossiers dont ce compte peut être propriétaire. 0 : il ne peut pas "
 "en créer."
@@ -1045,7 +1058,7 @@ msgstr ""
 "Aantal dossiers waarvan dit account eigenaar mag zijn. 0: het kan er geen "
 "aanmaken."
 
-#: .\events\models.py:1004
+#: .\events\models.py:1005
 msgid "profils"
 msgstr "profielen"
 

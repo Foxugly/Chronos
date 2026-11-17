@@ -46,12 +46,87 @@ class AdminDesLiensTests(TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertNotContains(response, self.actif.token)
 
-    def test_ni_creation_ni_modification_ni_suppression(self):
+    def test_ni_creation_ni_suppression(self):
+        """Un lien naît sur la page de partage ; il se coupe, il ne s'efface pas."""
         self.assertEqual(self.client.get(f"{LISTE_LIENS}add/").status_code, 403)
         self.assertEqual(self.client.get(f"{LISTE_LIENS}{self.actif.pk}/delete/").status_code, 403)
-        self.client.post(f"{LISTE_LIENS}{self.actif.pk}/change/", {"label": "Pirate"})
+
+    def _modifier(self, lien, **valeurs):
+        donnees = {
+            "label": lien.label,
+            "role": lien.role,
+            "expires_at_0": "",
+            "expires_at_1": "",
+        }
+        donnees.update(valeurs)
+        return self.client.post(f"{LISTE_LIENS}{lien.pk}/change/", donnees)
+
+    def test_modifier_destinataire_droit_et_expiration_et_le_journaliser(self):
+        response = self._modifier(
+            self.expire, label="Expert judiciaire", role=DossierAccess.Role.WRITE,
+            expires_at_0="2099-01-31", expires_at_1="12:00:00")
+        self.assertEqual(response.status_code, 302)
+        self.expire.refresh_from_db()
+        self.assertEqual(self.expire.label, "Expert judiciaire")
+        self.assertEqual(self.expire.role, DossierAccess.Role.WRITE)
+        self.assertTrue(self.expire.is_active)  # prolongé : il fonctionne de nouveau
+
+        entree = Journal.objects.get(action=Journal.Action.LIEN_MODIFIE)
+        self.assertTrue(entree.via_admin)
+        self.assertEqual(entree.lien, self.expire)
+        self.assertEqual(entree.details["modele"], "lien")
+        self.assertEqual(set(entree.details["changements"]), {"label", "role", "expires_at"})
+        self.assertEqual(entree.details["changements"]["label"], ["Expert", "Expert judiciaire"])
+
+    def test_vider_l_expiration_rend_le_lien_illimite(self):
+        self._modifier(self.expire)
+        self.expire.refresh_from_db()
+        self.assertIsNone(self.expire.expires_at)
+        self.assertTrue(self.expire.is_active)
+
+    def test_enregistrer_sans_rien_changer_ne_journalise_rien(self):
+        self._modifier(self.actif)
+        self.assertFalse(Journal.objects.exists())
+
+    def test_une_expiration_a_la_microseconde_ne_cree_pas_de_faux_changement(self):
+        """La page de partage calcule l'expiration (`now() + durée`) ; le
+        formulaire de l'admin l'affiche à la seconde. Réenregistrer sans rien
+        toucher ne doit pas inscrire « expiration modifiée » au journal."""
+        moment = timezone.localtime(timezone.now() + timedelta(days=30)).replace(microsecond=123456)
+        ShareLink.objects.filter(pk=self.actif.pk).update(expires_at=moment)
+        self._modifier(self.actif, expires_at_0=moment.strftime("%Y-%m-%d"),
+                       expires_at_1=moment.strftime("%H:%M:%S"))
+        self.assertFalse(Journal.objects.exists())
+
+    def test_jeton_compteur_et_dates_ne_se_modifient_pas(self):
+        jeton = self.actif.token
+        self._modifier(self.actif, token="x" * 40, use_count="999", revoked_at_0="2026-01-01",
+                       revoked_at_1="10:00:00", created_by="")
         self.actif.refresh_from_db()
-        self.assertEqual(self.actif.label, "Avocat")
+        self.assertEqual(self.actif.token, jeton)
+        self.assertEqual(self.actif.use_count, 0)
+        self.assertIsNone(self.actif.revoked_at)
+        self.assertEqual(self.actif.created_by, self.admin)
+
+    def test_la_modification_se_lit_dans_le_journal_du_dossier(self):
+        self._modifier(self.actif, label="Avocate")
+        response = self.client.get(f"/dossiers/{self.dossier.pk}/journal/")
+        self.assertContains(response, "Lien de partage modifié")
+        self.assertContains(response, "Avocate")
+
+    def test_remettre_en_service_un_lien_revoque(self):
+        response = self.client.post(LISTE_LIENS, {
+            "action": "remettre_en_service",
+            "_selected_action": [self.revoque.pk, self.actif.pk],
+        })
+        self.assertEqual(response.status_code, 302)
+        self.revoque.refresh_from_db()
+        self.assertIsNone(self.revoque.revoked_at)
+        self.assertTrue(self.revoque.is_active)
+        entree = Journal.objects.get(action=Journal.Action.LIEN_MODIFIE)  # une seule : l'actif n'est pas touché
+        self.assertTrue(entree.via_admin)
+        self.assertEqual(entree.lien, self.revoque)
+        self.assertEqual(entree.details["changements"]["revoked_at"][1], None)
 
     def test_revoquer_depuis_l_admin_coupe_le_lien_et_le_journalise(self):
         response = self.client.post(LISTE_LIENS, {
