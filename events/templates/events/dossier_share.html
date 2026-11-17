@@ -348,7 +348,6 @@ seul endroit où cela se décide.
             <div class="card-body">
                 <h2 class="h5 mb-3">{% translate "Donner accès à un compte existant" %}</h2>
 
-                {% if form.fields.user.queryset %}
                     <form method="post">
                         {% csrf_token %}
 
@@ -358,11 +357,11 @@ seul endroit où cela se décide.
 
                         <div class="row g-3 align-items-end">
                             <div class="col-md-5">
-                                <label class="form-label" for="{{ form.user.id_for_label }}">
-                                    {{ form.user.label }}
+                                <label class="form-label" for="{{ form.email.id_for_label }}">
+                                    {{ form.email.label }}
                                 </label>
-                                {{ form.user }}
-                                {{ form.user.errors }}
+                                {{ form.email }}
+                                {{ form.email.errors }}
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label" for="{{ form.role.id_for_label }}">
@@ -399,14 +398,6 @@ seul endroit où cela se décide.
                             {% endblocktranslate %}
                         </li>
                     </ul>
-                {% else %}
-                    <p class="text-body-secondary mb-0">
-                        {% blocktranslate trimmed %}
-                        Tous les comptes existants ont déjà accès à ce dossier.
-                        Les comptes se créent dans l'administration.
-                        {% endblocktranslate %}
-                    </p>
-                {% endif %}
             </div>
         </div>
 

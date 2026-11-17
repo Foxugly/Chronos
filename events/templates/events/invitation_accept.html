@@ -89,6 +89,24 @@ un dossier de pièces.
                         {% endblocktranslate %}
                     </div>
 
+                {% elif not bonne_adresse %}
+                    {# L'invitation vaut pour l'adresse invitée (vérifiée), pas pour qui tient le lien. #}
+                    <div class="alert alert-warning">
+                        {% blocktranslate trimmed with email=invitation.email nom=user.get_username %}
+                        Cette invitation a été envoyée à <strong>{{ email }}</strong>.
+                        Le compte <strong>{{ nom }}</strong> ne possède pas cette adresse
+                        (vérifiée) : connectez-vous avec le compte de cette adresse,
+                        ou créez-le, puis rouvrez ce lien.
+                        {% endblocktranslate %}
+                    </div>
+                    <form method="post" action="{% url 'account_logout' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>{% translate "Changer de compte" %}
+                        </button>
+                    </form>
+
                 {% else %}
                     <p class="text-body-secondary small">
                         {% blocktranslate trimmed with nom=user.get_username %}

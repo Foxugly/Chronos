@@ -1,15 +1,19 @@
 """Le partage, réservé au propriétaire (invariant 5) : accès, invitations, liens."""
 
+import logging
+
+from allauth.account.models import EmailAddress
 from django.contrib import messages
 from django.core.mail import send_mail
+from django.db import IntegrityError, transaction
 from django.http import Http404, JsonResponse
-from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils import translation
 from django.utils.translation import gettext as _
+from django.views.decorators.cache import never_cache
 
 from ..filtres import identifiant
 from ..forms import DossierAccessForm, InvitationForm, ShareLinkEditForm, ShareLinkForm
@@ -17,7 +21,12 @@ from ..journal import changements, consigner, etat_du_lien
 from ..models import DossierAccess, Invitation, Journal
 from ..permissions import get_dossier_for_owner
 
+logger = logging.getLogger(__name__)
 
+
+# Le geste et sa trace au journal : une seule transaction (`journal.py`).
+@transaction.atomic
+@never_cache
 def dossier_share(request, dossier_id):
     """Qui a accès au dossier, et comment le leur accorder ou le reprendre.
 
@@ -90,6 +99,7 @@ def _lien_tout_juste_cree(request, dossier):
     return lien if lien is not None and lien.is_active else None
 
 
+@transaction.atomic
 def dossier_access_revoke(request, dossier_id, access_id):
     """Reprend un accès. POST uniquement : un GET suffirait sinon à le
     révoquer depuis un lien, une image ou un préchargement.
@@ -164,16 +174,28 @@ def dossier_invite(request, dossier_id):
 
     form = InvitationForm(request.POST, dossier=dossier)
     if form.is_valid():
-        invitation = form.save(commit=False)
-        invitation.dossier = dossier
-        invitation.created_by = request.user
-        invitation.save()
-        consigner(
-            dossier, Journal.Action.INVITATION_EMISE, request=request,
-            objet=invitation.email,
-            details={"role": invitation.role, "expire": invitation.expires_at.isoformat()},
-        )
-        _envoyer_invitation(request, invitation)
+        # Tout ou rien : une invitation dont le courriel n'est pas parti
+        # n'existe pas, et le journal ne dit pas « envoyée » à tort. Sinon,
+        # l'échec laissait une invitation en attente qui bloquait la suivante.
+        try:
+            with transaction.atomic():
+                invitation = form.save(commit=False)
+                invitation.dossier = dossier
+                invitation.created_by = request.user
+                invitation.save()
+                consigner(
+                    dossier, Journal.Action.INVITATION_EMISE, request=request,
+                    objet=invitation.email,
+                    details={"role": invitation.role, "expire": invitation.expires_at.isoformat()},
+                )
+                _envoyer_invitation(request, invitation)
+        except Exception:
+            logger.exception("Invitation : le courriel n'a pas pu partir.")
+            messages.error(
+                request,
+                _("Le courriel d'invitation n'a pas pu partir : rien n'a été envoyé. Réessayez plus tard."),
+            )
+            return redirect("dossier_share", dossier_id=dossier.pk)
         messages.success(
             request,
             _("Invitation envoyée à %(email)s. Elle expire le %(date)s.")
@@ -188,6 +210,7 @@ def dossier_invite(request, dossier_id):
                   _contexte_du_partage(request, dossier, invitation_form=form), status=400)
 
 
+@transaction.atomic
 def invitation_revoke(request, dossier_id, invitation_id):
     """Annule une invitation en attente. POST uniquement."""
     if request.method != "POST":
@@ -209,6 +232,7 @@ def invitation_revoke(request, dossier_id, invitation_id):
     return redirect("dossier_share", dossier_id=dossier.pk)
 
 
+@never_cache
 def invitation_accept(request, token):
     """Page d'acceptation d'une invitation.
 
@@ -221,41 +245,71 @@ def invitation_accept(request, token):
     l'invitation depuis un aperçu de lien ou un préchargement.
     """
     invitation = get_object_or_404(Invitation, token=token)
+    bonne_adresse = _adresse_invitee(request.user, invitation)
 
-    deja_autorise = (
-        invitation.dossier.owner_id == request.user.id
-        or invitation.dossier.accesses.filter(user=request.user).exists()
-    )
-
-    if request.method == "POST" and invitation.is_usable and not deja_autorise:
-        DossierAccess.objects.create(
-            dossier=invitation.dossier,
-            user=request.user,
-            role=invitation.role,
-            origin=DossierAccess.Origin.INVITATION,
-            granted_by=invitation.created_by,
-        )
-        invitation.accepted_at = timezone.now()
-        invitation.accepted_by = request.user
-        invitation.save(update_fields=["accepted_at", "accepted_by"])
-        consigner(
-            invitation.dossier, Journal.Action.INVITATION_ACCEPTEE, request=request,
-            objet=invitation.email, details={"role": invitation.role},
-        )
-        messages.success(
-            request,
-            _("Vous avez désormais accès au dossier « %(dossier)s ».")
-            % {"dossier": invitation.dossier.name},
-        )
-        return redirect("timeline", dossier_id=invitation.dossier_id)
+    if request.method == "POST" and bonne_adresse:
+        # Sous verrou, et tout ou rien : deux acceptations simultanées (deux
+        # comptes, ou un double clic) ne doivent ni ouvrir deux accès ni finir
+        # en erreur serveur sur la contrainte d'unicité.
+        with transaction.atomic():
+            invitation = Invitation.objects.select_for_update().get(pk=invitation.pk)
+            acceptee = (invitation.is_usable
+                        and not _deja_autorise(request.user, invitation.dossier)
+                        and _accorder_par_invitation(request, invitation))
+        if acceptee:
+            messages.success(
+                request,
+                _("Vous avez désormais accès au dossier « %(dossier)s ».")
+                % {"dossier": invitation.dossier.name},
+            )
+            return redirect("timeline", dossier_id=invitation.dossier_id)
 
     return render(
         request,
         "events/invitation_accept.html",
-        {"invitation": invitation, "deja_autorise": deja_autorise},
+        {"invitation": invitation, "deja_autorise": _deja_autorise(request.user, invitation.dossier),
+         "bonne_adresse": bonne_adresse},
     )
 
 
+def _deja_autorise(utilisateur, dossier):
+    return dossier.owner_id == utilisateur.id or dossier.accesses.filter(user=utilisateur).exists()
+
+
+def _adresse_invitee(utilisateur, invitation):
+    """L'invitation vaut pour l'adresse invitée, pas pour qui tient le lien :
+    le compte doit posséder cette adresse, **vérifiée** (allauth). Un courriel
+    retransféré, ou un compte ouvert par un tiers, ne reçoit rien."""
+    return EmailAddress.objects.filter(
+        user=utilisateur, email__iexact=invitation.email, verified=True
+    ).exists()
+
+
+def _accorder_par_invitation(request, invitation):
+    """Crée l'accès, marque l'invitation acceptée et journalise ; dans la
+    transaction de l'appelant. `False` si l'accès existait déjà (course)."""
+    try:
+        with transaction.atomic():
+            DossierAccess.objects.create(
+                dossier=invitation.dossier,
+                user=request.user,
+                role=invitation.role,
+                origin=DossierAccess.Origin.INVITATION,
+                granted_by=invitation.created_by,
+            )
+    except IntegrityError:
+        return False
+    invitation.accepted_at = timezone.now()
+    invitation.accepted_by = request.user
+    invitation.save(update_fields=["accepted_at", "accepted_by"])
+    consigner(
+        invitation.dossier, Journal.Action.INVITATION_ACCEPTEE, request=request,
+        objet=invitation.email, details={"role": invitation.role},
+    )
+    return True
+
+
+@transaction.atomic
 def share_link_create(request, dossier_id):
     """Émet un lien de consultation anonyme. POST uniquement."""
     dossier = get_dossier_for_owner(request.user, dossier_id)
@@ -290,6 +344,7 @@ def share_link_create(request, dossier_id):
     return redirect("%s?nouveau=%d" % (reverse("dossier_share", args=[dossier.pk]), lien.pk))
 
 
+@never_cache
 def share_link_detail(request, dossier_id, link_id):
     """Le lien à nouveau, prêt à copier : la page qu'ouvre « Voir » sans
     JavaScript (avec, c'est une popup de la page de partage). Propriétaire
@@ -301,6 +356,7 @@ def share_link_detail(request, dossier_id, link_id):
     return render(request, "events/lien_partage.html", {"dossier": dossier, "lien": lien})
 
 
+@never_cache
 def share_link_edit(request, dossier_id, link_id):
     """Modifie le destinataire, le droit ou la validité d'un lien.
 
@@ -338,6 +394,7 @@ def share_link_edit(request, dossier_id, link_id):
     return redirect("dossier_share", dossier_id=dossier.pk)
 
 
+@transaction.atomic
 def share_link_revoke(request, dossier_id, link_id):
     """Coupe un lien. POST uniquement, et sans délai."""
     if request.method != "POST":

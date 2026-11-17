@@ -62,8 +62,8 @@ en texte, et aucune valeur n'y est marquée `safe`.
                             {% if entree.auteur %}
                                 {% blocktranslate with nom=entree.auteur.get_username %}par {{ nom }}{% endblocktranslate %}
                             {% elif entree.lien %}
-                                {% if entree.lien.label %}
-                                    {% blocktranslate with nom=entree.lien.label %}par le lien de partage « {{ nom }} »{% endblocktranslate %}
+                                {% if ligne.lien_nom %}
+                                    {% blocktranslate with nom=ligne.lien_nom %}par le lien de partage « {{ nom }} »{% endblocktranslate %}
                                 {% else %}
                                     {% translate "par un lien de partage" %}
                                 {% endif %}

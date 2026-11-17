@@ -260,7 +260,8 @@ def _pdf_du_journal(dossier, lignes, auteur):
         if entree.auteur:
             qui = entree.auteur.get_username()
         elif entree.lien:
-            qui = _("lien de partage « %(nom)s »") % {"nom": entree.lien.label or "—"}
+            qui = (_("lien de partage « %(nom)s »") % {"nom": ligne["lien_nom"]}
+                   if ligne.get("lien_nom") else _("un lien de partage"))
         elif ligne.get("par_import"):
             qui = _("import de courriels")
         else:

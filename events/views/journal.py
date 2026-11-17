@@ -74,7 +74,7 @@ def _nom_du_champ(modele, champ):
         return champ
 
 
-def _ligne_de_journal(entree, evenements_importes=frozenset()):
+def _ligne_de_journal(entree, evenements_importes=frozenset(), montrer_les_liens=True):
     details = entree.details or {}
     modele = MODELES_DU_JOURNAL.get(details.get("modele"), Event)
     champs = details.get("changements")
@@ -107,6 +107,12 @@ def _ligne_de_journal(entree, evenements_importes=frozenset()):
         "deja_presente": details.get("deja_presente"),
         "evenement": details.get("evenement"),
         "par_import": _par_import(entree, details, evenements_importes),
+        # Qui tenait le lien : le nom figé à l'écriture (`consigner`), sinon,
+        # pour les entrées plus anciennes, le nom actuel. Seul le propriétaire
+        # le voit : un collaborateur n'a pas à apprendre à qui le dossier a été
+        # transmis (invariant 5) — il lit « par un lien de partage ».
+        "lien_nom": (details.get("lien_nom", entree.lien.label if entree.lien else "")
+                     if montrer_les_liens else ""),
     }
 
 
@@ -144,13 +150,14 @@ def lignes_du_journal(dossier, utilisateur):
     """Le journal tel que `utilisateur` peut le lire : les entrées de partage
     pour le seul propriétaire (invariant 5). Sert la page et l'export."""
     entrees = dossier.journal.select_related("auteur", "lien")
-    if dossier.owner_id != utilisateur.id:
+    proprietaire = dossier.owner_id == utilisateur.id
+    if not proprietaire:
         entrees = entrees.exclude(action__in=Journal.ACTIONS_DE_PARTAGE)
     importes = frozenset(
         CourrielImporte.objects.filter(dossier=dossier, evenement__isnull=False)
         .values_list("evenement_id", flat=True)
     )
-    return [_ligne_de_journal(e, importes) for e in entrees]
+    return [_ligne_de_journal(e, importes, montrer_les_liens=proprietaire) for e in entrees]
 
 
 def preparer_export(dossier, parametres, auteur, journal=None):

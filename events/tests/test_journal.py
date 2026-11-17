@@ -11,7 +11,7 @@ from django.urls import reverse
 
 from events.admin import EventAdmin
 from events.models import Document, DossierAccess, Event, Journal, ShareLink
-from events.tests.factories import grant, make_dossier, make_user
+from events.tests.factories import grant, make_dossier, make_user, verifier_adresse
 
 
 class MediaMixin:
@@ -94,8 +94,9 @@ class ConsignationTests(MediaMixin, TestCase):
 
     def test_le_partage_est_inscrit(self):
         lecteur = make_user("lecteur")
+        verifier_adresse(lecteur)
         self.client.post(reverse("dossier_share", args=[self.dossier.pk]),
-                         {"user": lecteur.pk, "role": DossierAccess.Role.READ})
+                         {"email": lecteur.email, "role": DossierAccess.Role.READ})
         acces = DossierAccess.objects.get()
         self.client.post(reverse("dossier_access_revoke", args=[self.dossier.pk, acces.pk]))
         self.client.post(reverse("share_link_create", args=[self.dossier.pk]),
