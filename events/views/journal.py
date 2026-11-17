@@ -23,6 +23,7 @@ from ..models import (
     Event,
     Expediteur,
     Journal,
+    ShareLink,
 )
 from ..permissions import get_dossier_for_read
 
@@ -37,6 +38,9 @@ def _valeur_lisible(champ, valeur):
         return date_format(datetime.date.fromisoformat(valeur), "SHORT_DATE_FORMAT")
     if champ in ("heure", "heure_fin"):
         return time_format(datetime.time.fromisoformat(valeur), "TIME_FORMAT")
+    if champ in ("expires_at", "revoked_at"):
+        moment = timezone.localtime(datetime.datetime.fromisoformat(valeur))
+        return date_format(moment, "SHORT_DATETIME_FORMAT")
     if champ == "description":
         # Une fin de paragraphe ou de ligne devient un saut de ligne : sans
         # cela, deux paragraphes se liraient collés une fois le HTML retiré.
@@ -57,6 +61,7 @@ MODELES_DU_JOURNAL = {
     "dossier": Dossier,
     "acces": DossierAccess,
     "document": Document,
+    "lien": ShareLink,
 }
 
 

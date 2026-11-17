@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
@@ -328,9 +330,32 @@ class ConsultationSeuleMixin:
         return False
 
 
+def _a_la_seconde(moment):
+    """Une date en UTC et à la seconde : la base la rend en UTC, le formulaire
+    de l'admin à l'heure locale et sans microsecondes — même instant."""
+    if moment is None:
+        return None
+    return moment.astimezone(datetime.UTC).isoformat(timespec="seconds")
+
+
+def _etat_du_lien(lien):
+    """Les champs d'un lien que l'admin peut changer, en valeurs simples."""
+    return {
+        "label": lien.label,
+        "role": lien.role,
+        "expires_at": _a_la_seconde(lien.expires_at),
+        "revoked_at": _a_la_seconde(lien.revoked_at),
+    }
+
+
 @admin.register(ShareLink)
-class ShareLinkAdmin(ConsultationSeuleMixin, admin.ModelAdmin):
+class ShareLinkAdmin(admin.ModelAdmin):
     """Tous les liens, actifs, expirés ou révoqués.
+
+    Se modifient ici le destinataire, le droit et l'expiration ; la
+    révocation passe par les actions « Révoquer » / « Remettre en service ».
+    Chaque changement est journalisé `via_admin`. Un lien ne se crée ni ne
+    se supprime ici : il naît sur la page de partage, et se coupe.
 
     Le jeton n'est jamais affiché : il ouvre le dossier à qui le détient.
     """
@@ -343,8 +368,24 @@ class ShareLinkAdmin(ConsultationSeuleMixin, admin.ModelAdmin):
     list_select_related = ("dossier", "created_by")
     fields = ("dossier", "label", "role", "created_by", "created_at", "expires_at",
               "revoked_at", "use_count", "last_used_at")
-    readonly_fields = fields
-    actions = ["revoquer"]
+    readonly_fields = ("dossier", "created_by", "created_at", "revoked_at",
+                       "use_count", "last_used_at")
+    actions = ["revoquer", "remettre_en_service"]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def save_model(self, request, obj, form, change):
+        with transaction.atomic():
+            avant = _etat_du_lien(ShareLink.objects.get(pk=obj.pk))
+            super().save_model(request, obj, form, change)
+            changements = _champs_changes(avant, _etat_du_lien(obj))
+            if changements:
+                _journal_admin(request, obj.dossier, Journal.Action.LIEN_MODIFIE, lien=obj,
+                               objet=obj.label, details={"modele": "lien", "changements": changements})
 
     @admin.display(description=gettext_lazy("statut"))
     def statut(self, lien):
@@ -372,6 +413,25 @@ class ShareLinkAdmin(ConsultationSeuleMixin, admin.ModelAdmin):
                                lien=lien, objet=lien.label)
             revoques += 1
         self.message_user(request, _("%(n)s lien(s) révoqué(s).") % {"n": revoques})
+
+    def has_remettre_en_service_permission(self, request):
+        return request.user.is_superuser
+
+    @admin.action(description=gettext_lazy("Remettre en service les liens révoqués sélectionnés"),
+                  permissions=["remettre_en_service"])
+    def remettre_en_service(self, request, queryset):
+        remis = 0
+        for lien in queryset.filter(revoked_at__isnull=False).select_related("dossier"):
+            with transaction.atomic():
+                avant = _etat_du_lien(lien)
+                lien.revoked_at = None
+                lien.save(update_fields=["revoked_at"])
+                _journal_admin(request, lien.dossier, Journal.Action.LIEN_MODIFIE, lien=lien,
+                               objet=lien.label,
+                               details={"modele": "lien",
+                                        "changements": _champs_changes(avant, _etat_du_lien(lien))})
+            remis += 1
+        self.message_user(request, _("%(n)s lien(s) remis en service.") % {"n": remis})
 
 
 @admin.register(Invitation)

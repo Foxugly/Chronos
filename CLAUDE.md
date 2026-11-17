@@ -149,9 +149,12 @@ number of `DossierAccess` rows granting another user `Role.READ` or `Role.WRITE`
    refused form re-renders with its errors (400), never silently — until 2026-10-11 the page did
    not render the required `role` field, so every click was refused without a word. A test now
    submits exactly what the page renders.
-   **In the admin** (2026-11-17) share links and invitations are **read-only** lists (all of them,
-   expired and revoked included, with a status column); the **token is never shown**. The only
-   action is « Révoquer » on links, journaled `via_admin` like the share page's revoke.
+   **In the admin** (2026-11-17) share links and invitations are listed (all of them, expired and
+   revoked included, with a status column); the **token is never shown**, nothing is created or
+   deleted there. Invitations are read-only. A link's label, role and expiry are editable
+   (journaled `LIEN_MODIFIE`, `via_admin`, `details.modele = "lien"`; dates compared in UTC to
+   the second, or a re-save would log a false change); revoking and un-revoking are the actions
+   « Révoquer » / « Remettre en service », never a free date field.
 
 **`events/permissions.py` is the single gate.** Six helpers — `get_dossier_for_read` /
 `_for_write`, `get_event_for_read` / `_for_write`, `get_document_for_read` / `_for_write` — each
