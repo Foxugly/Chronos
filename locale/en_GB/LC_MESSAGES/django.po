@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 02:08+0200\n"
+"POT-Creation-Date: 2026-11-17 21:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,17 +18,50 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\events\admin.py:30
+#: .\events\admin.py:36
 msgid "pièce liée"
 msgstr "linked document"
 
-#: .\events\admin.py:31
+#: .\events\admin.py:37
 msgid "pièces liées"
 msgstr "linked documents"
 
-#: .\events\admin.py:238 .\events\models.py:503 .\events\models.py:961
+#: .\events\admin.py:244 .\events\models.py:503 .\events\models.py:961
 msgid "évènements"
 msgstr "events"
+
+#: .\events\admin.py:349 .\events\admin.py:391
+msgid "statut"
+msgstr "status"
+
+#: .\events\admin.py:352 .\events\templates\events\dossier_share.html:153
+msgid "Révoqué"
+msgstr "Revoked"
+
+#: .\events\admin.py:354 .\events\templates\events\dossier_share.html:155
+msgid "Expiré"
+msgstr "Expired"
+
+#: .\events\admin.py:355 .\events\templates\events\dossier_share.html:157
+msgid "Actif"
+msgstr "Active"
+
+#: .\events\admin.py:360
+msgid "Révoquer les liens sélectionnés"
+msgstr "Revoke selected links"
+
+#: .\events\admin.py:374
+#, python-format
+msgid "%(n)s lien(s) révoqué(s)."
+msgstr "%(n)s link(s) revoked."
+
+#: .\events\admin.py:394 .\events\templates\events\dossier_share.html:263
+msgid "Expirée"
+msgstr "Expired"
+
+#: .\events\admin.py:407 .\events\models.py:1003
+msgid "profil"
+msgstr "profile"
 
 #: .\events\alertes.py:51
 #, python-format
@@ -261,7 +294,7 @@ msgstr ""
 "Warning: %(n)s document(s) no longer match the hash recorded when they were "
 "uploaded. See “Integrity check”."
 
-#: .\events\export.py:354 .\events\views\dossiers.py:90
+#: .\events\export.py:354 .\events\views\dossiers.py:94
 msgid "Chronologie"
 msgstr "Chronology"
 
@@ -571,7 +604,7 @@ msgstr "case file"
 msgid "dossiers"
 msgstr "case files"
 
-#: .\events\models.py:90 .\events\views\dossiers.py:254
+#: .\events\models.py:90 .\events\views\dossiers.py:264
 msgid "Lecture"
 msgstr "Read"
 
@@ -593,7 +626,7 @@ msgstr "Email invitation"
 msgid "Lien de partage"
 msgstr "Share link"
 
-#: .\events\models.py:103
+#: .\events\models.py:103 .\events\models.py:986
 msgid "utilisateur"
 msgstr "user"
 
@@ -990,6 +1023,29 @@ msgstr "tag"
 msgid "étiquettes"
 msgstr "tags"
 
+#: .\events\models.py:994
+msgid "Nombre maximum de dossiers"
+msgstr "Maximum number of dossiers"
+
+#: .\events\models.py:997
+msgid ""
+"Nombre de dossiers dont ce compte peut être propriétaire. 0 : il ne peut pas "
+"en créer."
+msgstr "Number of dossiers this account may own. 0: it cannot create any."
+
+#: .\events\models.py:1004
+msgid "profils"
+msgstr "profiles"
+
+#: .\events\quotas.py:34
+msgid "La création de dossiers n'est pas activée pour votre compte."
+msgstr "Creating dossiers is not enabled for your account."
+
+#: .\events\quotas.py:35
+#, python-format
+msgid "Vous avez atteint le nombre maximum de dossiers (%(maximum)d)."
+msgstr "You have reached the maximum number of dossiers (%(maximum)d)."
+
 #: .\events\share_views.py:286
 #, python-format
 msgid "le lien de partage « %(nom)s »"
@@ -1299,7 +1355,7 @@ msgid "Saisi à la main"
 msgstr "Entered by hand"
 
 #: .\events\templates\events\_doublon_cote.html:26
-#: .\events\templates\events\dossier_list.html:36
+#: .\events\templates\events\dossier_list.html:50
 #: .\events\templates\events\vue_semaine.html:60
 #, python-format
 msgid "%(n)s pièce"
@@ -1308,6 +1364,7 @@ msgstr[0] "%(n)s document"
 msgstr[1] "%(n)s documents"
 
 #: .\events\templates\events\_entete_dossier.html:16
+#: .\events\templates\events\dossier_creer.html:13
 #: .\events\templates\events\dossier_list.html:10
 #: .\events\templates\events\dossier_list.html:15 .\templates\base.html:96
 #: .\templates\base.html:128
@@ -1535,7 +1592,7 @@ msgid "Couleur de %(nom)s"
 msgstr "Colour of %(nom)s"
 
 #: .\events\templates\events\_expediteurs.html:34
-#: .\events\templates\events\dossier_list.html:35
+#: .\events\templates\events\dossier_list.html:49
 #: .\events\templates\events\parametres.html:62
 #, python-format
 msgid "%(n)s évènement"
@@ -1587,7 +1644,7 @@ msgstr "as a list"
 msgid "Frise"
 msgstr "Timeline"
 
-#: .\events\templates\events\calendrier.html:223 .\events\views\dossiers.py:92
+#: .\events\templates\events\calendrier.html:223 .\events\views\dossiers.py:96
 msgid "Liste"
 msgstr "List"
 
@@ -1606,15 +1663,24 @@ msgid_plural ""
 "Ce compte possède %(n)s dossiers. Un dossier de preuves ne disparaît pas "
 "avec son propriétaire : confiez-les d'abord à quelqu'un d'autre en écrivant "
 "à hello@foxugly.com."
-msgstr[0] "This account owns a case file. A case file of evidence does not disappear with its owner: first hand it over to someone else by writing to hello@foxugly.com."
-msgstr[1] "This account owns %(n)s case files. A case file of evidence does not disappear with its owner: first hand them over to someone else by writing to hello@foxugly.com."
+msgstr[0] ""
+"This account owns a case file. A case file of evidence does not disappear "
+"with its owner: first hand it over to someone else by writing to "
+"hello@foxugly.com."
+msgstr[1] ""
+"This account owns %(n)s case files. A case file of evidence does not "
+"disappear with its owner: first hand them over to someone else by writing to "
+"hello@foxugly.com."
 
 #: .\events\templates\events\compte_supprimer.html:31
 msgid ""
 "Votre compte, votre adresse e-mail et vos accès aux dossiers seront "
 "supprimés définitivement. Le journal des dossiers garde ce qui s'y est "
 "passé, sans votre compte."
-msgstr "Your account, your email address and your access to case files will be permanently deleted. The case files' history keeps what happened in them, without your account."
+msgstr ""
+"Your account, your email address and your access to case files will be "
+"permanently deleted. The case files' history keeps what happened in them, "
+"without your account."
 
 #: .\events\templates\events\compte_supprimer.html:45
 msgid "Supprimer définitivement mon compte"
@@ -1630,34 +1696,59 @@ msgstr "Permanently delete my account"
 msgid "Retour au dossier"
 msgstr "Back to the case file"
 
-#: .\events\templates\events\dossier_list.html:41
+#: .\events\templates\events\dossier_creer.html:9
+#: .\events\templates\events\dossier_creer.html:14
+msgid "Nouveau dossier"
+msgstr "New dossier"
+
+#: .\events\templates\events\dossier_creer.html:29
+#: .\events\templates\events\parametres.html:29
+msgid "Nom du dossier"
+msgstr "Case file name"
+
+#: .\events\templates\events\dossier_creer.html:36
+#: .\events\templates\events\dossier_list.html:29
+#, python-format
+msgid "%(n)s / %(maximum)s dossiers"
+msgstr "%(n)s / %(maximum)s dossiers"
+
+#: .\events\templates\events\dossier_creer.html:38
+msgid "Créer le dossier"
+msgstr "Create dossier"
+
+#: .\events\templates\events\dossier_list.html:19
+#: .\events\templates\events\dossier_list.html:23
+msgid "Ajouter un dossier"
+msgstr "Add a dossier"
+
+#: .\events\templates\events\dossier_list.html:55
 #, python-format
 msgid "%(n)s doublon possible à examiner"
 msgid_plural "%(n)s doublons possibles à examiner"
 msgstr[0] "%(n)s possible duplicate to review"
 msgstr[1] "%(n)s possible duplicates to review"
 
-#: .\events\templates\events\dossier_list.html:46
+#: .\events\templates\events\dossier_list.html:60
 msgid "Derniers faits"
 msgstr "Latest facts"
 
-#: .\events\templates\events\dossier_list.html:56
+#: .\events\templates\events\dossier_list.html:70
 msgid "Aucun fait pour l'instant."
 msgstr "No facts yet."
 
-#: .\events\templates\events\dossier_list.html:60
+#: .\events\templates\events\dossier_list.html:74
 msgid "Derniers courriels importés"
 msgstr "Latest imported emails"
 
-#: .\events\templates\events\dossier_list.html:75
+#: .\events\templates\events\dossier_list.html:89
 msgid "Import par courriel :"
 msgstr "Email import:"
 
-#: .\events\templates\events\dossier_list.html:79
+#: .\events\templates\events\dossier_list.html:93
 msgid "Activer l'import par courriel"
 msgstr "Enable email import"
 
-#: .\events\templates\events\dossier_list.html:90
+#: .\events\templates\events\dossier_list.html:104
 msgid ""
 "Aucun dossier ne vous est accessible pour l'instant. Le propriétaire d'un "
 "dossier peut vous y donner accès."
@@ -1679,7 +1770,7 @@ msgid "Personnes ayant accès"
 msgstr "People with access"
 
 #: .\events\templates\events\dossier_share.html:34
-#: .\events\views\dossiers.py:253
+#: .\events\views\dossiers.py:263
 msgid "Propriétaire"
 msgstr "Owner"
 
@@ -1769,18 +1860,6 @@ msgstr "Existing links"
 msgid "Sans destinataire noté"
 msgstr "No recipient noted"
 
-#: .\events\templates\events\dossier_share.html:153
-msgid "Révoqué"
-msgstr "Revoked"
-
-#: .\events\templates\events\dossier_share.html:155
-msgid "Expiré"
-msgstr "Expired"
-
-#: .\events\templates\events\dossier_share.html:157
-msgid "Actif"
-msgstr "Active"
-
 #: .\events\templates\events\dossier_share.html:171
 #, python-format
 msgid "Créé le %(quand)s"
@@ -1838,10 +1917,6 @@ msgstr "Invitations sent"
 #: .\events\templates\events\dossier_share.html:261
 msgid "Annulée"
 msgstr "Cancelled"
-
-#: .\events\templates\events\dossier_share.html:263
-msgid "Expirée"
-msgstr "Expired"
 
 #: .\events\templates\events\dossier_share.html:269
 #, python-format
@@ -2115,10 +2190,6 @@ msgstr "Case file settings"
 msgid "Général"
 msgstr "General"
 
-#: .\events\templates\events\parametres.html:29
-msgid "Nom du dossier"
-msgstr "Case file name"
-
 #: .\events\templates\events\parametres.html:50
 msgid ""
 "Elles se créent depuis le formulaire d'un évènement. Supprimer une étiquette "
@@ -2366,22 +2437,26 @@ msgstr "This account owns a case file: it cannot be deleted."
 msgid "Votre compte a été supprimé."
 msgstr "Your account has been deleted."
 
-#: .\events\views\dossiers.py:91
+#: .\events\views\dossiers.py:95
 msgid "Calendrier"
 msgstr "Calendar"
 
-#: .\events\views\dossiers.py:93
+#: .\events\views\dossiers.py:97
 msgid "Documents"
 msgstr "Documents"
 
-#: .\events\views\dossiers.py:118
+#: .\events\views\dossiers.py:122
 #, python-format
 msgid "Semaine du %(date)s"
 msgstr "Week of %(date)s"
 
-#: .\events\views\dossiers.py:254
+#: .\events\views\dossiers.py:264
 msgid "Écriture"
 msgstr "Write"
+
+#: .\events\views\dossiers.py:295
+msgid "Dossier créé."
+msgstr "Dossier created."
 
 #: .\events\views\doublons.py:59
 #, python-format
@@ -2402,14 +2477,18 @@ msgstr "Event “%(titre)s” deleted."
 msgid ""
 "Exchange a refusé l'alias %(alias)s : rien n'a été enregistré. Le détail est "
 "dans le journal du serveur."
-msgstr "Exchange refused the alias %(alias)s: nothing was saved. The details are in the server log."
+msgstr ""
+"Exchange refused the alias %(alias)s: nothing was saved. The details are in "
+"the server log."
 
 #: .\events\views\parametres.py:93
 #, python-format
 msgid ""
 "L'ancien alias %(alias)s n'a pas pu être retiré d'Exchange : retirez-le à la "
 "main. Ses courriels ne créent plus d'évènement."
-msgstr "The old alias %(alias)s could not be removed from Exchange: remove it by hand. Its emails no longer create events."
+msgstr ""
+"The old alias %(alias)s could not be removed from Exchange: remove it by "
+"hand. Its emails no longer create events."
 
 #: .\events\views\parametres.py:98
 #, python-format
@@ -2612,6 +2691,45 @@ msgstr "Back to the home page"
 msgid "Langue"
 msgstr "Language"
 
+#: .\templates\account\email_confirm.html:12
+#: .\templates\account\email_confirm.html:16
+msgid "Confirm Email Address"
+msgstr "Confirm Email Address"
+
+#: .\templates\account\email_confirm.html:22
+#, python-format
+msgid ""
+"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an email "
+"address for user %(user_display)s."
+msgstr ""
+"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an email "
+"address for user %(user_display)s."
+
+#: .\templates\account\email_confirm.html:30
+msgid "Confirm"
+msgstr "Confirm"
+
+#: .\templates\account\email_confirm.html:36
+#, python-format
+msgid ""
+"Unable to confirm %(email)s because it is already confirmed by a different "
+"account."
+msgstr ""
+"Unable to confirm %(email)s because it is already confirmed by a different "
+"account."
+
+#: .\templates\account\email_confirm.html:40
+msgid ""
+"Ce lien de confirmation a expiré ou n'est pas valide. Connectez-vous : un "
+"nouveau lien vous sera envoyé."
+msgstr ""
+"This confirmation link has expired or is invalid. Sign in: a new link will "
+"be sent to you."
+
+#: .\templates\account\email_confirm.html:41 .\templates\base.html:146
+msgid "Se connecter"
+msgstr "Sign in"
+
 #: .\templates\account\login.html:19 .\templates\account\login.html:59
 #: .\templates\account\login.html:110
 msgid "Sign In"
@@ -2665,10 +2783,6 @@ msgstr "Administration"
 #: .\templates\base.html:138
 msgid "Se déconnecter"
 msgstr "Sign out"
-
-#: .\templates\base.html:146
-msgid "Se connecter"
-msgstr "Sign in"
 
 #: .\templates\base.html:151
 msgid "Afficher le menu"
@@ -2801,63 +2915,15 @@ msgstr ""
 msgid ""
 "Vous pouvez aussi supprimer vous-même votre compte (menu du compte, "
 "« Supprimer mon compte »), sauf s'il possède un dossier."
-msgstr "You can also delete your account yourself (account menu, “Delete my account”), unless it owns a case file."
+msgstr ""
+"You can also delete your account yourself (account menu, “Delete my "
+"account”), unless it owns a case file."
 
 #: .\templates\confidentialite.html:71
 #, python-format
 msgid ""
 "Les invitations et les liens de partage qui ne servent plus (acceptés, "
 "annulés, révoqués ou expirés) sont effacés %(jours)s jours après leur fin."
-msgstr "Invitations and share links that are no longer in use (accepted, cancelled, revoked or expired) are erased %(jours)s days after they end."
-
-msgid "profil"
-msgstr "profile"
-
-msgid "profils"
-msgstr "profiles"
-
-msgid "Nombre maximum de dossiers"
-msgstr "Maximum number of dossiers"
-
-msgid "Nombre de dossiers dont ce compte peut être propriétaire. 0 : il ne peut pas en créer."
-msgstr "Number of dossiers this account may own. 0: it cannot create any."
-
-msgid "La création de dossiers n'est pas activée pour votre compte."
-msgstr "Creating dossiers is not enabled for your account."
-
-#, python-format
-msgid "Vous avez atteint le nombre maximum de dossiers (%(maximum)d)."
-msgstr "You have reached the maximum number of dossiers (%(maximum)d)."
-
-msgid "Nouveau dossier"
-msgstr "New dossier"
-
-#, python-format
-msgid "%(n)s / %(maximum)s dossiers"
-msgstr "%(n)s / %(maximum)s dossiers"
-
-msgid "Créer le dossier"
-msgstr "Create dossier"
-
-msgid "Ajouter un dossier"
-msgstr "Add a dossier"
-
-msgid "Dossier créé."
-msgstr "Dossier created."
-
-msgid "Ce lien de confirmation a expiré ou n'est pas valide. Connectez-vous : un nouveau lien vous sera envoyé."
-msgstr "This confirmation link has expired or is invalid. Sign in: a new link will be sent to you."
-
-msgid "Confirm Email Address"
-msgstr "Confirm Email Address"
-
-msgid "Confirm"
-msgstr "Confirm"
-
-#, python-format
-msgid "Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an email address for user %(user_display)s."
-msgstr "Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an email address for user %(user_display)s."
-
-#, python-format
-msgid "Unable to confirm %(email)s because it is already confirmed by a different account."
-msgstr "Unable to confirm %(email)s because it is already confirmed by a different account."
+msgstr ""
+"Invitations and share links that are no longer in use (accepted, cancelled, "
+"revoked or expired) are erased %(jours)s days after they end."

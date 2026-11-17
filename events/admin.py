@@ -1,9 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
-from django.utils.translation import gettext_lazy
+from django.db import transaction
+from django.utils import timezone
+from django.utils.translation import gettext as _, gettext_lazy
 from .journal import consigner, differences, instantane
-from .models import Etiquette, Document, Dossier, DossierAccess, Event, Journal, Profil
+from .models import (
+    Etiquette, Document, Dossier, DossierAccess, Event, Invitation, Journal, Profil, ShareLink,
+)
 
 
 def _journal_admin(request, dossier, action, **kwargs):
@@ -305,6 +309,90 @@ class JournalAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+class ConsultationSeuleMixin:
+    """Une fiche qui se consulte sans se créer, se modifier ni se supprimer.
+
+    Liens et invitations naissent sur la page de partage du dossier, qui les
+    journalise ; les créer ou les éditer ici ouvrirait un second chemin.
+    """
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ShareLink)
+class ShareLinkAdmin(ConsultationSeuleMixin, admin.ModelAdmin):
+    """Tous les liens, actifs, expirés ou révoqués.
+
+    Le jeton n'est jamais affiché : il ouvre le dossier à qui le détient.
+    """
+
+    list_display = ("__str__", "dossier", "role", "statut", "created_by", "created_at",
+                    "expires_at", "revoked_at", "use_count", "last_used_at")
+    list_filter = ("role", "dossier")
+    search_fields = ("label",)
+    date_hierarchy = "created_at"
+    list_select_related = ("dossier", "created_by")
+    fields = ("dossier", "label", "role", "created_by", "created_at", "expires_at",
+              "revoked_at", "use_count", "last_used_at")
+    readonly_fields = fields
+    actions = ["revoquer"]
+
+    @admin.display(description=gettext_lazy("statut"))
+    def statut(self, lien):
+        if lien.revoked_at:
+            return _("Révoqué")
+        if lien.is_expired:
+            return _("Expiré")
+        return _("Actif")
+
+    def has_revoquer_permission(self, request):
+        return request.user.is_superuser
+
+    @admin.action(description=gettext_lazy("Révoquer les liens sélectionnés"),
+                  permissions=["revoquer"])
+    def revoquer(self, request, queryset):
+        maintenant = timezone.now()
+        revoques = 0
+        for lien in queryset.select_related("dossier"):
+            if not lien.is_active:
+                continue
+            with transaction.atomic():
+                lien.revoked_at = maintenant
+                lien.save(update_fields=["revoked_at"])
+                _journal_admin(request, lien.dossier, Journal.Action.LIEN_REVOQUE,
+                               lien=lien, objet=lien.label)
+            revoques += 1
+        self.message_user(request, _("%(n)s lien(s) révoqué(s).") % {"n": revoques})
+
+
+@admin.register(Invitation)
+class InvitationAdmin(ConsultationSeuleMixin, admin.ModelAdmin):
+    """Toutes les invitations, y compris expirées. Le jeton n'est pas affiché."""
+
+    list_display = ("email", "dossier", "role", "statut", "created_by", "created_at",
+                    "expires_at", "accepted_at", "revoked_at")
+    list_filter = ("role", "dossier")
+    search_fields = ("email",)
+    date_hierarchy = "created_at"
+    list_select_related = ("dossier", "created_by")
+    fields = ("dossier", "email", "role", "langue", "created_by", "created_at", "expires_at",
+              "accepted_at", "accepted_by", "revoked_at")
+    readonly_fields = fields
+
+    @admin.display(description=gettext_lazy("statut"))
+    def statut(self, invitation):
+        if invitation.status == Invitation.Status.PENDING and invitation.is_expired:
+            return _("Expirée")
+        return invitation.status.label
 
 
 class ProfilInline(admin.StackedInline):
