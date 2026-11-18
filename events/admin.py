@@ -154,6 +154,25 @@ class DossierAdmin(SuperutilisateurSeulMixin, admin.ModelAdmin):
         if changements:
             _journal_admin(request, obj, Journal.Action.DOSSIER_MODIFIE, objet=obj.name,
                            details={"modele": "dossier", "changements": changements})
+        if "owner" in changements:
+            self._annuler_les_invitations(request, obj)
+
+    @staticmethod
+    def _annuler_les_invitations(request, dossier):
+        """Un changement de propriétaire annule les invitations ni acceptées ni
+        annulées : elles parlaient au nom de l'ancien propriétaire. Les expirées
+        aussi, sans quoi le nouveau pourrait les « Renvoyer » sans les avoir émises.
+        Les liens de partage, eux, restent : ils se voient et se révoquent sur la
+        page de partage."""
+        maintenant = timezone.now()
+        en_suspens = dossier.invitations.select_for_update().filter(
+            accepted_at__isnull=True, revoked_at__isnull=True)
+        for invitation in en_suspens:
+            invitation.revoked_at = maintenant
+            invitation.save(update_fields=["revoked_at"])
+            _journal_admin(request, dossier, Journal.Action.INVITATION_ANNULEE,
+                           objet=invitation.email,
+                           details={"motif": "changement_de_proprietaire"})
 
     def save_formset(self, request, form, formset, change):
         """Les accès accordés, modifiés ou retirés depuis la fiche du dossier."""
