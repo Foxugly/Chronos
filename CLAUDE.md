@@ -231,6 +231,10 @@ older allauth the login page would redirect to itself.
   token-bearing pages are `never_cache` (`_proteger` adds the headers on the share path), and
   `DossierAdmin` / `DossierAccessAdmin` are superuser-only like links and invitations;
   `DossierAccess.clean` refuses a row for the owner (invariant 1).
+  **Changing a dossier's owner in the admin cancels its invitations neither accepted nor
+  cancelled** (expired ones too, or the new owner could « Renvoyer » them), each journaled
+  `INVITATION_ANNULEE`, `via_admin`, `details.motif = "changement_de_proprietaire"`
+  (owner's decision 2026-11-18). Share links are kept.
 - **`/accounts/email/` is shadowed to 404** in `config/urls.py`, registered *before*
   `include("allauth.urls")`. That view would otherwise let any authenticated user attach arbitrary
   unconfirmed email addresses to their account. **This protection depends on URL declaration order** —
