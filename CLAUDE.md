@@ -232,9 +232,10 @@ older allauth the login page would redirect to itself.
   `DossierAdmin` / `DossierAccessAdmin` are superuser-only like links and invitations;
   `DossierAccess.clean` refuses a row for the owner (invariant 1).
   **Changing a dossier's owner in the admin cancels its invitations neither accepted nor
-  cancelled** (expired ones too, or the new owner could « Renvoyer » them), each journaled
-  `INVITATION_ANNULEE`, `via_admin`, `details.motif = "changement_de_proprietaire"`
-  (owner's decision 2026-11-18). Share links are kept.
+  cancelled and revokes its non-revoked share links** (expired ones too, or the new owner could
+  « Renvoyer » / « Prolonger » them), journaled `INVITATION_ANNULEE` / `LIEN_REVOQUE`,
+  `via_admin`, `details.motif = "changement_de_proprietaire"` (owner's decision 2026-11-18).
+  Accesses granted to accounts are kept.
 - **`/accounts/email/` is shadowed to 404** in `config/urls.py`, registered *before*
   `include("allauth.urls")`. That view would otherwise let any authenticated user attach arbitrary
   unconfirmed email addresses to their account. **This protection depends on URL declaration order** —
