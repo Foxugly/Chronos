@@ -298,7 +298,7 @@ class DeploiementTests(SimpleTestCase):
 
     def test_plus_de_workflow_dispatch(self):
         self.assertNotIn("workflow_dispatch:", self.deploy)
-        self.assertIn("if: ${{ github.event.workflow_run.conclusion == 'success' }}", self.deploy)
+        self.assertIn("${{ github.event.workflow_run.conclusion == 'success' &&", self.deploy)
 
     def test_la_ci_passe_ruff_a_la_version_de_la_flotte(self):
         ci = (RACINE / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")

@@ -152,3 +152,29 @@ class DeploiementEchoueEnClairTests(SimpleTestCase):
         script = (self.racine / "deploy" / "ssm-deploy.sh").read_text(encoding="utf-8")
         garde = script.index('if [ ! -s "$ENV_FILE" ]')
         self.assertLess(garde, script.index("manage.py migrate"))
+
+
+class DeclencheurDeDeploiementTests(SimpleTestCase):
+    """Durcissement du déclencheur de déploiement : seul un push sur main de ce
+    dépôt déploie, et root refuse un SHA qui n'est pas un ancêtre de main."""
+
+    racine = DeploiementEchoueEnClairTests.racine
+    commandes_ssm = DeploiementEchoueEnClairTests.commandes_ssm
+
+    def test_la_condition_exige_un_push_de_ce_depot_sur_main(self):
+        texte = (self.racine / ".github" / "workflows" / "deploy.yml").read_text(encoding="utf-8")
+        condition = texte[texte.index("    if: "):texte.index("    runs-on:")]
+        for attendu in (
+            "github.event.workflow_run.conclusion == 'success'",
+            "github.event.workflow_run.event == 'push'",
+            "github.event.workflow_run.head_repository.full_name == github.repository",
+            "github.event.workflow_run.head_branch == 'main'",
+        ):
+            self.assertIn(attendu, condition)
+
+    def test_root_verifie_que_le_sha_est_sur_main_avant_toute_installation(self):
+        commandes = self.commandes_ssm()
+        controle = next(i for i, c in enumerate(commandes) if "merge-base --is-ancestor $SHA FETCH_HEAD" in c)
+        self.assertIn("refs/heads/main", commandes[controle - 1])
+        premiere_installation = next(i for i, c in enumerate(commandes) if "/etc/" in c)
+        self.assertLess(controle, premiere_installation)
