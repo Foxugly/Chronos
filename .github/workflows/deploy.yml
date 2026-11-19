@@ -12,9 +12,7 @@ on:
     branches:
       - main
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 concurrency:
   group: deploy-chronos
@@ -22,9 +20,18 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # `branches: [main]` ci-dessus filtre sur le NOM de branche (head_branch),
+    # qu'une PR de fork peut porter aussi : on exige en plus un push sur ce dépôt.
+    if: >-
+      ${{ github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_repository.full_name == github.repository &&
+          github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Identifiants AWS (OIDC)
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
@@ -46,7 +53,7 @@ jobs:
           #   0. set -eu : la première commande en échec arrête tout → Failed ;
           #   1. chown de l'arborescence (répare des objets git laissés root) ;
           #   2. en django, umask 027 : fetch + reset --hard sur origin/main ;
-          #   3. en root : unités systemd, script de configuration et nginx
+          #   3. en root : le SHA doit être un ancêtre de main (sinon échec) ; unités systemd, script de configuration et nginx
           #      installés depuis le BLOB GIT VALIDÉ (miroir de root, au SHA), jamais depuis l'arbre
           #      modifiable par django (§3.10) ; nginx -t, sinon retour arrière ;
           #      la minuterie de purge activée (idempotent) ; le SHA déployé écrit dans
@@ -75,6 +82,8 @@ jobs:
               "[ -d $M ] || git init --quiet --bare $M",
               "git --git-dir=$M fetch --quiet --depth=1 https://github.com/Foxugly/Chronos.git $SHA",
               "git --git-dir=$M cat-file -e $SHA^{commit}",
+              "git --git-dir=$M fetch --quiet https://github.com/Foxugly/Chronos.git refs/heads/main",
+              "git --git-dir=$M merge-base --is-ancestor $SHA FETCH_HEAD || { echo \"refus : $SHA n'est pas sur main\" >&2; exit 1; }",
               "$G:deploy/chronos-env-fetch.service > /etc/systemd/system/chronos-env-fetch.service",
               "$G:deploy/chronos-gunicorn.service > /etc/systemd/system/chronos-gunicorn.service",
               "$G:deploy/chronos-mail-import.service > /etc/systemd/system/chronos-mail-import.service",

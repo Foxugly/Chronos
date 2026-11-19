@@ -872,6 +872,7 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
 - **Sentry release**: the deploy writes `SENTRY_RELEASE=<sha>` to `/var/lib/fleet-deploy/Chronos.release.env`
   (root-only dir), read by the units as `EnvironmentFile=-…` after `.env`. No SSM parameter.
 - **No `workflow_dispatch`** on the deploy: it only runs after a green CI on `main`. To redeploy, re-run CI.
+- **Deploy trigger hardened (2026-11-19)**: the job also requires `workflow_run.event == 'push'` from this repo on `main`, and root refuses (before installing anything) a SHA that is not an ancestor of `main` (`merge-base --is-ancestor`); top-level `permissions: {}`.
 - Local PostgreSQL 18 exists on the dev PC but its credentials are unknown; the PostgreSQL branch of
   the backup is tested with mocked `pg_dump`/`pg_restore`. The real check is CI and the server.
 
