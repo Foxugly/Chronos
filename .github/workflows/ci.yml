@@ -112,7 +112,7 @@ jobs:
         run: python manage.py check --deploy --fail-level ERROR
 
       - name: Suite de tests (PostgreSQL 16)
-        run: python manage.py test events
+        run: python manage.py test events admin_2fa
 
   # Linter (audit du 2026-10-18, M10) : ruff à la version de la flotte
   # (requirements-dev.txt), règles dans ruff.toml.

@@ -72,7 +72,9 @@ if not DEBUG and (not ALLOWED_HOSTS or "*" in ALLOWED_HOSTS):
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    # L'admin avec 2FA TOTP obligatoire (admin_2fa/, CLAUDE.md « Admin 2FA ») :
+    # remplace 'django.contrib.admin', même label « admin ».
+    "admin_2fa.apps.OTPAdminConfig",
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -81,6 +83,10 @@ INSTALLED_APPS = [
     'events',
     "allauth",
     "allauth.account",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_static",
+    "admin_2fa",
 ]
 
 MIDDLEWARE = [
@@ -92,6 +98,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # Lie à request.user l'appareil OTP vérifié de la session (2FA de l'admin).
+    # Juste après AuthenticationMiddleware ; hors /admin/, rien ne change.
+    "django_otp.middleware.OTPMiddleware",
     'django.contrib.auth.middleware.LoginRequiredMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -324,6 +333,13 @@ LOGIN_REDIRECT_URL = "/"
 # ramène où l'on allait au lieu d'un 403 trompeur : `config/csrf.py`.
 CSRF_FAILURE_VIEW = "config.csrf.echec_csrf"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login/"
+
+# 2FA de l'admin (django-otp, admin_2fa/). Libellé affiché dans l'appli
+# d'authentification. Le ralentissement reste actif (facteur 1 = 1 s, 2 s,
+# 4 s… après chaque mauvais code, par appareil).
+OTP_TOTP_ISSUER = "Chronos admin (chronos.foxugly.com)"
+OTP_TOTP_THROTTLE_FACTOR = 1
+OTP_STATIC_THROTTLE_FACTOR = 1
 
 
 # Les tests : un hachage de mot de passe rapide. PBKDF2 coûte ~0,8 s par

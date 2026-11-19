@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from events.models import Document, DossierAccess, Event, Journal, ShareLink
+from admin_2fa.testing import force_admin_login
 from events.tests.factories import grant, make_dossier, make_user
 
 
@@ -42,7 +43,7 @@ class JournalDeLAdminTests(MediaMixin, TestCase):
             content_hash=hashlib.sha256(contenu).hexdigest(),
         )
         self.piece.events.add(self.event)
-        self.client.force_login(self.admin)
+        force_admin_login(self.client, self.admin)  # l'admin exige la 2FA (admin_2fa/)
 
     def entrees(self):
         return list(Journal.objects.order_by("pk").values_list("action", "objet", "via_admin"))

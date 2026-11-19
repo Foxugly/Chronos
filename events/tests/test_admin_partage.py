@@ -10,6 +10,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from events.models import DossierAccess, Invitation, Journal, ShareLink
+from admin_2fa.testing import force_admin_login
 from events.tests.factories import make_dossier, make_user
 
 LISTE_LIENS = "/admin/events/sharelink/"
@@ -20,7 +21,7 @@ class AdminDesLiensTests(TestCase):
     def setUp(self):
         self.admin = make_user("admin", is_staff=True, is_superuser=True)
         self.dossier = make_dossier(self.admin, name="Litige")
-        self.client.force_login(self.admin)
+        force_admin_login(self.client, self.admin)  # l'admin exige la 2FA (admin_2fa/)
         maintenant = timezone.now()
         self.actif = ShareLink.objects.create(dossier=self.dossier, label="Avocat", created_by=self.admin)
         self.expire = ShareLink.objects.create(
@@ -154,7 +155,7 @@ class AdminDesInvitationsTests(TestCase):
     def setUp(self):
         self.admin = make_user("admin", is_staff=True, is_superuser=True)
         self.dossier = make_dossier(self.admin, name="Litige")
-        self.client.force_login(self.admin)
+        force_admin_login(self.client, self.admin)  # l'admin exige la 2FA (admin_2fa/)
         self.invitation = Invitation.objects.create(
             dossier=self.dossier, email="avocat@example.com", role=DossierAccess.Role.READ,
             created_by=self.admin, expires_at=timezone.now() - timedelta(days=1))
@@ -196,7 +197,7 @@ class AdminDuPartageReserveAuxSuperutilisateursTests(TestCase):
         self.staff.user_permissions.set(Permission.objects.filter(
             content_type__app_label="events",
             content_type__model__in=["sharelink", "invitation"]))
-        self.client.force_login(self.staff)
+        force_admin_login(self.client, self.staff)  # l'admin exige la 2FA (admin_2fa/)
 
     def test_ni_liste_ni_fiche(self):
         for url in (LISTE_LIENS, f"{LISTE_LIENS}{self.lien.pk}/change/",

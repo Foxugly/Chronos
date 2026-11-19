@@ -33,7 +33,7 @@ development `SECRET_KEY`. Set it once per shell:
 ```powershell
 $env:DJANGO_DEBUG="True"
 .\.venv\Scripts\python.exe manage.py runserver
-.\.venv\Scripts\python.exe manage.py test events          # whole suite
+.\.venv\Scripts\python.exe manage.py test events admin_2fa   # whole suite (as CI)
 .\.venv\Scripts\python.exe manage.py check
 .\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run   # must say "No changes detected"
 ```
@@ -247,7 +247,9 @@ older allauth the login page would redirect to itself.
   `/accounts/login/` is rate-limited by allauth — two doors onto the same passwords, only one of
   which counts failures. The shadow redirects to `/accounts/login/?next=/admin/`. Like
   `/accounts/email/`, **it depends on declaration order**: move `admin.site.urls` above it and the
-  door reopens. Tests in `events/tests/test_auth.py` guard it.
+  door reopens. Tests in `events/tests/test_auth.py` guard it. Since the admin 2FA (below), a
+  staff account logged in without its second factor is sent from there to `/admin/2fa/…`
+  (`needs_otp` → `redirect_to_otp`), never to `/accounts/login/` (that would loop).
 - **E-mail verification is mandatory** (`ACCOUNT_EMAIL_VERIFICATION = "mandatory"`, owner's decision
   2026-10-21): an account with no verified address cannot sign in; each attempt re-sends the link.
   Migration `0026` gave every superuser a primary verified `EmailAddress` (from `user.email`) so the
@@ -276,6 +278,42 @@ older allauth the login page would redirect to itself.
   re-armed on `pageshow`).
 - allauth does **not** use `templates/base.html` — its templates go through its self-contained
   `allauth/layouts/*` chain. Changing the project base will not restyle the login pages.
+
+## Admin 2FA
+
+`/admin/` requires a TOTP second factor for **every** staff account (django-otp 1.7.5 + qrcode 8.2,
+app `admin_2fa/`, copied from the fleet reference Poker_server). The application itself (dossiers,
+sharing, invitations) is unchanged: password only, through allauth.
+
+- **Wiring**: `"admin_2fa.apps.OTPAdminConfig"` *replaces* `"django.contrib.admin"` (it makes
+  `admin.site` an `Admin2FASite`, whose `has_permission` also needs `user.is_verified()`); plus
+  `django_otp`, `otp_totp`, `otp_static`, `admin_2fa` in INSTALLED_APPS and
+  `django_otp.middleware.OTPMiddleware` right after `AuthenticationMiddleware`. `OTP_TOTP_ISSUER` is
+  the label in the authenticator app. A missing piece fails `manage.py check` (`admin_2fa.E001-E004`).
+  `events/admin.py` keeps using `admin.site` — no custom `AdminSite`; one would have to subclass
+  `Admin2FASite`.
+- **Flow**: password on `/accounts/login/?next=/admin/` (allauth, rate-limited; `/admin/login/` is
+  only a router) → `/admin/2fa/setup/` (first time: QR code + key, confirm one code, 10 single-use
+  backup codes shown **once**) or `/admin/2fa/verify/` (TOTP code or a backup code). Admin
+  templates, CSRF, `never_cache`, no inline script/style (fits the CSP).
+- **Brute force**: django-otp throttles each device (1 s, 2 s, 4 s… after each wrong code) and nginx
+  puts `/admin/login/` and `/admin/2fa/` in one `chronos_admin_login` zone (10 r/min per IP, burst 5).
+- **Lost phone / locked out** (on the box, as the app's own unit would run it):
+
+  ```bash
+  sudo systemd-run --wait --pipe --quiet --uid=django --gid=www-data \
+    -p EnvironmentFile=/run/chronos/.env -p WorkingDirectory=/var/www/django_websites/Chronos \
+    /var/www/django_websites/Chronos/.venv/bin/python manage.py admin_2fa_reset <username>
+  ```
+
+  `<username>` is the Django username (case-insensitive). It deletes the user's devices
+  (re-enrolment at the next admin login); `--unlock` only clears the delay.
+- **Tests on admin pages**: use `admin_2fa.testing.force_admin_login(self.client, user)`, not
+  `self.client.force_login` (the admin would redirect to the second factor). The generic tests
+  live in `admin_2fa/tests/` — hence `manage.py test events admin_2fa`.
+- **Secrets**: never log or send to Sentry the TOTP key, the QR code or a backup code — the views keep
+  them in `Redacted` wrappers and the form field is named `token` (scrubbed by Sentry). Backup codes
+  are stored in clear by django-otp (`otp_static_statictoken`).
 
 ## Front end
 

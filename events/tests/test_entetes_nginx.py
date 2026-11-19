@@ -56,9 +56,20 @@ class EntetesNginxTests(SimpleTestCase):
         self.assertFalse(entetes(self.blocs[self.https]) & set(POSES_PAR_DJANGO))
 
     def test_les_locations_proxifiees_n_en_posent_pas(self):
-        for location in ("location /", "location = /health/"):
+        for location in ("location /", "location = /health/", "location = /admin/login/",
+                         "location ^~ /admin/2fa/"):
             with self.subTest(location=location):
                 self.assertFalse(entetes(self.bloc(location)) & set(POSES_PAR_DJANGO))
+
+    def test_la_connexion_admin_et_la_2fa_partagent_une_limite(self):
+        """2FA de l'admin (admin_2fa/) : un seul budget par IP pour les deux."""
+        texte = CONF.read_text(encoding="utf-8")
+        self.assertRegex(texte, r"limit_req_zone \$binary_remote_addr zone=chronos_admin_login:\S+ rate=10r/m;")
+        for location in ("location = /admin/login/", "location ^~ /admin/2fa/"):
+            with self.subTest(location=location):
+                bloc = self.bloc(location)
+                self.assertIn("limit_req zone=chronos_admin_login burst=5 nodelay;", bloc)
+                self.assertIn("proxy_pass http://127.0.0.1:8010;", bloc)
 
     def test_les_statiques_et_les_pieces_ont_les_leurs(self):
         for location in ("location ^~ /static/", "location ^~ /_pieces_internes/"):

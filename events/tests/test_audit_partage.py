@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from events.models import DossierAccess, Event, Invitation, Journal, ShareLink
 from events.journal import consigner
+from admin_2fa.testing import force_admin_login
 from events.tests.factories import grant, make_dossier, make_user, verifier_adresse
 
 
@@ -157,7 +158,7 @@ class AdminDesDossiersReserveAuxSuperutilisateursTests(TestCase):
         self.staff = make_user("equipe", is_staff=True)
         self.staff.user_permissions.set(Permission.objects.filter(
             content_type__app_label="events", content_type__model__in=["dossier", "dossieraccess"]))
-        self.client.force_login(self.staff)
+        force_admin_login(self.client, self.staff)  # l'admin exige la 2FA (admin_2fa/)
 
     def test_un_compte_d_equipe_n_y_entre_pas(self):
         for url in ("/admin/events/dossier/", f"/admin/events/dossier/{self.dossier.pk}/change/",
