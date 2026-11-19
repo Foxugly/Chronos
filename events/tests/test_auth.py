@@ -196,18 +196,36 @@ class AdminLoginIsShadowedTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_superuser_still_reaches_the_admin_index(self):
-        """Témoin négatif : un compte `staff`/superuser ne passe jamais par
-        la vue de connexion admin une fois authentifié, donc la boucle ne le
-        concerne pas -- mais on le vérifie."""
-        make_user(
+        """Témoin négatif : un superuser qui a passé le second facteur
+        (admin_2fa/) atteint l'admin sans repasser par sa vue de connexion."""
+        from admin_2fa.testing import force_admin_login
+
+        admin = make_user(
             "admin-du-site",
             password="a-good-password",
             is_staff=True,
             is_superuser=True,
         )
-        self.client.login(username="admin-du-site", password="a-good-password")
+        force_admin_login(self.client, admin)
         response = self.client.get("/admin/")
         self.assertEqual(response.status_code, 200)
+
+    def test_superuser_without_second_factor_is_sent_to_it_without_loop(self):
+        """2FA de l'admin : connecté par mot de passe seulement, un superuser
+        est renvoyé par `/admin/login/` vers `/admin/2fa/setup/` -- jamais
+        vers `/accounts/login/`, qui le renverrait à `/admin/` sans fin."""
+        make_user(
+            "admin-sans-2fa",
+            password="a-good-password",
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client.login(username="admin-sans-2fa", password="a-good-password")
+        response = self.client.get("/admin/events/dossier/", follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.redirect_chain[-1][0],
+                         "/admin/2fa/setup/?next=%2Fadmin%2Fevents%2Fdossier%2F")
+        self.assertTemplateUsed(response, "admin_2fa/setup.html")
 
 
 class ClientIpBehindNginxTests(TestCase):

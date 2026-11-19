@@ -4,6 +4,7 @@ import tempfile
 from django.test import TestCase, override_settings
 
 from events.models import Dossier, DossierAccess, Event
+from admin_2fa.testing import force_admin_login
 from events.tests.factories import make_document, make_dossier, make_user
 
 
@@ -41,7 +42,7 @@ class AdminAccessTests(MediaTemporaireMixin, TestCase):
     def setUp(self):
         self.admin = make_user("admin", is_staff=True, is_superuser=True)
         self.dossier = make_dossier(self.admin)
-        self.client.force_login(self.admin)
+        force_admin_login(self.client, self.admin)  # l'admin exige la 2FA (admin_2fa/)
 
     def test_superuser_reaches_the_dossier_changelist(self):
         response = self.client.get("/admin/events/dossier/")
@@ -88,7 +89,7 @@ class AdminDeletionIsRefusedTests(MediaTemporaireMixin, TestCase):
         self.event = Event.objects.create(
             dossier=self.dossier, title="Devis signé", date="2026-06-02"
         )
-        self.client.force_login(self.admin)
+        force_admin_login(self.client, self.admin)  # l'admin exige la 2FA (admin_2fa/)
 
     def test_the_dossier_delete_view_is_refused_to_a_superuser(self):
         response = self.client.get(

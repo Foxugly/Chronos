@@ -21,6 +21,8 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import path, include, reverse
 
+from admin_2fa.utils import needs_otp
+from admin_2fa.views import redirect_to_otp
 from config.sante import sante
 from django.views.generic import TemplateView
 from django.views.i18n import set_language
@@ -59,7 +61,14 @@ def admin_login_redirect(request):
     boucle infinie. Comme pour `/accounts/email/`, une fonctionnalité
     indisponible pour cet utilisateur est indiscernable d'une
     fonctionnalité inexistante : 404, et la boucle s'arrête là.
+
+    2FA de l'admin (admin_2fa/) : un compte `staff` connecté par mot de passe
+    mais sans second facteur vérifié est renvoyé ici par l'admin. Il part vers
+    `/admin/2fa/setup/` (premier passage) ou `/admin/2fa/verify/` -- jamais
+    vers `/accounts/login/`, qui le renverrait à `/admin/` : la même boucle.
     """
+    if needs_otp(request.user):
+        return redirect_to_otp(request, admin.site)
     if request.user.is_authenticated:
         raise Http404
     return redirect(f"{reverse('account_login')}?next={reverse('admin:index')}")

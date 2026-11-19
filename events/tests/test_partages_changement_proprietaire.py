@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from events.models import DossierAccess, Invitation, Journal, ShareLink
+from admin_2fa.testing import force_admin_login
 from events.tests.factories import make_dossier, make_user
 
 
@@ -36,7 +37,7 @@ class InvitationsAuChangementDeProprietaireTests(TestCase):
         self.lien_actif = lien("actif")
         self.lien_expire = lien("expire", expires_at=maintenant - timedelta(days=1))
         self.lien_revoque = lien("revoque", revoked_at=maintenant - timedelta(days=2))
-        self.client.force_login(self.admin)
+        force_admin_login(self.client, self.admin)  # l'admin exige la 2FA (admin_2fa/)
 
     def enregistrer(self, owner):
         return self.client.post(f"/admin/events/dossier/{self.dossier.pk}/change/", {

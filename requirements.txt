@@ -5,3 +5,5 @@ reportlab>=5.1.0,<6
 psycopg[binary]>=3.3.9,<3.4
 gunicorn==23.0.0
 sentry-sdk[django]==2.75.0
+django-otp==1.7.5
+qrcode==8.2

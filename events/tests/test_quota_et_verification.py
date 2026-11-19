@@ -12,6 +12,7 @@ from django.urls import reverse
 
 from events.models import Dossier, DossierAccess, Journal, Profil
 from events.quotas import QuotaAtteint, creer_un_dossier, quota_de
+from admin_2fa.testing import force_admin_login
 from events.tests.factories import grant, make_dossier, make_user, verifier_adresse
 
 migration_0025 = importlib.import_module("events.migrations.0025_quota_du_proprietaire")
@@ -140,7 +141,7 @@ class BoutonAjouterUnDossierTests(TestCase):
 class QuotaDansLAdministrationTests(TestCase):
     def test_le_quota_se_regle_sur_la_fiche_de_l_utilisateur(self):
         admin = make_user("admin", is_staff=True, is_superuser=True)
-        self.client.force_login(admin)
+        force_admin_login(self.client, admin)  # l'admin exige la 2FA (admin_2fa/)
         cible = make_user("client")
         url = reverse("admin:auth_user_change", args=[cible.pk])
         page = self.client.get(url)
