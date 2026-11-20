@@ -18,7 +18,7 @@ Environment="PYTHONUNBUFFERED=1"
 # Pas de log d'accès : nginx journalise déjà chaque requête (sans query string
 # ni jeton, voir deploy/nginx), et celui de gunicorn gardait jetons de partage,
 # invitations et recherches `q=`, sans rotation (audit du 2026-10-18, I2).
-ExecStart=/var/www/django_websites/Chronos/.venv/bin/gunicorn --workers 2 --timeout 120 \
+ExecStart=/var/www/django_websites/Chronos/.venv/bin/gunicorn --no-control-socket --workers 2 --timeout 120 \
     --bind 127.0.0.1:8010 \
     --error-logfile /var/log/chronos/gunicorn-error.log \
     config.wsgi:application
