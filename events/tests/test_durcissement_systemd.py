@@ -36,3 +36,9 @@ class DurcissementGunicornTests(SimpleTestCase):
         for ligne in self.lignes:
             if ligne.startswith("Exec"):
                 self.assertNotIn("sudo", ligne)
+
+    def test_socket_de_controle_coupe(self):
+        """gunicorn >= 25.1 ouvre $HOME/.gunicorn/gunicorn.ctl, partagé par tous les sites de django."""
+        exec_start = [ligne for ligne in self.lignes if ligne.startswith("ExecStart=")]
+        self.assertEqual(len(exec_start), 1)
+        self.assertIn("--no-control-socket", exec_start[0])
