@@ -18,7 +18,13 @@ if [ ! -x .venv/bin/python ]; then
   exit 1
 fi
 
-.venv/bin/pip install --quiet -r requirements.txt
+# requirements.txt est un verrou haché (généré par uv depuis requirements.in) :
+# la production installe exactement les versions que la CI a testées. Sans
+# verrou, `pip install -r` ne mettait jamais à jour une version déjà installée
+# encore dans sa plage, et la box ratait les correctifs. --no-deps : tout est
+# dans le verrou ; pip check vérifie qu'il est cohérent.
+.venv/bin/pip install --quiet --require-hashes --no-deps -r requirements.txt
+.venv/bin/pip check
 
 if [ ! -s "$ENV_FILE" ]; then
   # Sans configuration, migrate et collectstatic ne peuvent pas tourner : on

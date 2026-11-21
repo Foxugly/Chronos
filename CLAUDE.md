@@ -71,7 +71,18 @@ was 97 % of the suite's time (14 min → 13 s). A test checks it does not leak o
 Linter: **ruff 0.17.3** (`requirements-dev.txt`, kept at the fleet's version by Dependabot — the test only
 checks it is pinned; rules in `ruff.toml` — the pre-0.16 default set),
 run by the CI `lint` job: `.\.venv\Scripts\python.exe -m ruff check .`. No formatter, no front-end
-build. `requirements.txt` lists only the direct dependencies; everything else is transitive.
+build.
+
+Dependencies: direct ones (ranges) live in **`requirements.in`**; **`requirements.txt` is a hash-pinned lock**
+generated from it by uv for Linux / Python 3.12 (production), and it is what the deploy installs
+(`--require-hashes --no-deps`, then `pip check`). After editing `requirements.in`, regenerate the lock with the
+command in its header:
+`uv pip compile requirements.in --generate-hashes --python-version 3.12 --python-platform x86_64-unknown-linux-gnu -o requirements.txt`.
+On Linux (CI, prod) install in **two steps** — one hashed line puts pip in hash-checking mode for the whole
+install, and the dev file has no hashes: `pip install --require-hashes -r requirements.txt` then
+`pip install -r requirements-dev.txt`. **On Windows the lock does not install** (it lacks `tzdata`, a
+Windows-only Django dependency), so locally use the ranges:
+`.\.venv\Scripts\python.exe -m pip install -r requirements.in -r requirements-dev.txt`.
 
 ### Backups
 
