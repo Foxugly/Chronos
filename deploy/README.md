@@ -16,11 +16,14 @@ Ce qui s'installe **une fois, à la main, par root** : sudoers, base, dossiers, 
 
 ## 1. GitHub
 
-1. Dépôt **privé** `Foxugly/Chronos`, branche par défaut `main`.
+1. Dépôt **public** `Foxugly/Chronos` (depuis le 2026-11-09, après anonymisation de tout
+   l'historique), branche par défaut `main`. Aucune donnée réelle du dossier dans un fichier suivi,
+   un message de commit ou une PR.
 2. Environnement `production` ; secrets : `AWS_DEPLOY_ROLE_ARN`, `EC2_INSTANCE_ID`.
-3. Identifiant numérique du dépôt (pour la confiance OIDC) : `gh api repos/Foxugly/Chronos --jq .id`.
-4. **Clé de déploiement en lecture seule** (étape 5). Le dépôt est privé, le seul de la flotte :
-   les autres sont publics et récupérés en HTTPS anonyme, ce qui ne marche pas ici.
+3. Identifiant numérique du dépôt (pour la confiance OIDC) : `gh api repos/Foxugly/Chronos --jq .id`
+   (`1451286801` depuis la recréation du dépôt le 2026-11-09).
+4. Récupéré en **HTTPS anonyme**, comme le reste de la flotte (étape 5). Jusqu'au 2026-11-09 le
+   dépôt était privé et la machine le tirait avec une clé de déploiement en lecture seule.
 
 ## 1 bis. DNS
 
@@ -169,6 +172,10 @@ d'une autre application.
 ## 7. Transfert des données (une fois, depuis le PC)
 
 Les 30 évènements et 77 pièces — l'unique copie. Rien n'est effacé du PC.
+
+> **Non appliqué en production** : la base de production est restée vide par choix (le dossier se
+> remplit par l'import de courriels, voir `CLAUDE.md` et `docs/superpowers/backlog.md`). Procédure
+> gardée pour mémoire.
 
 ```powershell
 # Sur le PC
