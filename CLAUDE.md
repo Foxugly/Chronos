@@ -346,7 +346,8 @@ blocks of `base.html`. `/confidentialite/` is public (owner to review the wordin
 
 No npm, no bundler, no build step. Bootstrap 5.3.8, Bootstrap Icons, vis-timeline (the **standalone**
 UMD build, which bundles vis-data — the root build on cdnjs is deprecated), FullCalendar,
-Font Awesome, glightbox, Quill and flatpickr. **Scripts are self-hosted** in `static/vendor/<lib>-<version>/`
+Font Awesome (CSS webfont only — its JS core, unused, was dropped from the timeline on 2026-11-22),
+glightbox, Quill and flatpickr. **Scripts are self-hosted** in `static/vendor/<lib>-<version>/`
 (audit 2026-10-18, M5; CSP `script-src` is `'self'` + nonce only), copied byte for byte from the CDN
 and still carrying their SRI `integrity` (a test re-hashes each copy; `.gitattributes` marks them
 `-text`). Stylesheets and fonts still come from the CDNs. To bump a library: download the new file,
