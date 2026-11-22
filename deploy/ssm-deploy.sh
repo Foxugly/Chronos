@@ -18,6 +18,27 @@ if [ ! -x .venv/bin/python ]; then
   exit 1
 fi
 
+# Le venv doit tourner sur $PYTHON (python3.14 de deadsnakes, à root, dans
+# /usr/bin). Un venv sur une autre version est reconstruit À SA PLACE — jamais
+# construit ailleurs puis déplacé : les scripts console (.venv/bin/gunicorn, que
+# lance l'unité) ont le chemin du venv écrit en dur dans leur shebang. L'ancien
+# est gardé en .venv.prev et remis en place si la reconstruction échoue.
+VENV="$APP/.venv"
+PYTHON=/usr/bin/python3.14
+PY_WANT="$("$PYTHON" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
+PY_HAVE="$("$VENV/bin/python" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || echo none)"
+if [ "$PY_HAVE" != "$PY_WANT" ]; then
+  echo ">>> Reconstruction du venv : Python $PY_HAVE -> $PY_WANT..."
+  rm -rf "$VENV.prev"
+  if [ -e "$VENV" ]; then mv "$VENV" "$VENV.prev"; fi
+  if ! { "$PYTHON" -m venv "$VENV"          && "$VENV/bin/pip" install --quiet --require-hashes --no-deps -r requirements.txt          && "$VENV/bin/pip" check; }; then
+    echo "ERROR: reconstruction du venv ratée ; retour à l'ancien venv." >&2
+    rm -rf "$VENV"
+    if [ -e "$VENV.prev" ]; then mv "$VENV.prev" "$VENV"; fi
+    exit 1
+  fi
+fi
+
 # requirements.txt est un verrou haché (généré par uv depuis requirements.in) :
 # la production installe exactement les versions que la CI a testées. Sans
 # verrou, `pip install -r` ne mettait jamais à jour une version déjà installée

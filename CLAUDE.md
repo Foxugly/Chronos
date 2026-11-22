@@ -74,10 +74,10 @@ run by the CI `lint` job: `.\.venv\Scripts\python.exe -m ruff check .`. No forma
 build.
 
 Dependencies: direct ones (ranges) live in **`requirements.in`**; **`requirements.txt` is a hash-pinned lock**
-generated from it by uv for Linux / Python 3.12 (production), and it is what the deploy installs
+generated from it by uv for Linux / Python 3.14 (production), and it is what the deploy installs
 (`--require-hashes --no-deps`, then `pip check`). After editing `requirements.in`, regenerate the lock with the
 command in its header:
-`uv pip compile requirements.in --generate-hashes --python-version 3.12 --python-platform x86_64-unknown-linux-gnu -o requirements.txt`.
+`uv pip compile requirements.in --generate-hashes --python-version 3.14 --python-platform x86_64-unknown-linux-gnu -o requirements.txt`.
 On Linux (CI, prod) install in **two steps** — one hashed line puts pip in hash-checking mode for the whole
 install, and the dev file has no hashes: `pip install --require-hashes -r requirements.txt` then
 `pip install -r requirements-dev.txt`. **On Windows the lock does not install** (it lacks `tzdata`, a
@@ -845,7 +845,7 @@ Consequences that are easy to break:
 
 ## Architecture: production (AWS fleet, chronos.foxugly.com)
 
-Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **8010**,
+Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.14 from deadsnakes — `/usr/bin/python3.14`, PostgreSQL 16, port **8010**,
 `/var/www/django_websites/Chronos`). Runbook: **`deploy/README.md`**; fleet rules: `OPERATIONS.md`.
 
 - **Settings fail closed outside DEBUG**: `SECRET_KEY` (bare fleet name; `DJANGO_SECRET_KEY` still
@@ -891,6 +891,10 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   (`deploy/iam-cloudshell.sh`, `deploy/ssm-cloudshell.sh`). Units are installed by each deploy but
   were **enabled by hand once** (`chronos-env-fetch`, `chronos-gunicorn`,
   `chronos-mail-import.timer`).
+- **The venv runs on `/usr/bin/python3.14`** (deadsnakes; the system `python3` stays 3.12).
+  `ssm-deploy.sh` checks the venv's version before `pip install`: on a mismatch it rebuilds
+  `.venv` **in place** (console-script shebangs hard-code the path), keeps the old one as
+  `.venv.prev` and puts it back if the rebuild fails.
 - **A failed deploy step fails the deploy.** SSM runs the command list as one script and keeps only
   the last exit code; `set -eu` comes first (`deploy.yml`), and `ssm-deploy.sh` refuses to run
   without `/run/chronos/.env`. The first deploy reported success without migrating before this
@@ -904,7 +908,7 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.12, PostgreSQL 16, port **
   migration. The scheduled backup is fleet-wide since 2026-10-15 (`OPERATIONS.md §3.23`): weekly
   `pg_dump` of every database to a locked S3 bucket + weekly EBS snapshot of the whole disk, which
   is what covers `media/` (the evidence files). `chronos-sauvegarde.timer` was retired that day.
-- **CI runs on PostgreSQL 16 / Python 3.12** with production settings (`.github/workflows/ci.yml`),
+- **CI runs on PostgreSQL 16 / Python 3.14** with production settings (`.github/workflows/ci.yml`),
   image pulled from `public.ecr.aws/docker/library/postgres:16` — Docker Hub's anonymous rate limit
   failed the CI before any test on 2026-10-09, and ECR's « Data limit exceeded » on 2026-10-11.
   PostgreSQL is therefore **not a service container** but plain steps: the image lives in the
