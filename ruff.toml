@@ -5,7 +5,7 @@
 # de syntaxe, imports et noms inutilisés, comparaisons douteuses). La 0.16 en
 # active bien d'autres par défaut (UP031, RUF012…) — 300 constats de style
 # sur du code éprouvé ; les adopter est un chantier à part, pas un correctif.
-target-version = "py312"
+target-version = "py314"
 extend-exclude = ["docs"]
 
 [lint]

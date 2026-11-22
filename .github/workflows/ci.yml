@@ -13,7 +13,7 @@ jobs:
   tests:
     # La production tourne sur PostgreSQL 16 : la suite aussi. Ne jamais juger
     # une migration sur SQLite (OPERATIONS.md §3.13) — SQLite accepte ce que
-    # PostgreSQL refuse. Python 3.12, celui d'Ubuntu 24.04 sur le serveur.
+    # PostgreSQL refuse. Python 3.14, celui du venv du serveur (deadsnakes).
     # Réglages de production (sans DJANGO_DEBUG), sauf la redirection HTTPS,
     # que le client de test ne suit pas.
     #
@@ -94,7 +94,7 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           cache: pip
           cache-dependency-path: |
             requirements.in
@@ -141,7 +141,7 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           cache: pip
           cache-dependency-path: requirements-dev.txt
 
@@ -165,7 +165,7 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           cache: pip
           cache-dependency-path: |
             requirements.in
