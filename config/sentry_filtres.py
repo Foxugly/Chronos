@@ -139,7 +139,13 @@ _TERMES_PII = ["forwarded", "-ip", "remote-", "via", "-user"]
 DONNEES_COLLECTEES = {
     "user_info": False,
     "cookies": {"mode": "off"},
-    "http_headers": {"request": {"mode": "denylist", "terms": _TERMES_PII}},
+    "http_headers": {
+        "request": {"mode": "denylist", "terms": _TERMES_PII},
+        # Ignored by sentry-sdk 3.0 (it collects no response headers and only
+        # reads "request"); kept so a future SDK that adds it starts "off".
+        # `contexts.response.headers` is also scrubbed in before_send.
+        "response": {"mode": "off"},
+    },
     "http_bodies": [],
     "url_query_params": {"mode": "denylist", "terms": _TERMES_PII},
     "graphql": {"document": False, "variables": False},

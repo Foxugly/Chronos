@@ -277,6 +277,7 @@ class ReglagesTests(SimpleTestCase):
         self.assertNotIn("before_send_transaction", reglages)
         self.assertIs(reglages["before_breadcrumb"], avant_fil_d_ariane)
         self.assertIs(reglages["attach_stacktrace"], False)
+        self.assertEqual(reglages["data_collection"]["http_headers"]["response"], {"mode": "off"})
         django, journaux = reglages["integrations"]
         self.assertIsInstance(django, DjangoIntegration)
         self.assertIs(django.cache_spans, False)

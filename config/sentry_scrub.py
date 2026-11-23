@@ -1,12 +1,14 @@
-"""Sensitive-key scrubbing for Sentry events and spans (sentry-sdk 3).
+"""Sensitive-data scrubbing for Sentry events and spans (sentry-sdk 3).
 
 sentry-sdk 3.0 removed its built-in ``EventScrubber`` (``sentry_sdk.scrubber``).
 This self-contained replacement applies the same denylist (2.x
 ``DEFAULT_DENYLIST`` + ``DEFAULT_PII_DENYLIST``, key compared lower-cased with
 ``-`` read as ``_``) to the same places -- request headers, cookies and data,
-``extra``, ``user``, breadcrumb data, stack-frame variables, span data --
-recursively (2.x only looked one level deep), and to the name and attributes
-of streamed spans for ``before_send_span``.
+``extra``, ``user``, breadcrumb data, stack-frame variables -- recursively
+(2.x only looked one level deep), and goes further: ``contexts`` (response
+headers, trace data…), every span (name, description, data, attributes), and
+free text, where ``name=value`` secrets, URL credentials (``user:pass@``) and
+secret-bearing path segments are masked.
 
 ``scrub_event`` cannot raise on any event shape (everything is type-checked);
 were it to, sentry-sdk 3 drops the event, which is the safe side.
@@ -42,6 +44,16 @@ PII_SPAN_ATTRIBUTES = frozenset({
     "client.address", "network.peer.address",
 })
 
+#: Path segments after which the next segment is a secret (one-time links:
+#: password reset, e-mail confirmation, activation, invitation, magic link,
+#: share link). Django's own and allauth's routes included.
+SECRET_ROUTE_PREFIXES = (
+    "reset", "password/reset/key", "password-reset", "reset-password",
+    "confirm-email", "confirm", "activate", "activation", "verify", "verification",
+    "invitation", "invite", "magic", "magic-link", "login/link", "unsubscribe",
+    "share", "partage", "token", "key",
+)
+
 # ``key=value`` pairs (query strings, headers in free text) whose key mentions
 # a secret: the value is replaced, the key kept.
 _SECRET_PAIR = re.compile(
@@ -50,6 +62,15 @@ _SECRET_PAIR = re.compile(
     r"[\w.\-]*=)[^&;\s,\"'#]*"
 )
 _BEARER = re.compile(r"(?i)\b(bearer|basic)\s+[\w.~+/=-]+")
+# scheme://user:pass@host -> scheme://host
+_URL_USERINFO = re.compile(r"(?i)\b([a-z][a-z0-9+.\-]*://)[^/@\s\"'<>]+@")
+_ROUTES = "|".join(re.escape(p) for p in sorted(SECRET_ROUTE_PREFIXES, key=len, reverse=True))
+_SECRET_ROUTE = re.compile(rf"(?i)(/(?:{_ROUTES})/)(?!(?:done|key)/)[^/?#\s\"']+")
+# A long opaque path segment (signed token, uidb64-token, random key): at least
+# 20 URL-safe characters mixing letters and digits. A canonical UUID is a
+# resource id, not a secret, and is kept.
+_UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.IGNORECASE)
+_OPAQUE_SEGMENT = re.compile(r"(?<=/)(?=[\w:.\-]*[A-Za-z])(?=[\w:.\-]*\d)[\w:.\-]{20,}(?=/|$|[?#\s\"'])")
 
 
 def _normalize(key: str) -> str:
@@ -64,24 +85,39 @@ def is_sensitive_key(key: Any) -> bool:
     return normalized in DENYLIST or any(part in DENYLIST for part in normalized.split("."))
 
 
+def _mask_opaque(match: re.Match) -> str:
+    return match.group(0) if _UUID.fullmatch(match.group(0)) else FILTERED
+
+
 def scrub_text(text: Any) -> Any:
-    """Mask secret values in free text: ``token=…`` pairs and bearer credentials."""
+    """Mask secrets in free text or a URL: ``token=…`` pairs, bearer credentials,
+    URL userinfo, and secret-bearing path segments."""
     if not isinstance(text, str):
         return text
-    return _BEARER.sub(lambda m: m.group(1) + " " + FILTERED, _SECRET_PAIR.sub(r"\1" + FILTERED, text))
+    text = _URL_USERINFO.sub(r"\1", text)
+    text = _SECRET_ROUTE.sub(lambda m: m.group(1) + FILTERED, text)
+    text = _OPAQUE_SEGMENT.sub(_mask_opaque, text)
+    text = _SECRET_PAIR.sub(r"\1" + FILTERED, text)
+    return _BEARER.sub(lambda m: m.group(1) + " " + FILTERED, text)
 
 
 def scrub_data(data: Any) -> None:
-    """Replace in place, at any depth, the value of every denylisted key."""
+    """In place, at any depth: denylisted keys get ``[Filtered]``, strings are
+    passed through ``scrub_text``."""
     if isinstance(data, dict):
         for key, value in data.items():
             if is_sensitive_key(key):
                 data[key] = FILTERED
+            elif isinstance(value, str):
+                data[key] = scrub_text(value)
             else:
                 scrub_data(value)
     elif isinstance(data, list):
-        for item in data:
-            scrub_data(item)
+        for index, item in enumerate(data):
+            if isinstance(item, str):
+                data[index] = scrub_text(item)
+            else:
+                scrub_data(item)
 
 
 def _frames(event: dict[str, Any]):
@@ -102,14 +138,18 @@ def _frames(event: dict[str, Any]):
 
 
 def scrub_event(event: dict[str, Any]) -> dict[str, Any]:
-    """What the 2.x ``EventScrubber`` did, recursively. Returns ``event``."""
+    """The 2.x ``EventScrubber`` places, recursively, plus contexts and spans.
+    Returns ``event``."""
     request = event.get("request")
     if isinstance(request, dict):
         for key in ("headers", "cookies", "data", "env"):
             scrub_data(request.get(key))
-        if isinstance(request.get("query_string"), str):
-            request["query_string"] = scrub_text(request["query_string"])
+        for key in ("url", "query_string"):
+            if key in request:
+                request[key] = scrub_text(request[key])
     scrub_data(event.get("extra"))
+    # contexts.response.headers (Set-Cookie…), contexts.trace.data, etc.
+    scrub_data(event.get("contexts"))
     user = event.get("user")
     if isinstance(user, dict):
         user.pop("ip_address", None)
@@ -118,17 +158,25 @@ def scrub_event(event: dict[str, Any]) -> dict[str, Any]:
     values = breadcrumbs.get("values") if isinstance(breadcrumbs, dict) else breadcrumbs
     for crumb in values if isinstance(values, list) else []:
         if isinstance(crumb, dict):
+            if "message" in crumb:
+                crumb["message"] = scrub_text(crumb["message"])
             scrub_data(crumb.get("data"))
     for frame in _frames(event):
         scrub_data(frame.get("vars"))
     spans = event.get("spans")
     for span in spans if isinstance(spans, list) else []:
         if isinstance(span, dict):
-            scrub_data(span.get("data"))
+            for key in ("name", "description"):
+                if key in span:
+                    span[key] = scrub_text(span[key])
+            for key in ("data", "attributes"):
+                if isinstance(span.get(key), dict):
+                    span[key] = {k: _scrub_attribute(k, v) for k, v in span[key].items()}
+                    scrub_data(span[key])
     return event
 
 
-def _scrub_attribute(key: str, value: Any) -> Any:
+def _scrub_attribute(key: Any, value: Any) -> Any:
     if is_sensitive_key(key) or key in PII_SPAN_ATTRIBUTES:
         return FILTERED
     if isinstance(value, str):
@@ -139,7 +187,7 @@ def _scrub_attribute(key: str, value: Any) -> Any:
 
 
 def scrub_span(span: dict[str, Any]) -> dict[str, Any]:
-    """``before_send_span``: same denylist on the span name and attributes."""
+    """``before_send_span``: same rules on the span name and attributes."""
     try:
         span["name"] = scrub_text(span.get("name"))
         attributes = span.get("attributes")
