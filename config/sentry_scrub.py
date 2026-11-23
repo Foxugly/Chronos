@@ -6,22 +6,31 @@ This self-contained replacement applies the same denylist (2.x
 ``-`` read as ``_``) to the same places -- request headers, cookies and data,
 ``extra``, ``user``, breadcrumb data, stack-frame variables -- recursively
 (2.x only looked one level deep), and goes further: ``contexts`` (response
-headers, trace data…), every span (name, description, data, attributes), and
-free text, where ``name=value`` secrets, URL credentials (``user:pass@``) and
-secret-bearing path segments are masked.
+headers, trace data…), exception messages, log messages, every span (name,
+description, data, attributes), and free text.
 
-``scrub_event`` cannot raise on any event shape (everything is type-checked);
-were it to, sentry-sdk 3 drops the event, which is the safe side.
-``scrub_span`` never raises: an exception in ``before_send_span`` makes the
-SDK send the span *unmodified*, so it falls back to a span with no attributes.
+In free text every URL (absolute or a ``/path``) is rebuilt with ``urlsplit``:
+no userinfo (``user:pass@``), the segment after a secret-bearing route
+(password reset, invitation, magic link…) and long opaque segments masked,
+query values masked when their key is sensitive or their value opaque, no
+fragment. ``name=value`` secrets and bearer credentials are masked too.
+
+It fails closed: unknown value types, and anything nested deeper than
+``MAX_DEPTH``, become ``[Filtered]``; tuples and sets are scrubbed like lists.
+``scrub_event`` cannot raise on any event shape; were it to, sentry-sdk 3 drops
+the event, which is the safe side. ``scrub_span`` never raises: an exception
+in ``before_send_span`` makes the SDK send the span *unmodified*, so it falls
+back to a span with no attributes.
 """
 
 from __future__ import annotations
 
 import re
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 FILTERED = "[Filtered]"
+MAX_DEPTH = 20
 
 #: sentry-sdk 2.x ``DEFAULT_DENYLIST`` + ``DEFAULT_PII_DENYLIST``.
 DENYLIST = frozenset(
@@ -54,23 +63,25 @@ SECRET_ROUTE_PREFIXES = (
     "share", "partage", "token", "key",
 )
 
-# ``key=value`` pairs (query strings, headers in free text) whose key mentions
-# a secret: the value is replaced, the key kept.
+_SECRET_TERMS = (
+    r"passw(?:or)?d|secret|token|api[_-]?key|auth|credential|session|csrf|xsrf"
+    r"|cookie|private[_-]?key"
+)
+# Query-string keys: the same, plus one-time codes and URL signatures.
+_SECRET_NAME = re.compile(rf"(?i)(?:{_SECRET_TERMS}|signature|^sig$|code|otp|nonce)")
+# ``key=value`` pairs outside URLs (headers or settings quoted in a message).
 _SECRET_PAIR = re.compile(
-    r"(?i)((?:^|[?&;\s,\"'])[\w.\-]*"
-    r"(?:passw(?:or)?d|secret|token|api[_-]?key|auth|credential|session|csrf|xsrf|cookie|private[_-]?key)"
-    r"[\w.\-]*=)[^&;\s,\"'#]*"
+    rf"(?i)((?:^|[?&;\s,\"'])[\w.\-]*(?:{_SECRET_TERMS})[\w.\-]*=)[^&;\s,\"'#]*"
 )
 _BEARER = re.compile(r"(?i)\b(bearer|basic)\s+[\w.~+/=-]+")
-# scheme://user:pass@host -> scheme://host
-_URL_USERINFO = re.compile(r"(?i)\b([a-z][a-z0-9+.\-]*://)[^/@\s\"'<>]+@")
+_ABSOLUTE_URL = re.compile(r"(?i)\b[a-z][a-z0-9+.\-]*://[^\s\"'<>]+")
+# A path in free text: "/" not preceded by a word character, ":" "/" or ".".
+_RELATIVE_URL = re.compile(r"(?<![\w:/.\]])/(?!/)[^\s\"'<>]*")
+_HOST_PORT = re.compile(r"(?:\[[0-9a-fA-F:.]+\]|[\w.\-]+)(?::\d{1,5})?")
 _ROUTES = "|".join(re.escape(p) for p in sorted(SECRET_ROUTE_PREFIXES, key=len, reverse=True))
-_SECRET_ROUTE = re.compile(rf"(?i)(/(?:{_ROUTES})/)(?!(?:done|key)/)[^/?#\s\"']+")
-# A long opaque path segment (signed token, uidb64-token, random key): at least
-# 20 URL-safe characters mixing letters and digits. A canonical UUID is a
-# resource id, not a secret, and is kept.
+_SECRET_ROUTE = re.compile(rf"(?i)(/(?:{_ROUTES})/)(?!(?:done|key)/)[^/]+")
 _UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.IGNORECASE)
-_OPAQUE_SEGMENT = re.compile(r"(?<=/)(?=[\w:.\-]*[A-Za-z])(?=[\w:.\-]*\d)[\w:.\-]{20,}(?=/|$|[?#\s\"'])")
+_OPAQUE_CHARS = re.compile(r"[\w.~:+=%\-]{16,}")
 
 
 def _normalize(key: str) -> str:
@@ -85,105 +96,139 @@ def is_sensitive_key(key: Any) -> bool:
     return normalized in DENYLIST or any(part in DENYLIST for part in normalized.split("."))
 
 
-def _mask_opaque(match: re.Match) -> str:
-    return match.group(0) if _UUID.fullmatch(match.group(0)) else FILTERED
+def is_opaque(value: str) -> bool:
+    """A token-looking value: 16+ URL-safe characters with a digit or mixed
+    case (a signed token, a random key, uidb64-token). A UUID is a resource id
+    and is not opaque."""
+    if not _OPAQUE_CHARS.fullmatch(value) or _UUID.fullmatch(value):
+        return False
+    return (any(c.isdigit() for c in value)
+            or (any(c.islower() for c in value) and any(c.isupper() for c in value)))
+
+
+def _scrub_path(path: str) -> str:
+    path = _SECRET_ROUTE.sub(lambda m: m.group(1) + FILTERED, path)
+    return "/".join(FILTERED if is_opaque(seg) else seg for seg in path.split("/"))
+
+
+def _scrub_query(query: str) -> str:
+    pairs = [
+        (key, FILTERED if is_sensitive_key(key) or _SECRET_NAME.search(key) or is_opaque(value)
+         else value)
+        for key, value in parse_qsl(query, keep_blank_values=True)
+    ]
+    return urlencode(pairs, safe="[]/:")
+
+
+def scrub_url(url: str) -> str:
+    """Rebuild a URL (absolute or a path) without userinfo, fragment or secrets."""
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return FILTERED
+    netloc = parts.netloc
+    if "@" in netloc:
+        netloc = netloc.rsplit("@", 1)[1]
+    elif netloc and not _HOST_PORT.fullmatch(netloc):
+        netloc = FILTERED
+    return urlunsplit((parts.scheme, netloc, _scrub_path(parts.path),
+                       _scrub_query(parts.query) if parts.query else "", ""))
 
 
 def scrub_text(text: Any) -> Any:
-    """Mask secrets in free text or a URL: ``token=…`` pairs, bearer credentials,
-    URL userinfo, and secret-bearing path segments."""
+    """Mask secrets in free text: URLs (see ``scrub_url``), ``token=…`` pairs,
+    bearer/basic credentials."""
     if not isinstance(text, str):
         return text
-    text = _URL_USERINFO.sub(r"\1", text)
-    text = _SECRET_ROUTE.sub(lambda m: m.group(1) + FILTERED, text)
-    text = _OPAQUE_SEGMENT.sub(_mask_opaque, text)
+    text = _ABSOLUTE_URL.sub(lambda m: scrub_url(m.group(0)), text)
+    text = _RELATIVE_URL.sub(lambda m: scrub_url(m.group(0)), text)
     text = _SECRET_PAIR.sub(r"\1" + FILTERED, text)
     return _BEARER.sub(lambda m: m.group(1) + " " + FILTERED, text)
 
 
-def scrub_data(data: Any) -> None:
-    """In place, at any depth: denylisted keys get ``[Filtered]``, strings are
-    passed through ``scrub_text``."""
-    if isinstance(data, dict):
-        for key, value in data.items():
-            if is_sensitive_key(key):
-                data[key] = FILTERED
-            elif isinstance(value, str):
-                data[key] = scrub_text(value)
-            else:
-                scrub_data(value)
-    elif isinstance(data, list):
-        for index, item in enumerate(data):
-            if isinstance(item, str):
-                data[index] = scrub_text(item)
-            else:
-                scrub_data(item)
+def scrub_value(value: Any, _depth: int = 0) -> Any:
+    """Scrubbed copy of ``value``: denylisted keys get ``[Filtered]``, strings
+    go through ``scrub_text``. Fails closed (unknown types, too deep)."""
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    if isinstance(value, str):
+        return scrub_text(value)
+    if _depth >= MAX_DEPTH:
+        return FILTERED
+    if isinstance(value, dict):
+        return {
+            key: FILTERED if is_sensitive_key(key) else scrub_value(item, _depth + 1)
+            for key, item in value.items()
+        }
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return [scrub_value(item, _depth + 1) for item in value]
+    return FILTERED
+
+
+def _scrub_in(container: Any, key: str) -> None:
+    if isinstance(container, dict) and key in container:
+        container[key] = scrub_value(container[key])
+
+
+def _exception_like(event: dict[str, Any]):
+    for section in ("exception", "threads"):
+        container = event.get(section)
+        values = container.get("values") if isinstance(container, dict) else container
+        for value in values if isinstance(values, list) else []:
+            if isinstance(value, dict):
+                yield value
 
 
 def _frames(event: dict[str, Any]):
-    stacks = []
-    if isinstance(event.get("stacktrace"), dict):
-        stacks.append(event["stacktrace"])
-    for section in ("exception", "threads"):
-        container = event.get(section)
-        values = container.get("values") if isinstance(container, dict) else None
-        for value in values if isinstance(values, list) else []:
-            if isinstance(value, dict) and isinstance(value.get("stacktrace"), dict):
-                stacks.append(value["stacktrace"])
+    stacks = [event.get("stacktrace")]
+    stacks += [value.get("stacktrace") for value in _exception_like(event)]
     for stack in stacks:
-        frames = stack.get("frames")
+        frames = stack.get("frames") if isinstance(stack, dict) else None
         for frame in frames if isinstance(frames, list) else []:
             if isinstance(frame, dict):
                 yield frame
 
 
 def scrub_event(event: dict[str, Any]) -> dict[str, Any]:
-    """The 2.x ``EventScrubber`` places, recursively, plus contexts and spans.
-    Returns ``event``."""
+    """The 2.x ``EventScrubber`` places, recursively, plus contexts, exception
+    and log messages, and spans. Returns ``event``."""
     request = event.get("request")
-    if isinstance(request, dict):
-        for key in ("headers", "cookies", "data", "env"):
-            scrub_data(request.get(key))
-        for key in ("url", "query_string"):
-            if key in request:
-                request[key] = scrub_text(request[key])
-    scrub_data(event.get("extra"))
-    # contexts.response.headers (Set-Cookie…), contexts.trace.data, etc.
-    scrub_data(event.get("contexts"))
+    for key in ("headers", "cookies", "data", "env", "url", "query_string"):
+        _scrub_in(request, key)
+    for key in ("extra", "contexts", "message"):
+        _scrub_in(event, key)
+    _scrub_in(event, "tags")
+    logentry = event.get("logentry")
+    for key in ("message", "formatted", "params"):
+        _scrub_in(logentry, key)
     user = event.get("user")
     if isinstance(user, dict):
         user.pop("ip_address", None)
-        scrub_data(user)
+        event["user"] = scrub_value(user)
+    for value in _exception_like(event):
+        _scrub_in(value, "value")
     breadcrumbs = event.get("breadcrumbs")
     values = breadcrumbs.get("values") if isinstance(breadcrumbs, dict) else breadcrumbs
     for crumb in values if isinstance(values, list) else []:
-        if isinstance(crumb, dict):
-            if "message" in crumb:
-                crumb["message"] = scrub_text(crumb["message"])
-            scrub_data(crumb.get("data"))
+        for key in ("message", "data"):
+            _scrub_in(crumb, key)
     for frame in _frames(event):
-        scrub_data(frame.get("vars"))
+        _scrub_in(frame, "vars")
     spans = event.get("spans")
     for span in spans if isinstance(spans, list) else []:
         if isinstance(span, dict):
             for key in ("name", "description"):
-                if key in span:
-                    span[key] = scrub_text(span[key])
+                _scrub_in(span, key)
             for key in ("data", "attributes"):
                 if isinstance(span.get(key), dict):
                     span[key] = {k: _scrub_attribute(k, v) for k, v in span[key].items()}
-                    scrub_data(span[key])
     return event
 
 
 def _scrub_attribute(key: Any, value: Any) -> Any:
     if is_sensitive_key(key) or key in PII_SPAN_ATTRIBUTES:
         return FILTERED
-    if isinstance(value, str):
-        return scrub_text(value)
-    if isinstance(value, list):
-        return [scrub_text(item) for item in value]
-    return value
+    return scrub_value(value)
 
 
 def scrub_span(span: dict[str, Any]) -> dict[str, Any]:

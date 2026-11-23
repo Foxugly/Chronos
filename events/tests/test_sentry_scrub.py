@@ -3,7 +3,7 @@
 import json
 from unittest import TestCase
 
-from config.sentry_scrub import FILTERED, scrub_event, scrub_span, scrub_text
+from config.sentry_scrub import FILTERED, scrub_event, scrub_span, scrub_text, scrub_url, scrub_value
 
 UUID = "3f2b8c1e-9a4d-4e6f-8b7a-1c2d3e4f5a6b"
 
@@ -99,3 +99,53 @@ class ScrubSpanTests(TestCase):
 
         self.assertEqual(scrub_span({"name": "x", "attributes": Trap(password="hunter2")}),
                          {"name": FILTERED, "attributes": {}})
+
+
+class SecondReviewTests(TestCase):
+    """Second security review: exception messages, query/fragment, userinfo, fail-closed."""
+
+    def test_exception_and_thread_messages_are_scrubbed(self):
+        event = scrub_event({
+            "exception": {"values": [{"type": "HTTPError",
+                                      "value": "401 for https://bob:pa55@api/x?api_key=k3y"}]},
+            "threads": {"values": [{"value": "GET /reset/MQ/c4v2xx-0123456789abcdef0123/"}]},
+            "logentry": {"message": "%s", "params": ["token=abc123"], "formatted": "token=abc123"},
+        })
+        self.assertEqual(leaked(event, "pa55", "k3y", "c4v2xx", "abc123"), [])
+        self.assertIn("HTTPError", json.dumps(event))
+
+    def test_query_values_sensitive_or_opaque_and_fragment(self):
+        out = scrub_text("https://h/cb?code=0aB1&state=ok&next=Zx9QwErTyUiOpAsDf&page=2#access_token=t0k")
+        self.assertEqual(leaked(out, "0aB1", "Zx9QwErTyUiOpAsDf", "t0k", "access_token"), [])
+        self.assertIn("state=ok", out)
+        self.assertIn("page=2", out)
+        self.assertNotIn("#", out)
+        # Mixed case is enough: no digit required.
+        self.assertIn(FILTERED, scrub_text("/x?ref=AbCdEfGhIjKlMnOpQr"))
+        self.assertEqual(scrub_text(f"/x?id={UUID}"), f"/x?id={UUID}")
+
+    def test_userinfo_is_stripped_robustly(self):
+        self.assertEqual(scrub_url("https://a:b@c@host:8443/p"), "https://host:8443/p")
+        self.assertEqual(scrub_url("https://tok3n@host"), "https://host")
+        self.assertEqual(scrub_url("https://user:s3cr3t/p"), f"https://{FILTERED}/p")
+        self.assertEqual(scrub_url("https://host:8443/p"), "https://host:8443/p")
+        self.assertEqual(scrub_url("http://[::1]:8000/p"), "http://[::1]:8000/p")
+
+    def test_fail_closed_tuples_sets_unknown_types_and_depth(self):
+        event = scrub_event({"extra": {
+            "t": ("token=abc123", {"password": "hunter2"}),
+            "s": {"Bearer xyz"},
+            "obj": object(),
+            "n": 3,
+        }})
+        self.assertEqual(leaked(event, "abc123", "hunter2", "xyz"), [])
+        self.assertEqual(event["extra"]["obj"], FILTERED)
+        self.assertEqual(event["extra"]["n"], 3)
+        deep = current = {}
+        for _ in range(50):
+            current["d"] = {}
+            current = current["d"]
+        current["leaf"] = "raw-secret"
+        out = scrub_value(deep)
+        self.assertEqual(leaked(out, "raw-secret"), [])
+        self.assertIn(FILTERED, json.dumps(out))
