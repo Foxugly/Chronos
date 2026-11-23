@@ -2,8 +2,8 @@
 
 Règle du propriétaire : **aucune donnée personnelle, aucun contenu de courriel**
 ne quitte le serveur vers Sentry. Un dossier de litige n'a rien à faire dans un
-outil tiers. `send_default_pii=False` ne suffit pas : sentry-sdk joint quand
-même le corps des requêtes (`request.data`), l'URL complète avec sa query
+outil tiers. Les réglages par défaut du SDK ne suffisent pas : sentry-sdk joint
+le corps des requêtes (`request.data`), l'URL complète avec sa query
 string, les en-têtes (dont `Referer`), et les fils d'Ariane (messages de
 journaux, URL des appels HTTP sortants, qui citent l'adresse de la boîte).
 
@@ -24,6 +24,7 @@ import re
 from urllib.parse import urlsplit, urlunsplit
 
 from django.core.exceptions import DisallowedHost
+from sentry_sdk.scrubber import EventScrubber
 
 #: Journal des échecs d'import (`events.import_courriels.relever_la_boite`).
 JOURNAL_IMPORT = "events.import_courriels"
@@ -123,8 +124,36 @@ def _nettoyer_cadres(exception):
         cadre.pop("vars", None)
 
 
+# Termes proxy/IP que le SDK lui-même ajoute quand il traduit
+# `send_default_pii=False` ; s'ajoutent à sa liste noire de clés sensibles.
+_TERMES_PII = ["forwarded", "-ip", "remote-", "via", "-user"]
+
+#: Ce que le SDK collecte de lui-même (sentry-sdk 2.76 : remplace
+#: `send_default_pii=False`, devenu obsolète). Ni utilisateur, ni cookies, ni
+#: corps de requête, ni variables locales (elles contiennent les courriels et
+#: les dossiers), ni paramètres SQL : jamais plus qu'avant.
+DONNEES_COLLECTEES = {
+    "user_info": False,
+    "cookies": {"mode": "off"},
+    "http_headers": {"request": {"mode": "denylist", "terms": _TERMES_PII}},
+    "http_bodies": [],
+    "url_query_params": {"mode": "denylist", "terms": _TERMES_PII},
+    "graphql": {"document": False, "variables": False},
+    "gen_ai": {"inputs": False, "outputs": False},
+    "database_query_data": False,
+    "queues": False,
+    "stack_frame_variables": False,
+    "frame_context_lines": 5,
+}
+
+# Passer `data_collection` coupe l'EventScrubber du SDK : on le rejoue en tête
+# de nos propres filtres (données des spans et des fils d'Ariane comprises).
+_SCRUBBER = EventScrubber(send_default_pii=False)
+
+
 def _nettoyer_commun(evenement):
     """Ce qui vaut pour une erreur comme pour une transaction."""
+    _SCRUBBER.scrub_event(evenement)
     if "request" in evenement:
         requete = _nettoyer_requete(evenement["request"])
         if requete is None:
@@ -223,12 +252,10 @@ def reglages_sentry():
     exactement ce que la production utilise.
     """
     return {
-        "send_default_pii": False,
+        # Ni PII, ni cookies, ni corps, ni variables locales : `DONNEES_COLLECTEES`.
+        "data_collection": DONNEES_COLLECTEES,
         # Le corps d'une requête (titre, description, étiquettes) n'est jamais lu.
         "max_request_body_size": "never",
-        # Les variables locales d'une pile d'appels contiennent les courriels et
-        # les dossiers (octets, analyses, requêtes) : jamais envoyées.
-        "include_local_variables": False,
         "before_send": avant_envoi,
         "before_send_transaction": avant_transaction,
         "before_breadcrumb": avant_fil_d_ariane,

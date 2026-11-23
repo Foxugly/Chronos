@@ -393,9 +393,10 @@ LOGGING = {
 
 # Sentry (org foxugly-srl, projet chronos-backend). Rien n'est envoyé sans DSN.
 # Règle du propriétaire : aucune donnée personnelle, aucun contenu de courriel
-# chez Sentry. `send_default_pii=False` ne suffit pas (corps de requête, URL
-# avec jeton, fils d'Ariane) : `reglages_sentry()` coupe le corps, retire les
-# variables locales et filtre tout ce qui part (config/sentry_filtres.py).
+# chez Sentry. Les réglages par défaut du SDK ne suffisent pas (corps de requête,
+# URL avec jeton, fils d'Ariane) : `reglages_sentry()` fixe `data_collection`,
+# coupe le corps, retire les variables locales et filtre tout ce qui part
+# (config/sentry_filtres.py).
 SENTRY_DSN = os.environ.get("SENTRY_DSN", "").strip()
 if SENTRY_DSN:
     import sentry_sdk

@@ -8,6 +8,7 @@ serait parti.
 """
 
 import json
+import warnings
 from pathlib import Path
 
 import sentry_sdk
@@ -207,14 +208,36 @@ class MasquerUrlTests(SimpleTestCase):
 class ReglagesTests(SimpleTestCase):
     def test_les_reglages_de_production_sont_ceux_eprouves_ici(self):
         reglages = reglages_sentry()
-        self.assertIs(reglages["send_default_pii"], False)
+        self.assertNotIn("send_default_pii", reglages)
         self.assertEqual(reglages["max_request_body_size"], "never")
-        self.assertIs(reglages["include_local_variables"], False)
+        self.assertIs(reglages["data_collection"]["stack_frame_variables"], False)
         self.assertIs(reglages["before_send"], avant_envoi)
         self.assertIs(reglages["before_send_transaction"], avant_transaction)
         self.assertIs(reglages["before_breadcrumb"], avant_fil_d_ariane)
         source = (Path(settings.BASE_DIR) / "config" / "settings.py").read_text(encoding="utf-8")
         self.assertIn("**reglages_sentry()", source)
+
+    def test_data_collection_ne_collecte_rien_de_plus_et_sans_avertissement(self):
+        with warnings.catch_warnings(record=True) as avertissements:
+            warnings.simplefilter("always")
+            client = sentry_sdk.Client(dsn=None, default_integrations=False,
+                                       **reglages_sentry())
+        self.assertFalse([a for a in avertissements if "send_default_pii" in str(a.message)])
+        regles = client.options["data_collection"]
+        self.assertIs(regles["user_info"], False)
+        self.assertEqual(regles["cookies"], {"mode": "off"})
+        self.assertEqual(regles["http_bodies"], [])
+        self.assertIs(regles["stack_frame_variables"], False)
+        self.assertIs(regles["database_query_data"], False)
+
+    def test_le_scrubber_du_sdk_est_rejoue_sur_les_spans(self):
+        transaction = avant_transaction(
+            {"spans": [{"description": "SELECT 1", "data": {"password": "x", "db.system": "pg"}}]},
+            {},
+        )
+        donnees = transaction["spans"][0]["data"]
+        self.assertEqual(getattr(donnees["password"], "value", donnees["password"]), "[Filtered]")
+        self.assertEqual(donnees["db.system"], "pg")
 
 
 class TransportCapturant(Transport):
