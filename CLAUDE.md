@@ -853,9 +853,11 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.14 from deadsnakes — `/u
   fallback to a SQLite file. HTTPS/HSTS/secure cookies, Sentry (`SENTRY_DSN`), `/health/`
   (`config/sante.py`, real `SELECT 1`, 503 when down, public).
 - **Owner's standing rule: no personal data and no e-mail content ever reaches Sentry.**
-  `send_default_pii=False` is not enough (sentry-sdk still sends the request body, the full URL
+  The SDK defaults are not enough (sentry-sdk still sends the request body, the full URL
   with its share token, headers and breadcrumbs — proven by probe, audit 2026-10-18). All options
-  live in `config/sentry_filtres.reglages_sentry()`: body never read, no local variables, and
+  live in `config/sentry_filtres.reglages_sentry()`: `data_collection` (sentry-sdk ≥ 2.76, replaces
+  the deprecated `send_default_pii`; no user, cookies, body or local variables; the SDK's
+  EventScrubber, which it switches off, is re-applied by the filters), body never read, and
   allow-list filters on events, transactions and breadcrumbs (token path segments → `[token]`,
   no query string, user = opaque id, no `extra`, anything from `events.*` keeps type + stack only).
   A test walks every URL route with `token`/`key` and a probe goes through the real WSGI handler.
