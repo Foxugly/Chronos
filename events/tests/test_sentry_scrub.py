@@ -179,3 +179,36 @@ class ThirdReviewTests(TestCase):
         self.assertEqual(scrub_text(("token=abc123",)), [f"token={FILTERED}"])
         self.assertEqual(scrub_span({"name": b"GET /x?token=abc123", "attributes": {}})["name"],
                          FILTERED)
+
+
+class EveryFieldTests(TestCase):
+    """One token planted in every field that can carry user data: it must
+    appear nowhere in the serialized event."""
+
+    def test_planted_token_appears_nowhere(self):
+        tok = "T0kEnZx9QwErTyUiOpAsDf"
+        text = f"see https://u:{tok}@h/reset/{tok}/?token={tok}#{tok} and token={tok}"
+        mapping = {"token": tok, "note": text}
+        frames = {"frames": [{"function": "f", "vars": {"password": tok, "s": text}}]}
+        event = {
+            "request": {"url": f"https://h/invitation/{tok}/?q={tok}",
+                        "query_string": [("token", tok), ("q", tok)],
+                        "headers": {"Authorization": f"Bearer {tok}", "Referer": text},
+                        "cookies": {"sessionid": tok}, "data": mapping,
+                        "env": {"REMOTE_ADDR": tok, "QUERY_STRING": text}},
+            "message": text,
+            "logentry": {"message": text, "formatted": text, "params": [text, (tok, text)]},
+            "exception": {"values": [{"type": text, "value": text, "stacktrace": frames}]},
+            "threads": {"values": [{"value": text, "stacktrace": frames}]},
+            "breadcrumbs": {"values": [{"message": text, "data": mapping}]},
+            "extra": mapping, "tags": {"url": text, "token": tok},
+            "contexts": {"response": {"headers": {"Set-Cookie": f"sessionid={tok}"}},
+                         "trace": {"data": {"deep": [{"x": text}]}}},
+            "user": {"id": "7", "ip_address": tok, "token": tok},
+            "transaction": f"/reset/{tok}/", "culprit": f"GET /magic-link/{tok}/",
+            "spans": [{"name": text, "description": text, "data": mapping, "attributes": mapping}],
+        }
+        out = json.dumps(scrub_event(event), default=str)
+        self.assertNotIn(tok, out)
+        span = scrub_span({"name": text, "attributes": dict(mapping, url=text, lst=[text])})
+        self.assertNotIn(tok, json.dumps(span, default=str))

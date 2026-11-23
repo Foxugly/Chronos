@@ -147,10 +147,13 @@ def scrub_url(url: str) -> str:
 
 
 def scrub_text(text: Any) -> Any:
-    """Mask secrets in free text: URLs (see ``scrub_url``), ``token=…`` pairs,
-    bearer/basic credentials."""
+    """Mask secrets in free text: a bare opaque token, URLs (see
+    ``scrub_url``), ``token=…`` pairs, bearer/basic credentials."""
     if not isinstance(text, str):
         return scrub_value(text)
+    if is_opaque(text.strip()):
+        # A bare token (a log param, a query value in a pair list…).
+        return FILTERED
     text = _ABSOLUTE_URL.sub(lambda m: scrub_url(m.group(0)), text)
     text = _RELATIVE_URL.sub(lambda m: scrub_url(m.group(0)), text)
     text = _SECRET_PAIR.sub(r"\1" + FILTERED, text)
@@ -210,14 +213,15 @@ def _frames(event: dict[str, Any]):
 
 
 def scrub_event(event: dict[str, Any]) -> dict[str, Any]:
-    """The 2.x ``EventScrubber`` places, recursively, plus contexts, exception
-    and log messages, and spans. Returns ``event``."""
+    """Every field that can carry user data, recursively: request (url,
+    query_string, headers, cookies, data, env), message, logentry, exception
+    and thread values/types and frame vars, breadcrumbs, extra, tags,
+    contexts, user, transaction, culprit, spans. Returns ``event``."""
     request = event.get("request")
     for key in ("headers", "cookies", "data", "env", "url", "query_string"):
         _scrub_in(request, key)
-    for key in ("extra", "contexts", "message"):
+    for key in ("extra", "contexts", "message", "tags", "transaction", "culprit"):
         _scrub_in(event, key)
-    _scrub_in(event, "tags")
     logentry = event.get("logentry")
     for key in ("message", "formatted", "params"):
         _scrub_in(logentry, key)
@@ -226,7 +230,8 @@ def scrub_event(event: dict[str, Any]) -> dict[str, Any]:
         user.pop("ip_address", None)
         event["user"] = scrub_value(user)
     for value in _exception_like(event):
-        _scrub_in(value, "value")
+        for key in ("value", "type"):
+            _scrub_in(value, key)
     breadcrumbs = event.get("breadcrumbs")
     values = breadcrumbs.get("values") if isinstance(breadcrumbs, dict) else breadcrumbs
     for crumb in values if isinstance(values, list) else []:
