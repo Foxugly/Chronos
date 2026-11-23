@@ -15,8 +15,11 @@ no userinfo (``user:pass@``), the segment after a secret-bearing route
 query values masked when their key is sensitive or their value opaque, no
 fragment. ``name=value`` secrets and bearer credentials are masked too.
 
-It fails closed: unknown value types, and anything nested deeper than
-``MAX_DEPTH``, become ``[Filtered]``; tuples and sets are scrubbed like lists.
+It fails closed and never gates on type: non-string "text" (bytes, lists,
+tuples, sets) goes through the same scrubber, unknown value types and anything
+nested deeper than ``MAX_DEPTH`` become ``[Filtered]``. Query strings are
+decoded, checked chunk by chunk (opaque names and value-less chunks included)
+and re-encoded.
 ``scrub_event`` cannot raise on any event shape; were it to, sentry-sdk 3 drops
 the event, which is the safe side. ``scrub_span`` never raises: an exception
 in ``before_send_span`` makes the SDK send the span *unmodified*, so it falls
@@ -27,7 +30,7 @@ from __future__ import annotations
 
 import re
 from typing import Any
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 
 FILTERED = "[Filtered]"
 MAX_DEPTH = 20
@@ -82,6 +85,8 @@ _ROUTES = "|".join(re.escape(p) for p in sorted(SECRET_ROUTE_PREFIXES, key=len, 
 _SECRET_ROUTE = re.compile(rf"(?i)(/(?:{_ROUTES})/)(?!(?:done|key)/)[^/]+")
 _UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.IGNORECASE)
 _OPAQUE_CHARS = re.compile(r"[\w.~:+=%\-]{16,}")
+# A decoded query name or value may hold any character (base64 "/" "+").
+_OPAQUE_QUERY = re.compile(r"\S{16,}")
 
 
 def _normalize(key: str) -> str:
@@ -96,11 +101,11 @@ def is_sensitive_key(key: Any) -> bool:
     return normalized in DENYLIST or any(part in DENYLIST for part in normalized.split("."))
 
 
-def is_opaque(value: str) -> bool:
+def is_opaque(value: str, charset: re.Pattern = _OPAQUE_CHARS) -> bool:
     """A token-looking value: 16+ URL-safe characters with a digit or mixed
     case (a signed token, a random key, uidb64-token). A UUID is a resource id
     and is not opaque."""
-    if not _OPAQUE_CHARS.fullmatch(value) or _UUID.fullmatch(value):
+    if not charset.fullmatch(value) or _UUID.fullmatch(value):
         return False
     return (any(c.isdigit() for c in value)
             or (any(c.islower() for c in value) and any(c.isupper() for c in value)))
@@ -112,12 +117,18 @@ def _scrub_path(path: str) -> str:
 
 
 def _scrub_query(query: str) -> str:
-    pairs = [
-        (key, FILTERED if is_sensitive_key(key) or _SECRET_NAME.search(key) or is_opaque(value)
-         else value)
-        for key, value in parse_qsl(query, keep_blank_values=True)
-    ]
-    return urlencode(pairs, safe="[]/:")
+    """Decoded with ``parse_qsl`` (so ``tok%65n`` is read as ``token``), every
+    chunk -- value-less ones included -- checked by name and value, then
+    re-encoded: percent-encoding cannot smuggle a secret through."""
+    pairs = []
+    for name, value in parse_qsl(query, keep_blank_values=True):
+        if is_opaque(name, _OPAQUE_QUERY):
+            name, value = FILTERED, FILTERED if value else ""
+        elif (is_sensitive_key(name) or _SECRET_NAME.search(name)
+              or is_opaque(value, _OPAQUE_QUERY)):
+            value = FILTERED
+        pairs.append((name, value))
+    return urlencode(pairs, quote_via=quote, safe="[]")
 
 
 def scrub_url(url: str) -> str:
@@ -139,7 +150,7 @@ def scrub_text(text: Any) -> Any:
     """Mask secrets in free text: URLs (see ``scrub_url``), ``token=…`` pairs,
     bearer/basic credentials."""
     if not isinstance(text, str):
-        return text
+        return scrub_value(text)
     text = _ABSOLUTE_URL.sub(lambda m: scrub_url(m.group(0)), text)
     text = _RELATIVE_URL.sub(lambda m: scrub_url(m.group(0)), text)
     text = _SECRET_PAIR.sub(r"\1" + FILTERED, text)
@@ -161,8 +172,17 @@ def scrub_value(value: Any, _depth: int = 0) -> Any:
             for key, item in value.items()
         }
     if isinstance(value, (list, tuple, set, frozenset)):
-        return [scrub_value(item, _depth + 1) for item in value]
+        return [_scrub_item(item, _depth + 1) for item in value]
+    # bytes, objects…: never sent as they are.
     return FILTERED
+
+
+def _scrub_item(item: Any, depth: int) -> Any:
+    # A ``(name, value)`` pair (query-string or header lists): judge the name.
+    if (isinstance(item, (list, tuple)) and len(item) == 2 and isinstance(item[0], str)
+            and is_sensitive_key(item[0])):
+        return [item[0], FILTERED]
+    return scrub_value(item, depth)
 
 
 def _scrub_in(container: Any, key: str) -> None:
@@ -234,7 +254,8 @@ def _scrub_attribute(key: Any, value: Any) -> Any:
 def scrub_span(span: dict[str, Any]) -> dict[str, Any]:
     """``before_send_span``: same rules on the span name and attributes."""
     try:
-        span["name"] = scrub_text(span.get("name"))
+        name = span.get("name")
+        span["name"] = scrub_text(name) if isinstance(name, str) else FILTERED
         attributes = span.get("attributes")
         if isinstance(attributes, dict):
             span["attributes"] = {k: _scrub_attribute(k, v) for k, v in attributes.items()}

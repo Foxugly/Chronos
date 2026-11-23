@@ -149,3 +149,33 @@ class SecondReviewTests(TestCase):
         out = scrub_value(deep)
         self.assertEqual(leaked(out, "raw-secret"), [])
         self.assertIn(FILTERED, json.dumps(out))
+
+
+class ThirdReviewTests(TestCase):
+    """Third security review: opaque names, re-encoding, no type gating."""
+
+    def test_opaque_names_and_value_less_chunks_are_masked(self):
+        out = scrub_text("/x?Zx9QwErTyUiOpAsDf&page=2&AbCdEfGhIjKlMnOpQr=1")
+        self.assertEqual(leaked(out, "Zx9QwErTyUiOpAsDf", "AbCdEfGhIjKlMnOpQr"), [])
+        self.assertIn("page=2", out)
+
+    def test_percent_encoding_cannot_hide_a_secret(self):
+        out = scrub_text("/x?tok%65n=abc123&pass%77ord=hunter2&note=a%20b")
+        self.assertEqual(leaked(out, "abc123", "hunter2"), [])
+        self.assertIn("note=a%20b", out)
+        # A base64 value with "/" and "+" (decoded) is still opaque.
+        self.assertNotIn("Ab/Cd+Ef", scrub_text("/x?ref=Ab%2FCd%2BEf0123456789"))
+
+    def test_no_type_gating(self):
+        event = scrub_event({"request": {
+            "query_string": [("token", "abc123"), ("page", "2")],
+            "data": b"password=hunter2",
+            "headers": (("Authorization", "Bearer xyz"),),
+        }})
+        self.assertEqual(leaked(event, "abc123", "hunter2", "xyz"), [])
+        self.assertEqual(event["request"]["data"], FILTERED)
+        self.assertIn("2", json.dumps(event["request"]["query_string"]))
+        self.assertEqual(scrub_text(b"token=abc123"), FILTERED)
+        self.assertEqual(scrub_text(("token=abc123",)), [f"token={FILTERED}"])
+        self.assertEqual(scrub_span({"name": b"GET /x?token=abc123", "attributes": {}})["name"],
+                         FILTERED)
