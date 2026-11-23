@@ -855,10 +855,12 @@ Target: the Foxugly EC2 fleet (Ubuntu 24.04, Python 3.14 from deadsnakes — `/u
 - **Owner's standing rule: no personal data and no e-mail content ever reaches Sentry.**
   The SDK defaults are not enough (sentry-sdk still sends the request body, the full URL
   with its share token, headers and breadcrumbs — proven by probe, audit 2026-10-18). All options
-  live in `config/sentry_filtres.reglages_sentry()`: `data_collection` (sentry-sdk ≥ 2.76, replaces
-  the deprecated `send_default_pii`; no user, cookies, body or local variables; the SDK's
-  EventScrubber, which it switches off, is re-applied by the filters), body never read, and
-  allow-list filters on events, transactions and breadcrumbs (token path segments → `[token]`,
+  live in `config/sentry_filtres.reglages_sentry()`: `data_collection` (sentry-sdk 3; no user, cookies,
+  body or local variables; sentry-sdk 3 removed its EventScrubber, so `config/sentry_scrub.py`
+  re-applies its denylist), body never read, explicit integrations (`DjangoIntegration(cache_spans=False)`,
+  `LoggingIntegration(level=None, event_level=ERROR)` — 3.0 no longer enables it nor makes events
+  from `logger.error`), `attach_stacktrace=False`, and
+  allow-list filters on events, spans (`before_send_span`) and breadcrumbs (token path segments → `[token]`,
   no query string, user = opaque id, no `extra`, anything from `events.*` keeps type + stack only).
   A test walks every URL route with `token`/`key` and a probe goes through the real WSGI handler.
 - **Logs keep no token and no search**: gunicorn has no access log; nginx logs with

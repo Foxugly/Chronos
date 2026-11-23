@@ -20,11 +20,15 @@ D'où une liste blanche plutôt qu'une liste noire :
   masqués dans les textes qui restent.
 """
 
+import logging
 import re
 from urllib.parse import urlsplit, urlunsplit
 
 from django.core.exceptions import DisallowedHost
-from sentry_sdk.scrubber import EventScrubber
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
+
+from config.sentry_scrub import FILTERED, scrub_event, scrub_span
 
 #: Journal des échecs d'import (`events.import_courriels.relever_la_boite`).
 JOURNAL_IMPORT = "events.import_courriels"
@@ -128,8 +132,8 @@ def _nettoyer_cadres(exception):
 # `send_default_pii=False` ; s'ajoutent à sa liste noire de clés sensibles.
 _TERMES_PII = ["forwarded", "-ip", "remote-", "via", "-user"]
 
-#: Ce que le SDK collecte de lui-même (sentry-sdk 2.76 : remplace
-#: `send_default_pii=False`, devenu obsolète). Ni utilisateur, ni cookies, ni
+#: Ce que le SDK collecte de lui-même (sentry-sdk 3 : remplace
+#: `send_default_pii=False`, supprimé). Ni utilisateur, ni cookies, ni
 #: corps de requête, ni variables locales (elles contiennent les courriels et
 #: les dossiers), ni paramètres SQL : jamais plus qu'avant.
 DONNEES_COLLECTEES = {
@@ -140,20 +144,20 @@ DONNEES_COLLECTEES = {
     "url_query_params": {"mode": "denylist", "terms": _TERMES_PII},
     "graphql": {"document": False, "variables": False},
     "gen_ai": {"inputs": False, "outputs": False},
+    "mcp": {"inputs": False, "outputs": False},
     "database_query_data": False,
     "queues": False,
     "stack_frame_variables": False,
     "frame_context_lines": 5,
 }
 
-# Passer `data_collection` coupe l'EventScrubber du SDK : on le rejoue en tête
-# de nos propres filtres (données des spans et des fils d'Ariane comprises).
-_SCRUBBER = EventScrubber(send_default_pii=False)
-
-
 def _nettoyer_commun(evenement):
-    """Ce qui vaut pour une erreur comme pour une transaction."""
-    _SCRUBBER.scrub_event(evenement)
+    """Ce qui vaut pour toute erreur ou tout message.
+
+    sentry-sdk 3 a supprimé son EventScrubber : `config/sentry_scrub` en
+    rejoue la liste noire en tête de nos propres filtres.
+    """
+    scrub_event(evenement)
     if "request" in evenement:
         requete = _nettoyer_requete(evenement["request"])
         if requete is None:
@@ -216,9 +220,54 @@ def avant_envoi(evenement, indice):
     return _nettoyer_commun(evenement)
 
 
-def avant_transaction(evenement, indice):
-    """`before_send_transaction` : mesures de performance."""
-    return _nettoyer_commun(evenement)
+#: Attributs de span jamais transmis : query string, fragment, corps.
+_ATTRIBUTS_RETIRES = frozenset({
+    "url.query", "url.fragment", "http.query", "http.fragment", "http.request.body.data",
+})
+_PREFIXE_ENTETE = "http.request.header."
+
+
+def _attribut_permis(cle):
+    if cle in _ATTRIBUTS_RETIRES:
+        return False
+    if cle.startswith(_PREFIXE_ENTETE):
+        return cle[len(_PREFIXE_ENTETE):].lower().replace("_", "-") in ENTETES_PERMIS
+    # L'utilisateur : l'identifiant opaque seulement.
+    return not cle.startswith("user.") or cle == "user.id"
+
+
+def _masquer_valeur(cle, valeur):
+    if valeur == FILTERED:
+        return valeur
+    if cle in ("url.full", "http.url", "url"):
+        return masquer_url(valeur)
+    if isinstance(valeur, list):
+        return [masquer_texte(v) for v in valeur]
+    return masquer_texte(valeur)
+
+
+def avant_span(span, indice):
+    """`before_send_span` (sentry-sdk 3 : les spans remplacent les transactions).
+
+    Un span ne peut pas être supprimé, seulement réécrit : nom et attributs
+    passent par la liste noire du SDK (`scrub_span`), puis par nos masques
+    (jetons, query strings, adresses e-mail) ; les en-têtes hors liste blanche,
+    la query string et l'utilisateur (hors identifiant) sont retirés. Ne lève
+    jamais : une exception ferait partir le span d'origine.
+    """
+    span = scrub_span(span)
+    try:
+        span["name"] = masquer_texte(span.get("name"))
+        attributs = span.get("attributes")
+        if isinstance(attributs, dict):
+            span["attributes"] = {
+                cle: _masquer_valeur(cle, valeur)
+                for cle, valeur in attributs.items()
+                if isinstance(cle, str) and _attribut_permis(cle)
+            }
+        return span
+    except Exception:  # noqa: BLE001 -- sinon le SDK enverrait le span brut
+        return {"name": FILTERED, "attributes": {}}
 
 
 def avant_fil_d_ariane(miette, indice):
@@ -252,11 +301,22 @@ def reglages_sentry():
     exactement ce que la production utilise.
     """
     return {
+        "integrations": [
+            # Pas de spans de cache (sentry-sdk 3 les active par défaut).
+            DjangoIntegration(cache_spans=False),
+            # sentry-sdk 3 n'active plus l'intégration des journaux d'office, et
+            # sans `event_level` un `logger.error()` ne crée plus d'évènement.
+            # `level=None` : pas de « Sentry Logs » (jamais envoyés en 2.x).
+            LoggingIntegration(level=None, event_level=logging.ERROR,
+                               breadcrumb_level=logging.INFO),
+        ],
+        # Défaut passé à True en 3.0 : un simple message n'emporte pas de pile.
+        "attach_stacktrace": False,
         # Ni PII, ni cookies, ni corps, ni variables locales : `DONNEES_COLLECTEES`.
         "data_collection": DONNEES_COLLECTEES,
         # Le corps d'une requête (titre, description, étiquettes) n'est jamais lu.
         "max_request_body_size": "never",
         "before_send": avant_envoi,
-        "before_send_transaction": avant_transaction,
+        "before_send_span": avant_span,
         "before_breadcrumb": avant_fil_d_ariane,
     }

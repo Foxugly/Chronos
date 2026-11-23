@@ -191,7 +191,6 @@ django==6.1.3 \
     #   -r requirements.in
     #   django-allauth
     #   django-otp
-    #   sentry-sdk
 django-allauth==65.22.1 \
     --hash=sha256:08f7a3ddbd5ff7f1000d685dee9c0678d0da2057e18bed473a6eb2de18bd04e4 \
     --hash=sha256:b05e20b8f511066c97ed98491520a2ca0319ef16d7f27feed9f688cc6877a8ba
@@ -425,9 +424,9 @@ reportlab==5.1.0 \
     --hash=sha256:59fdbaec5efe437095ad1d7292ec9a271c8ca2d3ec75e889c6e61400929b90df \
     --hash=sha256:6878200464527e87672d19e9f7cfc6bb890e3a6931e74ac6a1a8d1754aa55671
     # via -r requirements.in
-sentry-sdk==2.76.0 \
-    --hash=sha256:08115d93eab60ab6e49e2b867254aaa0babaca4dfa4d8fcf905c5d980e157041 \
-    --hash=sha256:1cd9a82a1610ce8f472efd3841542e3b957a26d5ffe83ddf48215bfd07c3833f
+sentry-sdk==3.0.0 \
+    --hash=sha256:22cfcdb11b494e8efa82a48edd655afdf99179df37f2ed37f18846b938455c36 \
+    --hash=sha256:daa5f0baa931dfd8c4d6844b4992764683a1abdcbad968c76703c34f0e244f13
     # via -r requirements.in
 sqlparse==0.6.1 \
     --hash=sha256:3be5a72d04c873d690d7c6dedd33d6fae2ef82759881ceec02fc2efd0cba564f \
